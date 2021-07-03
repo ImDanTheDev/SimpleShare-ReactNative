@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "555940005658",
+    "project_id": "simpleshare-428bb",
+    "storage_bucket": "simpleshare-428bb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:555940005658:android:3c32bd9ff11be2333dcea3",
+        "android_client_info": {
+          "package_name": "com.simpleshare"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "555940005658-885s6ps7s5a2sl3t186tbbv53o7n60ck.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.simpleshare",
+            "certificate_hash": "d91323541960c7e19489c993dc86d86c9a2be955"
+          }
+        },
+        {
+          "client_id": "555940005658-jv7ungr9jbepa8ttcnu0e2rmub7siteo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKoZGGzaQ0soYQDC4CdtUoKaQ8jTR__RE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "555940005658-jv7ungr9jbepa8ttcnu0e2rmub7siteo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
