@@ -14,11 +14,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "555940005658-885s6ps7s5a2sl3t186tbbv53o7n60ck.apps.googleusercontent.com",
+          "client_id": "555940005658-svit6oc737996h5uj5ed31ie3bunf776.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.simpleshare",
-            "certificate_hash": "d91323541960c7e19489c993dc86d86c9a2be955"
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
           }
         },
         {
