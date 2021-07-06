@@ -1,29 +1,35 @@
-import { Observer } from "@reduxjs/toolkit";
-import FirebaseAuthProvider from "./FirebaseAuthProvider";
-import IAuthProvider from "./IAuthProvider";
-import IUser from "./IUser";
-import SimpleShareAuthProvider from "./SimpleShareAuthProvider";
+import { Observer } from '@reduxjs/toolkit';
+import FirebaseAuthProvider from './FirebaseAuthProvider';
+import IAuthProvider from './IAuthProvider';
+import IUser from './IUser';
+import SimpleShareAuthProvider from './SimpleShareAuthProvider';
+import { store } from '../../store';
+import { setUser } from '../../authSlice';
 
 export enum AuthProviderType {
     Firebase,
-    SimpleShare
+    SimpleShare,
 }
 
 export default class AuthService {
-
     private readonly authProvider: IAuthProvider;
-    private readonly authStateChangeObservers: Observer<IUser | null>[] = [];
+    private readonly authStateChangeObservers: Observer<IUser | undefined>[] =
+        [];
 
     constructor(authProviderType: AuthProviderType) {
         switch (authProviderType) {
             case AuthProviderType.Firebase:
-                this.authProvider = new FirebaseAuthProvider('555940005658-jv7ungr9jbepa8ttcnu0e2rmub7siteo.apps.googleusercontent.com', (user: IUser | null) => {
-                    for (const observer of this.authStateChangeObservers) {
-                        if (observer.next) {
-                            observer.next(user);
+                this.authProvider = new FirebaseAuthProvider(
+                    (user: IUser | undefined) => {
+                        store.dispatch(setUser(user));
+
+                        for (const observer of this.authStateChangeObservers) {
+                            if (observer.next) {
+                                observer.next(user);
+                            }
                         }
                     }
-                });
+                );
                 break;
             case AuthProviderType.SimpleShare:
                 this.authProvider = new SimpleShareAuthProvider();
@@ -40,7 +46,8 @@ export default class AuthService {
         }
 
         return () => {
-            const observerIndex = this.authStateChangeObservers.indexOf(observer);
+            const observerIndex =
+                this.authStateChangeObservers.indexOf(observer);
             if (observerIndex === -1) {
                 return console.log('Obserer does not exist.');
             }
@@ -49,11 +56,17 @@ export default class AuthService {
         };
     }
 
-    googleSignIn = async (): Promise<IUser> => {
-        return await this.authProvider.googleSignIn();
-    }
+    googleSignIn = async (): Promise<IUser | undefined> => {
+        try {
+            const user = await this.authProvider.googleSignIn();
+            return user;
+        } catch {
+            await this.signOut();
+            return undefined;
+        }
+    };
 
     signOut = async (): Promise<void> => {
-        return await this.authProvider.signOut();
-    }
+        await this.authProvider.signOut();
+    };
 }

@@ -1,9 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import {
-  Button,
-  Text,
-  View,
-} from 'react-native';
+import React from 'react';
+import { Button, Text, View } from 'react-native';
 import { NavigationFunctionComponent } from 'react-native-navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { increment } from '../counterSlice';
@@ -12,58 +8,53 @@ import IUser from '../services/auth/IUser';
 import AuthService, { AuthProviderType } from '../services/auth/AuthService';
 
 interface Props {
-  /** react-native-navigation component id. */
-  componentId: string
+    /** react-native-navigation component id. */
+    componentId: string;
 }
 
-const WelcomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
-  const authService = new AuthService(AuthProviderType.Firebase);
+const authService = new AuthService(AuthProviderType.Firebase);
 
-  const dispatch = useDispatch();
-  const count = useSelector((state: RootState) => state.counter.value);
+const WelcomeScreen: NavigationFunctionComponent<Props> = () => {
+    const dispatch = useDispatch();
+    const count = useSelector((state: RootState) => state.counter.value);
 
-  const [user, setUser] = useState<IUser>();
+    const user: IUser | undefined = useSelector(
+        (state: RootState) => state.auth.user
+    );
 
-  useEffect(() => {
-    const subscriber = authService.onAuthStateChanged({
-      next: (user: IUser) => {
-        setUser(user);
-      }
-    });
+    const incrementCounter = () => {
+        dispatch(increment());
+    };
 
-    return () => {
-      subscriber(); //unsubscribe
-    }
-  }, []);
+    const handleGoogleSignInButton = async () => {
+        try {
+            await authService.googleSignIn();
+        } catch (e) {}
+    };
 
-  const incrementCounter = () => {
-    dispatch(increment());
-  }
+    const handleSignOutButton = async () => {
+        await authService.signOut();
+    };
 
-  const handleGoogleSignInButton = async () => {
-    setUser(await authService.googleSignIn());
-  }
-
-  const handleSignOutButton = async () => {
-    await authService.signOut();
-  }
-
-  return (
-    <View>
-      {user ? (
-        <>
-          <Text>Welcome {user?.displayName}</Text>
-          <Button title='Sign-Out' onPress={handleSignOutButton} />
-        </>
-      ) : (
-        <>
-          <Text>Simple Share {count}</Text>
-          <Button title='Increment' onPress={incrementCounter} />
-          <Button title='Google Sign-In' onPress={handleGoogleSignInButton} />
-        </>
-      )}
-    </View>
-  );
+    return (
+        <View>
+            {user ? (
+                <>
+                    <Text>Welcome {user?.displayName}</Text>
+                    <Button title='Sign-Out' onPress={handleSignOutButton} />
+                </>
+            ) : (
+                <>
+                    <Text>Simple Share {count}</Text>
+                    <Button title='Increment' onPress={incrementCounter} />
+                    <Button
+                        title='Google Sign-In'
+                        onPress={handleGoogleSignInButton}
+                    />
+                </>
+            )}
+        </View>
+    );
 };
 
 export default WelcomeScreen;

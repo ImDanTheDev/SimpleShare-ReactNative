@@ -5,7 +5,9 @@ import { persistStore } from 'redux-persist';
 import { Navigation } from 'react-native-navigation';
 import { store } from './src/store';
 import SplashScreen from './src/components/SplashScreen';
-import WelcomeScreen, { ComponentId as WelcomeScreenComponentId } from './src/components/WelcomeScreen';
+import WelcomeScreen, {
+    ComponentId as WelcomeScreenComponentId,
+} from './src/components/WelcomeScreen';
 
 const persistor = persistStore(store);
 
@@ -21,9 +23,11 @@ const WrappedComponent = (Component) => {
 
         return <EnhancedComponent />;
     };
-}
+};
 
-Navigation.registerComponent(WelcomeScreenComponentId, () => WrappedComponent(WelcomeScreen));
+Navigation.registerComponent(WelcomeScreenComponentId, () =>
+    WrappedComponent(WelcomeScreen)
+);
 Navigation.events().registerAppLaunchedListener(() => {
     Navigation.setRoot({
         root: {
@@ -31,11 +35,11 @@ Navigation.events().registerAppLaunchedListener(() => {
                 children: [
                     {
                         component: {
-                            name: WelcomeScreenComponentId
-                        }
-                    }
-                ]
-            }
-        }
+                            name: WelcomeScreenComponentId,
+                        },
+                    },
+                ],
+            },
+        },
     });
 });

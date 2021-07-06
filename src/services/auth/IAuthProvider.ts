@@ -1,6 +1,6 @@
-import IUser from "./IUser";
+import IUser from './IUser';
 
 export default interface IAuthProvider {
-    googleSignIn: () => Promise<IUser>,
-    signOut: () => Promise<void>
+    googleSignIn: () => Promise<IUser>;
+    signOut: () => Promise<void>;
 }

@@ -1,45 +1,53 @@
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
-import IAuthProvider from "./IAuthProvider";
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import IAuthProvider from './IAuthProvider';
 import auth from '@react-native-firebase/auth';
-import IUser from "./IUser";
+import IUser from './IUser';
+
+const GoogleWebClientId =
+    '555940005658-jv7ungr9jbepa8ttcnu0e2rmub7siteo.apps.googleusercontent.com';
 
 export default class FirebaseAuthProvider implements IAuthProvider {
-
-    constructor(googleWebClientId: string, onAuthStateChanged: (user: IUser | null) => void) {
+    constructor(onAuthStateChanged: (user: IUser | undefined) => void) {
         GoogleSignin.configure({
-            webClientId: googleWebClientId,
+            webClientId: GoogleWebClientId,
         });
 
-        auth().onAuthStateChanged(onAuthStateChanged);
-    }
-
-    googleSignIn = (): Promise<IUser> => {
-        return new Promise<IUser>(async (resolve, reject) => {
-            try {
-                const { idToken } = await GoogleSignin.signIn();
-                const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-                const firebaseUserCredential = await auth().signInWithCredential(googleCredential);
-                const firebaseUser = firebaseUserCredential.user;
-
-                resolve({
-                    displayName: firebaseUser.displayName
+        auth().onAuthStateChanged(async (firebaseUser) => {
+            if (firebaseUser) {
+                onAuthStateChanged({
+                    displayName: firebaseUser.displayName || '',
                 });
-            } catch (e) {
-                reject(e);
-                throw e;
+            } else {
+                onAuthStateChanged(undefined);
             }
         });
     }
 
-    signOut = (): Promise<void> => {
-        return new Promise<void>(async (resolve, reject) => {
-            try {
-                await auth().signOut();
-                resolve();
-            } catch (e) {
-                reject(e);
-                throw e;
-            }
-        });
-    }
+    googleSignIn = async (): Promise<IUser> => {
+        let idToken;
+        // Attempt to re-use an already signed-in Google user.
+        try {
+            idToken = (await GoogleSignin.signInSilently()).idToken;
+        } catch {
+            idToken = (await GoogleSignin.signIn()).idToken;
+        }
+
+        const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+        // Sign in to Firebase.
+        const firebaseUserCredential = await auth().signInWithCredential(
+            googleCredential
+        );
+        const firebaseUser = firebaseUserCredential.user;
+
+        return {
+            displayName: firebaseUser.displayName || undefined,
+        };
+    };
+
+    signOut = async (): Promise<void> => {
+        // Sign out of the Google account to allow users to pick a new one.
+        await GoogleSignin.signOut();
+        // Sign out of Firebase.
+        await auth().signOut();
+    };
 }
