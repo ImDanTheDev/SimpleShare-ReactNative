@@ -15,6 +15,7 @@ export default class FirebaseAuthProvider implements IAuthProvider {
         auth().onAuthStateChanged(async (firebaseUser) => {
             if (firebaseUser) {
                 onAuthStateChanged({
+                    uid: firebaseUser.uid,
                     displayName: firebaseUser.displayName || '',
                 });
             } else {
@@ -40,6 +41,7 @@ export default class FirebaseAuthProvider implements IAuthProvider {
         const firebaseUser = firebaseUserCredential.user;
 
         return {
+            uid: firebaseUser.uid,
             displayName: firebaseUser.displayName || undefined,
         };
     };

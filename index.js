@@ -9,6 +9,18 @@ import WelcomeScreen, {
     ComponentId as WelcomeScreenComponentId,
 } from './src/components/WelcomeScreen';
 
+import CompleteProfileScreen, {
+    ComponentId as CompleteProfileScreenComponentId,
+} from './src/components/CompleteProfileScreen';
+
+import HomeScreen, {
+    ComponentId as HomeScreenComponentId,
+} from './src/components/HomeScreen';
+
+import SigninScreen, {
+    ComponentId as SigninScreenComponentId,
+} from './src/components/SigninScreen';
+
 const persistor = persistStore(store);
 
 const WrappedComponent = (Component) => {
@@ -27,6 +39,15 @@ const WrappedComponent = (Component) => {
 
 Navigation.registerComponent(WelcomeScreenComponentId, () =>
     WrappedComponent(WelcomeScreen)
+);
+Navigation.registerComponent(CompleteProfileScreenComponentId, () =>
+    WrappedComponent(CompleteProfileScreen)
+);
+Navigation.registerComponent(HomeScreenComponentId, () =>
+    WrappedComponent(HomeScreen)
+);
+Navigation.registerComponent(SigninScreenComponentId, () =>
+    WrappedComponent(SigninScreen)
 );
 Navigation.events().registerAppLaunchedListener(() => {
     Navigation.setRoot({

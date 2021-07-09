@@ -17,17 +17,24 @@ import {
 } from 'redux-persist';
 import counterReducer, { CounterState } from './counterSlice';
 import authReducer, { AuthState } from './authSlice';
+import userReducer, { UserDataState } from './userSlice';
 
 const rootReducer = combineReducers({
     counter: counterReducer,
     auth: authReducer,
+    user: userReducer,
 });
 
 const persistConfig: PersistConfig<
-    CombinedState<{ counter: CounterState; auth: AuthState }>
+    CombinedState<{
+        counter: CounterState;
+        auth: AuthState;
+        user: UserDataState;
+    }>
 > = {
     key: 'root',
     storage: AsyncStorage,
+    blacklist: ['user'],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
