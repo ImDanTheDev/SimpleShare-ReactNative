@@ -1,10 +1,10 @@
 import { Observer } from '@reduxjs/toolkit';
 import FirebaseAuthProvider from './FirebaseAuthProvider';
 import IAuthProvider from './IAuthProvider';
-import IUser from './IUser';
+import IUser from '../../api/IUser';
 import SimpleShareAuthProvider from './SimpleShareAuthProvider';
-import { store } from '../../store';
-import { setUser } from '../../authSlice';
+import { store } from '../../redux/store';
+import { setUser } from '../../redux/authSlice';
 
 export enum AuthProviderType {
     Firebase,

@@ -5,9 +5,9 @@ import {
     NavigationFunctionComponent,
 } from 'react-native-navigation';
 import { useSelector } from 'react-redux';
-import { authService } from '../api';
-import IUser from '../services/auth/IUser';
-import { RootState } from '../store';
+import { signOut } from '../api/AccountAPI';
+import IUser from '../api/IUser';
+import { RootState } from '../redux/store';
 import { ComponentId as WelcomeScreenComponentId } from './WelcomeScreen';
 
 interface Props {
@@ -43,7 +43,7 @@ const HomeScreen: NavigationFunctionComponent<Props> = () => {
     }, [user]);
 
     const handleSignOutButton = async () => {
-        await authService.signOut();
+        await signOut();
     };
 
     return (

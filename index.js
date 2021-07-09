@@ -3,15 +3,15 @@ import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { persistStore } from 'redux-persist';
 import { Navigation } from 'react-native-navigation';
-import { store } from './src/store';
+import { store } from './src/redux/store';
 import SplashScreen from './src/components/SplashScreen';
 import WelcomeScreen, {
     ComponentId as WelcomeScreenComponentId,
 } from './src/components/WelcomeScreen';
 
-import CompleteProfileScreen, {
-    ComponentId as CompleteProfileScreenComponentId,
-} from './src/components/CompleteProfileScreen';
+import CompleteAccountScreen, {
+    ComponentId as CompleteAccountScreenComponentId,
+} from './src/components/CompleteAccountScreen';
 
 import HomeScreen, {
     ComponentId as HomeScreenComponentId,
@@ -40,8 +40,8 @@ const WrappedComponent = (Component) => {
 Navigation.registerComponent(WelcomeScreenComponentId, () =>
     WrappedComponent(WelcomeScreen)
 );
-Navigation.registerComponent(CompleteProfileScreenComponentId, () =>
-    WrappedComponent(CompleteProfileScreen)
+Navigation.registerComponent(CompleteAccountScreenComponentId, () =>
+    WrappedComponent(CompleteAccountScreen)
 );
 Navigation.registerComponent(HomeScreenComponentId, () =>
     WrappedComponent(HomeScreen)

@@ -1,8 +1,8 @@
-import { store } from '../../store';
-import { setUserData } from '../../userSlice';
+import { store } from '../../redux/store';
+import { setAccountInfo } from '../../redux/accountSlice';
 import FirestoreDatabaseProvider from './FirestoreDatabaseProvider';
 import IDatabaseProvider from './IDatabaseProvider';
-import IUserData from './IUserData';
+import IAccountInfo from '../../api/IAccountInfo';
 import SimpleShareDatabaseProvider from './SimpleShareDatabaseProvider';
 
 export enum DatabaseProviderType {
@@ -23,20 +23,23 @@ export default class DatabaseService {
         }
     }
 
-    getUserData = async (uid: string): Promise<IUserData> => {
-        const userData = await this.databaseProvider.getUserData(uid);
-        store.dispatch(setUserData(userData));
+    getAccountInfo = async (uid: string): Promise<IAccountInfo> => {
+        const accountInfo = await this.databaseProvider.getAccountInfo(uid);
+        store.dispatch(setAccountInfo(accountInfo));
 
-        return userData;
+        return accountInfo;
     };
 
-    setUserData = async (
+    setAccountInfo = async (
         uid: string,
-        userData: IUserData
+        accountInfo: IAccountInfo
     ): Promise<boolean> => {
-        const success = await this.databaseProvider.setUserData(uid, userData);
+        const success = await this.databaseProvider.setAccountInfo(
+            uid,
+            accountInfo
+        );
         if (success) {
-            store.dispatch(setUserData(userData));
+            store.dispatch(setAccountInfo(accountInfo));
         }
         return success;
     };

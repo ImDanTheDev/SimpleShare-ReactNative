@@ -5,9 +5,9 @@ import {
     NavigationFunctionComponent,
 } from 'react-native-navigation';
 import { useDispatch, useSelector } from 'react-redux';
-import { authService } from '../api';
-import { increment } from '../counterSlice';
-import { RootState } from '../store';
+import { googleSignIn } from '../api/AccountAPI';
+import { increment } from '../redux/counterSlice';
+import { RootState } from '../redux/store';
 import { ComponentId as WelcomeScreenComponentId } from './WelcomeScreen';
 
 interface Props {
@@ -51,7 +51,7 @@ const SigninScreen: NavigationFunctionComponent<Props> = () => {
 
     const handleGoogleSignInButton = async () => {
         try {
-            await authService.googleSignIn();
+            await googleSignIn();
         } catch (e) {}
     };
 

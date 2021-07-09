@@ -1,7 +1,7 @@
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import IAuthProvider from './IAuthProvider';
 import auth from '@react-native-firebase/auth';
-import IUser from './IUser';
+import IUser from '../../api/IUser';
 
 const GoogleWebClientId =
     '555940005658-jv7ungr9jbepa8ttcnu0e2rmub7siteo.apps.googleusercontent.com';

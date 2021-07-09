@@ -1,16 +1,16 @@
 import IDatabaseProvider from './IDatabaseProvider';
-import IUserData from './IUserData';
+import IAccountInfo from '../../api/IAccountInfo';
 
 export default class SimpleShareDatabaseProvider implements IDatabaseProvider {
-    getUserData = (): Promise<IUserData> => {
-        return new Promise<IUserData>(async (resolve, reject) => {
+    getAccountInfo = (): Promise<IAccountInfo> => {
+        return new Promise<IAccountInfo>(async (resolve, reject) => {
             reject('Simple Share database is not implemented.');
         });
     };
 
-    setUserData = async (
+    setAccountInfo = async (
         uid: string,
-        userData: IUserData
+        accountInfo: IAccountInfo
     ): Promise<boolean> => {
         return new Promise<boolean>(async (resolve, reject) => {
             reject('Simple Share database is not implemented.');

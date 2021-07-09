@@ -5,13 +5,13 @@ import {
     NavigationFunctionComponent,
 } from 'react-native-navigation';
 import { useSelector } from 'react-redux';
-import { RootState } from '../store';
-import IUser from '../services/auth/IUser';
-import { databaseService } from '../api';
-import IUserData from '../services/database/IUserData';
+import { RootState } from '../redux/store';
+import IUser from '../api/IUser';
+import { databaseService } from '../api/api';
+import IAccountInfo from '../api/IAccountInfo';
 import { ComponentId as SigninScreenComponentId } from './SigninScreen';
 import { ComponentId as HomeScreenComponentId } from './HomeScreen';
-import { ComponentId as CompleteProfileScreenComponentId } from './CompleteProfileScreen';
+import { ComponentId as CompleteAccountScreenComponentId } from './CompleteAccountScreen';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -19,7 +19,7 @@ interface Props {
 }
 
 // Check the authentication state and either show the SigninScreen,
-// CompleteProfileScreen, or HomeScreen.
+// CompleteAccountScreen, or HomeScreen.
 const WelcomeScreen: NavigationFunctionComponent<Props> = () => {
     const user: IUser | undefined = useSelector(
         (state: RootState) => state.auth.user,
@@ -34,11 +34,11 @@ const WelcomeScreen: NavigationFunctionComponent<Props> = () => {
         }
     );
 
-    const userData: IUserData | undefined = useSelector(
-        (state: RootState) => state.user.userData
+    const accountInfo: IAccountInfo | undefined = useSelector(
+        (state: RootState) => state.user.accountInfo
     );
 
-    // This is called after the initial render and after 'user' or 'userData' changes.
+    // This is called after the initial render and after 'user' or 'accountInfo' changes.
     useEffect(() => {
         const setRootScreen = async (screenId: string) => {
             await Navigation.setRoot({
@@ -60,26 +60,30 @@ const WelcomeScreen: NavigationFunctionComponent<Props> = () => {
             if (user) {
                 // We have a user.
                 console.log(
-                    'We have a user, so check if we have their user data.'
+                    'We have a user, so check if we have their account info.'
                 );
-                if (userData) {
-                    // We fetched the user data on the previous render, so now we have it.
-                    console.log('We have the user data, but is it complete?');
-                    if (userData.isProfileComplete) {
+                if (accountInfo) {
+                    // We fetched the account info on the previous render, so now we have it.
+                    console.log(
+                        'We have the account info, but is it complete?'
+                    );
+                    if (accountInfo.isAccountComplete) {
                         console.log(
-                            'User data is complete, so go to HomeScreen.'
+                            'Account info is complete, so go to HomeScreen.'
                         );
                         await setRootScreen(HomeScreenComponentId);
                     } else {
                         console.log(
-                            'User data is not complete, so go to CompleteProfileScreen.'
+                            'Account info is not complete, so go to CompleteAccountScreen.'
                         );
-                        await setRootScreen(CompleteProfileScreenComponentId);
+                        await setRootScreen(CompleteAccountScreenComponentId);
                     }
                 } else {
-                    // We do not have the user data yet, so fetch it. Then handle it on the next render.
-                    console.log('We do not have the user data, so fetch it.');
-                    await databaseService.getUserData(user.uid);
+                    // We do not have the account info yet, so fetch it. Then handle it on the next render.
+                    console.log(
+                        'We do not have the account info, so fetch it.'
+                    );
+                    await databaseService.getAccountInfo(user.uid);
                 }
             } else {
                 console.log(
@@ -92,7 +96,7 @@ const WelcomeScreen: NavigationFunctionComponent<Props> = () => {
         };
 
         startAuthFlow();
-    }, [user, userData]);
+    }, [user, accountInfo]);
 
     return (
         <View>

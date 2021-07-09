@@ -1,35 +1,35 @@
 import firestore from '@react-native-firebase/firestore';
 import IDatabaseProvider from './IDatabaseProvider';
-import IUserData from './IUserData';
+import IAccountInfo from '../../api/IAccountInfo';
 
 export default class FirestoreDatabaseProvider implements IDatabaseProvider {
-    getUserData = async (uid: string): Promise<IUserData> => {
-        const userDocument = await firestore()
-            .collection('users')
+    getAccountInfo = async (uid: string): Promise<IAccountInfo> => {
+        const accountDoc = await firestore()
+            .collection('account')
             .doc(uid)
             .get();
-        if (userDocument.exists) {
-            const userDocumentData = userDocument.data();
-            if (userDocumentData) {
+        if (accountDoc.exists) {
+            const accountDocData = accountDoc.data();
+            if (accountDocData) {
                 return {
-                    isProfileComplete: userDocumentData.isProfileComplete,
-                    num: userDocumentData.num,
+                    isAccountComplete: accountDocData.isAccountComplete,
+                    num: accountDocData.num,
                 };
             }
         }
 
         return {
-            isProfileComplete: false,
+            isAccountComplete: false,
             num: undefined,
         };
     };
 
-    setUserData = async (
+    setAccountInfo = async (
         uid: string,
-        userData: IUserData
+        accountInfo: IAccountInfo
     ): Promise<boolean> => {
         try {
-            await firestore().collection('users').doc(uid).set(userData);
+            await firestore().collection('account').doc(uid).set(accountInfo);
             return true;
         } catch (e) {
             console.log(e);

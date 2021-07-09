@@ -1,5 +1,5 @@
 import IAuthProvider from './IAuthProvider';
-import IUser from './IUser';
+import IUser from '../../api/IUser';
 
 export default class SimpleShareAuthProvider implements IAuthProvider {
     googleSignIn = (): Promise<IUser> => {

@@ -1,6 +1,9 @@
-import IUserData from './IUserData';
+import IAccountInfo from '../../api/IAccountInfo';
 
 export default interface IDatabaseProvider {
-    getUserData: (uid: string) => Promise<IUserData>;
-    setUserData: (uid: string, userData: IUserData) => Promise<boolean>;
+    getAccountInfo: (uid: string) => Promise<IAccountInfo>;
+    setAccountInfo: (
+        uid: string,
+        accountInfo: IAccountInfo
+    ) => Promise<boolean>;
 }

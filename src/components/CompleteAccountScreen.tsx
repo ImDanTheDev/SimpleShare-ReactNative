@@ -5,10 +5,10 @@ import {
     NavigationFunctionComponent,
 } from 'react-native-navigation';
 import { useSelector } from 'react-redux';
-import { authService, databaseService } from '../api';
-import IUser from '../services/auth/IUser';
-import IUserData from '../services/database/IUserData';
-import { RootState } from '../store';
+import { signOut, updateAccountInfo } from '../api/AccountAPI';
+import IUser from '../api/IUser';
+import IAccountInfo from '../api/IAccountInfo';
+import { RootState } from '../redux/store';
 import { ComponentId as WelcomeScreenComponentId } from './WelcomeScreen';
 
 interface Props {
@@ -16,13 +16,13 @@ interface Props {
     componentId: string;
 }
 
-const CompleteProfileScreen: NavigationFunctionComponent<Props> = () => {
+const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
     const user: IUser | undefined = useSelector(
         (state: RootState) => state.auth.user
     );
 
-    const userData: IUserData | undefined = useSelector(
-        (state: RootState) => state.user.userData
+    const accountInfo: IAccountInfo | undefined = useSelector(
+        (state: RootState) => state.user.accountInfo
     );
 
     const [num, setNum] = useState<number>();
@@ -45,11 +45,11 @@ const CompleteProfileScreen: NavigationFunctionComponent<Props> = () => {
                 },
             });
         } else {
-            console.log('We have a user, but do we have their user data?');
-            if (!userData) {
-                // We do not have any user data, so go back to WelcomeScreen to restart auth flow.
+            console.log('We have a user, but do we have their account info?');
+            if (!accountInfo) {
+                // We do not have any account info, so go back to WelcomeScreen to restart auth flow.
                 console.log(
-                    'We do not have their user data, so go back to WelcomeScreen.'
+                    'We do not have their account info, so go back to WelcomeScreen.'
                 );
                 Navigation.setRoot({
                     root: {
@@ -65,12 +65,12 @@ const CompleteProfileScreen: NavigationFunctionComponent<Props> = () => {
                     },
                 });
             } else {
-                // We have user data, but is it complete?
-                console.log('We have their user data, but is it complete?');
-                if (userData.isProfileComplete) {
-                    // Profile is complete, so go back to WelcomeScreen to restart auth flow.
+                // We have account info, but is it complete?
+                console.log('We have their account info, but is it complete?');
+                if (accountInfo.isAccountComplete) {
+                    // Account is complete, so go back to WelcomeScreen to restart auth flow.
                     console.log(
-                        'Their user data is complete, so go to WelcomeScreen.'
+                        'Their account info is complete, so go to WelcomeScreen.'
                     );
                     Navigation.setRoot({
                         root: {
@@ -86,39 +86,39 @@ const CompleteProfileScreen: NavigationFunctionComponent<Props> = () => {
                         },
                     });
                 } else {
-                    // Profile is not complete.
+                    // Account is not complete.
                     console.log(
-                        'Their user data is not complete, so wait for user to complete it.'
+                        'Their account info is not complete, so wait for user to complete it.'
                     );
                 }
             }
         }
-    }, [user, userData]);
+    }, [user, accountInfo]);
 
     const handleSignOutButton = async () => {
-        await authService.signOut();
+        await signOut();
     };
 
-    const handleCompleteProfileButton = async () => {
+    const handleCompleteAccountButton = async () => {
         if (user) {
-            const success = await databaseService.setUserData(user.uid, {
+            const success = await updateAccountInfo(user.uid, {
                 num: num,
-                isProfileComplete: true,
+                isAccountComplete: true,
             });
-            // setUserData will cause a re-render that is used to go back to WelcomeScreen.
+            // setAccountInfo will cause a re-render that is used to go back to WelcomeScreen.
             if (success) {
-                console.log('Saved completed profile to database.');
+                console.log('Saved completed account to database.');
             } else {
-                console.log('Failed to save completed profile to database.');
+                console.log('Failed to save completed account to database.');
             }
         } else {
-            console.log('Cannot complete profile when signed-out.');
+            console.log('Cannot complete account when signed-out.');
         }
     };
 
     return (
         <View>
-            <Text>Complete Profile</Text>
+            <Text>Complete Account</Text>
             <Text>Welcome {user?.displayName}</Text>
             <TextInput
                 keyboardType='decimal-pad'
@@ -126,13 +126,13 @@ const CompleteProfileScreen: NavigationFunctionComponent<Props> = () => {
             />
             <Button title='Sign-Out' onPress={handleSignOutButton} />
             <Button
-                title='Complete Profile'
-                onPress={handleCompleteProfileButton}
+                title='Complete Account'
+                onPress={handleCompleteAccountButton}
             />
         </View>
     );
 };
 
-export default CompleteProfileScreen;
+export default CompleteAccountScreen;
 export type { Props };
-export const ComponentId = 'com.simpleshare.CompleteProfileScreen';
+export const ComponentId = 'com.simpleshare.CompleteAccountScreen';
