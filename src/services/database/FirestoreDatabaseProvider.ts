@@ -5,7 +5,7 @@ import IAccountInfo from '../../api/IAccountInfo';
 export default class FirestoreDatabaseProvider implements IDatabaseProvider {
     getAccountInfo = async (uid: string): Promise<IAccountInfo> => {
         const accountDoc = await firestore()
-            .collection('account')
+            .collection('accounts')
             .doc(uid)
             .get();
         if (accountDoc.exists) {
@@ -29,7 +29,7 @@ export default class FirestoreDatabaseProvider implements IDatabaseProvider {
         accountInfo: IAccountInfo
     ): Promise<boolean> => {
         try {
-            await firestore().collection('account').doc(uid).set(accountInfo);
+            await firestore().collection('accounts').doc(uid).set(accountInfo);
             return true;
         } catch (e) {
             console.log(e);
