@@ -15,14 +15,15 @@ export const getAllProfiles = async (uid: string): Promise<IProfile[]> => {
 
 export const getProfile = async (
     uid: string,
-    id: string
-): Promise<IProfile> => {
-    return {
-        id: '',
-        name: '',
-    };
+    profileId: string
+): Promise<IProfile | undefined> => {
+    const profile = await databaseService.getProfile(uid, profileId);
+    return profile;
 };
 
-export const deleteProfile = async (uid: string): Promise<boolean> => {
-    return false;
+export const deleteProfile = async (
+    uid: string,
+    profileId: string
+): Promise<boolean> => {
+    return await databaseService.deleteProfile(uid, profileId);
 };

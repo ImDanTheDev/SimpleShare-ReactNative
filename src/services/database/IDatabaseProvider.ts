@@ -14,4 +14,9 @@ export default interface IDatabaseProvider {
         profile: IProfile
     ) => Promise<IProfile | undefined>;
     getAllProfiles: (uid: string) => Promise<IProfile[] | undefined>;
+    getProfile: (
+        uid: string,
+        profileId: string
+    ) => Promise<IProfile | undefined>;
+    deleteProfile: (uid: string, profileId: string) => Promise<boolean>;
 }

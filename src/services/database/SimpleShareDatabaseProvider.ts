@@ -32,4 +32,22 @@ export default class SimpleShareDatabaseProvider implements IDatabaseProvider {
             reject('Simple Share database is not implemented.');
         });
     };
+
+    getProfile = async (
+        uid: string,
+        profileId: string
+    ): Promise<IProfile | undefined> => {
+        return new Promise<IProfile | undefined>(async (resolve, reject) => {
+            reject('Simple Share database is not implemented.');
+        });
+    };
+
+    deleteProfile = async (
+        uid: string,
+        profileId: string
+    ): Promise<boolean> => {
+        return new Promise<boolean>(async (resolve, reject) => {
+            reject('Simple Share database is not implemented.');
+        });
+    };
 }

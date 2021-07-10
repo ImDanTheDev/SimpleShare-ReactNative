@@ -49,14 +49,12 @@ export default class FirestoreDatabaseProvider implements IDatabaseProvider {
                 .collection('profiles')
                 .add(profile);
             const profileDoc = await createdProfileRef.get();
-            if (profileDoc.exists) {
-                const profileData = profileDoc.data();
-                if (profileData) {
-                    return {
-                        id: profileDoc.id,
-                        name: profileData.name,
-                    };
-                }
+            const profileData = profileDoc.data();
+            if (profileData) {
+                return {
+                    id: profileDoc.id,
+                    name: profileData.name,
+                };
             }
         } catch (e) {
             console.log(e);
@@ -65,12 +63,12 @@ export default class FirestoreDatabaseProvider implements IDatabaseProvider {
     };
 
     getAllProfiles = async (uid: string): Promise<IProfile[] | undefined> => {
-        const collectionRef = await firestore()
+        const profilesCollection = await firestore()
             .collection('accounts')
             .doc(uid)
-            .collection('profiles');
-        const collection = await collectionRef.get();
-        const profileDocs = collection.docs;
+            .collection('profiles')
+            .get();
+        const profileDocs = profilesCollection.docs;
 
         const profiles: IProfile[] = profileDocs.map((doc): IProfile => {
             const profileData = doc.data();
@@ -81,5 +79,42 @@ export default class FirestoreDatabaseProvider implements IDatabaseProvider {
         });
 
         return profiles;
+    };
+
+    getProfile = async (
+        uid: string,
+        profileId: string
+    ): Promise<IProfile | undefined> => {
+        const profileDoc = await firestore()
+            .collection('accounts')
+            .doc(uid)
+            .collection('profiles')
+            .doc(profileId)
+            .get();
+
+        const profileData = profileDoc.data();
+        if (!profileData) return undefined;
+
+        return {
+            id: profileData.id,
+            name: profileData.name,
+        };
+    };
+
+    deleteProfile = async (
+        uid: string,
+        profileId: string
+    ): Promise<boolean> => {
+        try {
+            await firestore()
+                .collection('accounts')
+                .doc(uid)
+                .collection('profiles')
+                .doc(profileId)
+                .delete();
+            return true;
+        } catch (e) {
+            return false;
+        }
     };
 }

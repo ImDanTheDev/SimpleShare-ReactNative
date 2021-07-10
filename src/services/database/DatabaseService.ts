@@ -64,4 +64,23 @@ export default class DatabaseService {
 
         return profiles;
     };
+
+    getProfile = async (
+        uid: string,
+        profileId: string
+    ): Promise<IProfile | undefined> => {
+        const profile = await this.databaseProvider.getProfile(uid, profileId);
+        return profile;
+    };
+
+    deleteProfile = async (
+        uid: string,
+        profileId: string
+    ): Promise<boolean> => {
+        const success = await this.databaseProvider.deleteProfile(
+            uid,
+            profileId
+        );
+        return success;
+    };
 }
