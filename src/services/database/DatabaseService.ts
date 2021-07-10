@@ -4,6 +4,8 @@ import FirestoreDatabaseProvider from './FirestoreDatabaseProvider';
 import IDatabaseProvider from './IDatabaseProvider';
 import IAccountInfo from '../../api/IAccountInfo';
 import SimpleShareDatabaseProvider from './SimpleShareDatabaseProvider';
+import IProfile from '../../api/IProfile';
+import { setProfiles } from '../../redux/profilesSlice';
 
 export enum DatabaseProviderType {
     Firestore,
@@ -42,5 +44,24 @@ export default class DatabaseService {
             store.dispatch(setAccountInfo(accountInfo));
         }
         return success;
+    };
+
+    createProfile = async (
+        uid: string,
+        profile: IProfile
+    ): Promise<IProfile | undefined> => {
+        const newProfile = await this.databaseProvider.createProfile(
+            uid,
+            profile
+        );
+        return newProfile;
+    };
+
+    getAllProfiles = async (uid: string): Promise<IProfile[] | undefined> => {
+        const profiles = await this.databaseProvider.getAllProfiles(uid);
+
+        store.dispatch(setProfiles(profiles || []));
+
+        return profiles;
     };
 }

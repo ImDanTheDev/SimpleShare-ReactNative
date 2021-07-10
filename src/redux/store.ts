@@ -20,11 +20,13 @@ import authReducer, { AuthState } from './authSlice';
 import userReducer, {
     AccountInfoState as AccountInfoState,
 } from './accountSlice';
+import profilesReducer, { ProfilesState } from './profilesSlice';
 
 const rootReducer = combineReducers({
     counter: counterReducer,
     auth: authReducer,
     user: userReducer,
+    profiles: profilesReducer,
 });
 
 const persistConfig: PersistConfig<
@@ -32,6 +34,7 @@ const persistConfig: PersistConfig<
         counter: CounterState;
         auth: AuthState;
         user: AccountInfoState;
+        profiles: ProfilesState;
     }>
 > = {
     key: 'root',
