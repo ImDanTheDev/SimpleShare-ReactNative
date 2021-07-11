@@ -6,6 +6,8 @@ import IAccountInfo from '../../api/IAccountInfo';
 import SimpleShareDatabaseProvider from './SimpleShareDatabaseProvider';
 import IProfile from '../../api/IProfile';
 import { setProfiles } from '../../redux/profilesSlice';
+import { addShare, deleteShare, updateShare } from '../../redux/sharesSlice';
+import IShare from '../../api/IShare';
 
 export enum DatabaseProviderType {
     Firestore,
@@ -18,7 +20,21 @@ export default class DatabaseService {
     constructor(databaseProviderType: DatabaseProviderType) {
         switch (databaseProviderType) {
             case DatabaseProviderType.Firestore:
-                this.databaseProvider = new FirestoreDatabaseProvider();
+                this.databaseProvider = new FirestoreDatabaseProvider(
+                    (share: IShare) => {
+                        // OnShareAdded - Called when a share is added to any of the profiles being listened to.
+                        store.dispatch(addShare(share));
+                    },
+                    (share: IShare) => {
+                        // OnShareDeleted - Called when a share is deleted from any of the profiles being listened to.
+                        if (!share.id) return;
+                        store.dispatch(deleteShare(share.id));
+                    },
+                    (share: IShare) => {
+                        // OnShareModified - Called when a share is modified in any of the profiles being listened to.
+                        store.dispatch(updateShare(share));
+                    }
+                );
                 break;
             case DatabaseProviderType.SimpleShare:
                 this.databaseProvider = new SimpleShareDatabaseProvider();
@@ -44,6 +60,15 @@ export default class DatabaseService {
             store.dispatch(setAccountInfo(accountInfo));
         }
         return success;
+    };
+
+    getUidByPhoneNumber = async (
+        phoneNumber: string
+    ): Promise<string | undefined> => {
+        const uid = await this.databaseProvider.getUidByPhoneNumber(
+            phoneNumber
+        );
+        return uid;
     };
 
     createProfile = async (
@@ -73,6 +98,17 @@ export default class DatabaseService {
         return profile;
     };
 
+    getProfileIdByName = async (
+        uid: string,
+        name: string
+    ): Promise<string | undefined> => {
+        const profileId = await this.databaseProvider.getProfileIdByName(
+            uid,
+            name
+        );
+        return profileId;
+    };
+
     deleteProfile = async (
         uid: string,
         profileId: string
@@ -82,5 +118,28 @@ export default class DatabaseService {
             profileId
         );
         return success;
+    };
+
+    createShare = async (share: IShare): Promise<boolean> => {
+        const success = await this.databaseProvider.createShare(share);
+        return success;
+    };
+
+    addShareListener = async (
+        uid: string,
+        profileId: string
+    ): Promise<void> => {
+        await this.databaseProvider.addShareListener(uid, profileId);
+    };
+
+    removeAllShareListeners = async (): Promise<void> => {
+        await this.databaseProvider.removeAllShareListeners();
+    };
+
+    removeShareListener = async (
+        uid: string,
+        profileId: string
+    ): Promise<void> => {
+        await this.databaseProvider.removeShareListener(uid, profileId);
     };
 }

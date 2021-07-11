@@ -5,11 +5,18 @@ import {
     NavigationFunctionComponent,
 } from 'react-native-navigation';
 import { useDispatch, useSelector } from 'react-redux';
-import { signOut } from '../api/AccountAPI';
+import { getUidByPhoneNumber, signOut } from '../api/AccountAPI';
 import IProfile from '../api/IProfile';
+import IShare from '../api/IShare';
 import IUser from '../api/IUser';
-import { createProfile, getAllProfiles } from '../api/ProfileAPI';
+import {
+    createProfile,
+    getAllProfiles,
+    getProfileIdByName,
+} from '../api/ProfileAPI';
+import { createShare, switchShareListener } from '../api/ShareAPI';
 import { setCurrentProfile } from '../redux/profilesSlice';
+import { setShares } from '../redux/sharesSlice';
 import { RootState } from '../redux/store';
 import { ComponentId as WelcomeScreenComponentId } from './WelcomeScreen';
 
@@ -29,6 +36,10 @@ const HomeScreen: NavigationFunctionComponent<Props> = () => {
         (state: RootState) => state.profiles.profiles
     );
 
+    const shares: IShare[] = useSelector(
+        (state: RootState) => state.shares.shares
+    );
+
     const currentProfile: IProfile | undefined = useSelector(
         (state: RootState) =>
             state.profiles.profiles.find(
@@ -37,6 +48,11 @@ const HomeScreen: NavigationFunctionComponent<Props> = () => {
     );
 
     const [newProfileName, setNewProfileName] = useState<string>('');
+    const [shareDestinationPhoneNumber, setShareDestinationPhoneNumber] =
+        useState<string>('');
+    const [shareDestinationProfile, setShareDestinationProfile] =
+        useState<string>('');
+    const [shareText, setShareText] = useState<string>('');
 
     useEffect(() => {
         const fetchProfiles = async () => {
@@ -77,25 +93,57 @@ const HomeScreen: NavigationFunctionComponent<Props> = () => {
         });
     };
 
+    const handleSendShareButton = async () => {
+        if (!user || !currentProfile || !currentProfile.id) return;
+
+        const toUid = await getUidByPhoneNumber(shareDestinationPhoneNumber);
+        if (!toUid) return;
+        const toProfileId = await getProfileIdByName(
+            toUid,
+            shareDestinationProfile
+        );
+        if (!toProfileId) return;
+
+        const success = await createShare({
+            content: shareText,
+            toUid: toUid,
+            toProfileId: toProfileId,
+            fromUid: user.uid,
+            fromProfileId: currentProfile.id,
+            type: 'text',
+        });
+    };
+
+    const handleSwitchProfileButton = (profile: IProfile) => {
+        if (!user) return;
+        dispatch(setShares([]));
+        dispatch(setCurrentProfile(profile.id || 'INVALID_PROFILE'));
+        switchShareListener(user?.uid, profile.id || 'INVALID_PROFILE');
+    };
+
     const renderProfiles = (): Element[] => {
         const result: Element[] = [];
 
         profiles.forEach((profile) => {
             result.push(
-                <View key={profile.id} style={styles.profileEntry}>
+                <View key={profile.id} style={styles.labeledInput}>
                     <Text>{profile.name}</Text>
                     <Button
                         title='Switch to'
-                        onPress={() => {
-                            dispatch(
-                                setCurrentProfile(
-                                    profile.id || 'INVALID_PROFILE'
-                                )
-                            );
-                        }}
+                        onPress={() => handleSwitchProfileButton(profile)}
                     />
                 </View>
             );
+        });
+
+        return result;
+    };
+
+    const renderShares = (): Element[] => {
+        const result: Element[] = [];
+
+        shares.forEach((share) => {
+            result.push(<Text key={share.id}>{share.content}</Text>);
         });
 
         return result;
@@ -115,6 +163,18 @@ const HomeScreen: NavigationFunctionComponent<Props> = () => {
                 onPress={handleCreateProfileButton}
             />
             {renderProfiles()}
+            <TextInput
+                keyboardType='phone-pad'
+                onChangeText={setShareDestinationPhoneNumber}
+                placeholder='phone number'
+            />
+            <TextInput
+                onChangeText={setShareDestinationProfile}
+                placeholder='profile'
+            />
+            <TextInput onChangeText={setShareText} placeholder='text' />
+            <Button title='Send Share' onPress={handleSendShareButton} />
+            {renderShares()}
         </View>
     );
 };
@@ -123,7 +183,7 @@ const styles = StyleSheet.create({
     root: {
         padding: 16,
     },
-    profileEntry: {
+    labeledInput: {
         flexDirection: 'row',
     },
 });

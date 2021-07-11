@@ -21,6 +21,14 @@ export const getProfile = async (
     return profile;
 };
 
+export const getProfileIdByName = async (
+    uid: string,
+    name: string
+): Promise<string | undefined> => {
+    const profileId = await databaseService.getProfileIdByName(uid, name);
+    return profileId;
+};
+
 export const deleteProfile = async (
     uid: string,
     profileId: string

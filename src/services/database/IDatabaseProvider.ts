@@ -1,5 +1,6 @@
 import IAccountInfo from '../../api/IAccountInfo';
 import IProfile from '../../api/IProfile';
+import IShare from '../../api/IShare';
 
 export default interface IDatabaseProvider {
     // Accounts
@@ -8,6 +9,7 @@ export default interface IDatabaseProvider {
         uid: string,
         accountInfo: IAccountInfo
     ) => Promise<boolean>;
+    getUidByPhoneNumber: (phoneNumber: string) => Promise<string | undefined>;
     // Profiles
     createProfile: (
         uid: string,
@@ -18,5 +20,14 @@ export default interface IDatabaseProvider {
         uid: string,
         profileId: string
     ) => Promise<IProfile | undefined>;
+    getProfileIdByName: (
+        uid: string,
+        name: string
+    ) => Promise<string | undefined>;
     deleteProfile: (uid: string, profileId: string) => Promise<boolean>;
+    // Shares
+    createShare: (share: IShare) => Promise<boolean>;
+    addShareListener: (uid: string, profileId: string) => Promise<void>;
+    removeShareListener: (uid: string, profileId: string) => Promise<void>;
+    removeAllShareListeners: () => Promise<void>;
 }

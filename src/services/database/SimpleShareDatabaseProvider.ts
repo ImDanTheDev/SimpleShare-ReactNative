@@ -1,6 +1,7 @@
 import IDatabaseProvider from './IDatabaseProvider';
 import IAccountInfo from '../../api/IAccountInfo';
 import IProfile from '../../api/IProfile';
+import IShare from '../../api/IShare';
 
 export default class SimpleShareDatabaseProvider implements IDatabaseProvider {
     getAccountInfo = (): Promise<IAccountInfo> => {
@@ -14,6 +15,14 @@ export default class SimpleShareDatabaseProvider implements IDatabaseProvider {
         accountInfo: IAccountInfo
     ): Promise<boolean> => {
         return new Promise<boolean>(async (resolve, reject) => {
+            reject('Simple Share database is not implemented.');
+        });
+    };
+
+    getUidByPhoneNumber = async (
+        phoneNumber: string
+    ): Promise<string | undefined> => {
+        return new Promise<string | undefined>(async (resolve, reject) => {
             reject('Simple Share database is not implemented.');
         });
     };
@@ -42,11 +51,50 @@ export default class SimpleShareDatabaseProvider implements IDatabaseProvider {
         });
     };
 
+    getProfileIdByName = async (
+        uid: string,
+        name: string
+    ): Promise<string | undefined> => {
+        return new Promise<string | undefined>(async (resolve, reject) => {
+            reject('Simple Share database is not implemented.');
+        });
+    };
+
     deleteProfile = async (
         uid: string,
         profileId: string
     ): Promise<boolean> => {
         return new Promise<boolean>(async (resolve, reject) => {
+            reject('Simple Share database is not implemented.');
+        });
+    };
+
+    createShare = async (share: IShare): Promise<boolean> => {
+        return new Promise<boolean>(async (resolve, reject) => {
+            reject('Simple Share database is not implemented.');
+        });
+    };
+
+    addShareListener = async (
+        uid: string,
+        profileId: string
+    ): Promise<void> => {
+        return new Promise<void>(async (resolve, reject) => {
+            reject('Simple Share database is not implemented.');
+        });
+    };
+
+    removeShareListener = async (
+        uid: string,
+        profileId: string
+    ): Promise<void> => {
+        return new Promise<void>(async (resolve, reject) => {
+            reject('Simple Share database is not implemented.');
+        });
+    };
+
+    removeAllShareListeners = async (): Promise<void> => {
+        return new Promise<void>(async (resolve, reject) => {
             reject('Simple Share database is not implemented.');
         });
     };

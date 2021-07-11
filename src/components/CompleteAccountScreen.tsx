@@ -26,6 +26,7 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
     );
 
     const [num, setNum] = useState<number>();
+    const [phoneNumber, setPhoneNumber] = useState<string>('');
 
     useEffect(() => {
         if (!user) {
@@ -103,6 +104,7 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
         if (user) {
             const success = await updateAccountInfo(user.uid, {
                 num: num,
+                phoneNumber: phoneNumber,
                 isAccountComplete: true,
             });
             // setAccountInfo will cause a re-render that is used to go back to WelcomeScreen.
@@ -123,6 +125,12 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
             <TextInput
                 keyboardType='decimal-pad'
                 onChangeText={(text) => setNum(Number.parseInt(text, 10))}
+                placeholder='num'
+            />
+            <TextInput
+                keyboardType='phone-pad'
+                onChangeText={setPhoneNumber}
+                placeholder='phone number'
             />
             <Button title='Sign-Out' onPress={handleSignOutButton} />
             <Button

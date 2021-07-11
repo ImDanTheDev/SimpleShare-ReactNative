@@ -15,3 +15,9 @@ export const updateAccountInfo = async (
 ): Promise<boolean> => {
     return await databaseService.setAccountInfo(uid, accountInfo);
 };
+
+export const getUidByPhoneNumber = async (
+    phoneNumber: string
+): Promise<string | undefined> => {
+    return await databaseService.getUidByPhoneNumber(phoneNumber);
+};
