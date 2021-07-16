@@ -20,6 +20,17 @@ import HomeScreen, {
 import SigninScreen, {
     ComponentId as SigninScreenComponentId,
 } from './src/components/SigninScreen';
+import SendShareScreen, {
+    ComponentId as SendShareScreenComponentId,
+} from './src/components/SendShareScreen';
+
+import AccountSettingsScreen, {
+    ComponentId as AccountSettingsScreenComponentId,
+} from './src/components/AccountSettingsScreen';
+
+import NewProfileSheet, {
+    ComponentId as NewProfileSheetComponentId,
+} from './src/components/NewProfileSheet';
 
 const persistor = persistStore(store);
 
@@ -49,6 +60,15 @@ Navigation.registerComponent(HomeScreenComponentId, () =>
 Navigation.registerComponent(SigninScreenComponentId, () =>
     WrappedComponent(SigninScreen)
 );
+Navigation.registerComponent(SendShareScreenComponentId, () =>
+    WrappedComponent(SendShareScreen)
+);
+Navigation.registerComponent(AccountSettingsScreenComponentId, () =>
+    WrappedComponent(AccountSettingsScreen)
+);
+Navigation.registerComponent(NewProfileSheetComponentId, () =>
+    WrappedComponent(NewProfileSheet)
+);
 Navigation.events().registerAppLaunchedListener(() => {
     Navigation.setRoot({
         root: {
@@ -63,4 +83,9 @@ Navigation.events().registerAppLaunchedListener(() => {
             },
         },
     });
+});
+Navigation.setDefaultOptions({
+    topBar: {
+        visible: false,
+    },
 });
