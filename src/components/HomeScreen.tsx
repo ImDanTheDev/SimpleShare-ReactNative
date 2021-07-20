@@ -170,6 +170,17 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
         );
     };
 
+    const getInboxHeader = () => {
+        if (!currentProfile) return '';
+
+        let shortProfileName = currentProfile.name;
+        if (shortProfileName.length > 15) {
+            shortProfileName = shortProfileName.substring(0, 15) + '...';
+        }
+
+        return `Inbox - ${shortProfileName} (${shares.length})`;
+    };
+
     return (
         <SafeAreaView style={styles.root}>
             <LinearGradient
@@ -231,7 +242,7 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                 >
                     <ScrollView>
                         <Text style={styles.inboxHeader}>
-                            Inbox ({shares.length})
+                            {getInboxHeader()}
                         </Text>
                         <View style={styles.inboxSection}>
                             <InboxGallery inbox={shares} />

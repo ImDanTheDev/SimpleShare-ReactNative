@@ -107,7 +107,7 @@ export const CircleButton: React.FC<Props> = (props: Props) => {
                     ...styles.button,
                     borderRadius: borderRadius,
                     borderWidth: props.invertAnimation
-                        ? styles.button.borderWidth + 1
+                        ? styles.button.borderWidth + 2
                         : styles.button.borderWidth,
                 }}
                 activeOpacity={1.0}
