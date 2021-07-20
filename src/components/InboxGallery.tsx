@@ -4,6 +4,7 @@ import {
     NativeScrollEvent,
     NativeSyntheticEvent,
     ScrollView,
+    Text,
 } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import IShare from '../api/IShare';
@@ -20,7 +21,7 @@ export const InboxGallery: React.FC<Props> = (props: Props) => {
     const scrollView = useRef<ScrollView>(null);
 
     useEffect(() => {
-        scrollView.current?.scrollTo({ x: 0, animated: true });
+        scrollView.current?.scrollTo({ x: 1, animated: true });
     }, [props.inbox]);
 
     const renderCards = (): ReactNode[] => {
@@ -48,31 +49,44 @@ export const InboxGallery: React.FC<Props> = (props: Props) => {
         setGalleryPosition(position);
     };
 
-    return (
-        <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollViewContainer}
-            alwaysBounceHorizontal={true}
-            centerContent={true}
-            snapToInterval={cardWidth}
-            onScroll={handleScroll}
-            decelerationRate='normal'
-            disableIntervalMomentum={true}
-            showsHorizontalScrollIndicator={false}
-            ref={scrollView}
-            horizontal={true}
-        >
-            {renderCards()}
-        </ScrollView>
-    );
+    if (props.inbox.length > 0) {
+        return (
+            <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollViewContainer}
+                alwaysBounceHorizontal={true}
+                centerContent={true}
+                snapToInterval={cardWidth}
+                onScroll={handleScroll}
+                decelerationRate='normal'
+                disableIntervalMomentum={true}
+                showsHorizontalScrollIndicator={false}
+                ref={scrollView}
+                horizontal={true}
+            >
+                {renderCards()}
+            </ScrollView>
+        );
+    } else {
+        return <Text style={styles.emptyInboxText}>Inbox Empty</Text>;
+    }
 };
 
 const styles = EStyleSheet.create({
-    scrollView: {},
+    scrollView: {
+        width: '100%',
+        aspectRatio: 10 / 9,
+    },
     scrollViewContainer: {
         flexGrow: 1,
         justifyContent: 'center',
         paddingHorizontal: cardWidth / 3, // Add padding to push first card into center.
         paddingVertical: '16rem',
+    },
+    emptyInboxText: {
+        color: '#BDBDBD',
+        fontSize: 18,
+        paddingTop: 16,
+        alignSelf: 'center',
     },
 });

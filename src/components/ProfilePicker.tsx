@@ -1,9 +1,5 @@
-import React, { ReactNode, useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
-    LayoutChangeEvent,
-    NativeScrollEvent,
-    NativeSyntheticEvent,
-    ScrollView,
     StyleSheet,
     Text,
     View,

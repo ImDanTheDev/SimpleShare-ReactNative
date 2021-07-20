@@ -30,11 +30,19 @@ export const OutboxList: React.FC<Props> = (props: Props) => {
             </TouchableOpacity>
         );
 
-        items.push(
-            props.outbox.map((share) => {
-                return <OutboxListItem key={share.id} share={share} />;
-            })
-        );
+        if (props.outbox.length > 0) {
+            items.push(
+                props.outbox.map((share) => {
+                    return <OutboxListItem key={share.id} share={share} />;
+                })
+            );
+        } else {
+            items.push(
+                <Text style={styles.outboxEmptyText} key='emptyOutbox'>
+                    Outbox Empty
+                </Text>
+            );
+        }
 
         return items;
     };
@@ -84,5 +92,11 @@ const styles = EStyleSheet.create({
         fontSize: '22rem',
         color: '#FFF',
         textAlignVertical: 'center',
+    },
+    outboxEmptyText: {
+        color: '#BDBDBD',
+        fontSize: 18,
+        paddingTop: 16,
+        alignSelf: 'center',
     },
 });

@@ -247,7 +247,7 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                         <View style={styles.inboxSection}>
                             <InboxGallery inbox={shares} />
                         </View>
-                        <Text style={styles.outboxHeader}>Outbox</Text>
+                        <Text style={styles.outboxHeader}>Outbox (0)</Text>
                         <View style={styles.outboxSection}>
                             <OutboxList
                                 outbox={[]}
@@ -343,8 +343,6 @@ const styles = EStyleSheet.create({
     },
     inboxSection: {
         marginBottom: '16rem',
-        width: '100%',
-        aspectRatio: 10 / 9,
     },
     /* Outbox */
     outboxHeader: {
