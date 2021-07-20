@@ -75,5 +75,4 @@ const styles = EStyleSheet.create({
         fontSize: 18,
         color: '#FFF',
     },
-    //} as StyleSheet.NamedStyles<any>);
 });

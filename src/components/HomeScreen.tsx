@@ -23,12 +23,10 @@ import { signOut } from '../api/AccountAPI';
 import IProfile from '../api/IProfile';
 import IShare from '../api/IShare';
 import IUser from '../api/IUser';
-import { getAllProfiles } from '../api/ProfileAPI';
 import { switchShareListener } from '../api/ShareAPI';
 import { setCurrentProfile } from '../redux/profilesSlice';
 import { setShares } from '../redux/sharesSlice';
 import { RootState } from '../redux/store';
-import { ComponentId as WelcomeScreenComponentId } from './WelcomeScreen';
 import { ComponentId as SendShareScreenComponentId } from './SendShareScreen';
 import { ComponentId as AccountSettingsScreenComponetId } from './AccountSettingsScreen';
 import { ComponentId as NewProfileSheetComponentId } from './NewProfileSheet';
@@ -37,6 +35,7 @@ import { ProfilePicker } from './ProfilePicker';
 import { InboxGallery } from './InboxGallery';
 import { OutboxList } from './OutboxList';
 import { SettingsDropdown } from './SettingsDropdown';
+import { databaseService } from '../api/api';
 
 const entireScreenWidth = Dimensions.get('window').width;
 EStyleSheet.build({ $rem: entireScreenWidth / 380 });
@@ -90,35 +89,24 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
     }, [shouldShowBlur, blurOpacity]);
 
     useEffect(() => {
-        const fetchProfiles = async () => {
-            if (!user) return;
-            await getAllProfiles(user.uid);
-        };
-
-        if (!user) {
-            // We do not have a user, so go back to the WelcomeScreen to restart auth flow.
-            console.log('We do not have a user, so go to WelcomeScreen.');
-            Navigation.setRoot({
-                root: {
-                    stack: {
-                        children: [
-                            {
-                                component: {
-                                    name: WelcomeScreenComponentId,
-                                },
-                            },
-                        ],
-                    },
-                },
-            });
-        } else {
-            console.log('We have a user, so stay on HomeScreen.');
-            fetchProfiles();
-        }
+        if (!user) return; // TODO: We need a user for this page. Handle this error.
     }, [user]);
+
+    useEffect(() => {
+        if (!user) return; // TODO: We need a user for this page. Handle this error.
+
+        const switchListener = async () => {
+            if (!currentProfile || !currentProfile.id) return;
+            console.log('Selected profile changed. Switching share listener.');
+            await switchShareListener(user.uid, currentProfile.id);
+        };
+        switchListener();
+    }, [currentProfile, user]);
 
     const handleSignOut = async () => {
         setShouldShowBlur(false);
+        await databaseService.removeAllShareListeners();
+        dispatch(setShares([]));
         await signOut();
     };
 
@@ -141,11 +129,13 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
         });
     };
 
-    const handleSwitchProfile = (profileId: string) => {
-        if (!user) return;
+    const handleSwitchProfile = async (profileId: string) => {
+        if (!user) {
+            console.log('ERROR: Not signed in!');
+            return;
+        }
         dispatch(setShares([]));
         dispatch(setCurrentProfile(profileId));
-        switchShareListener(user?.uid, profileId);
     };
 
     const handleNewSharePress = async () => {

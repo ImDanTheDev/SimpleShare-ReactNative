@@ -12,7 +12,7 @@ export default class FirebaseAuthProvider implements IAuthProvider {
             webClientId: GoogleWebClientId,
         });
 
-        auth().onAuthStateChanged(async (firebaseUser) => {
+        auth().onAuthStateChanged((firebaseUser) => {
             if (firebaseUser) {
                 onAuthStateChanged({
                     uid: firebaseUser.uid,

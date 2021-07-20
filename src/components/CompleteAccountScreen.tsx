@@ -5,7 +5,7 @@ import {
     NavigationFunctionComponent,
 } from 'react-native-navigation';
 import { useSelector } from 'react-redux';
-import { signOut, updateAccountInfo } from '../api/AccountAPI';
+import { initializeAccount, signOut } from '../api/AccountAPI';
 import IUser from '../api/IUser';
 import IAccountInfo from '../api/IAccountInfo';
 import { RootState } from '../redux/store';
@@ -30,91 +30,76 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
 
     useEffect(() => {
         if (!user) {
-            // We do not have a user, so go back to the WelcomeScreen to restart auth flow.
-            console.log('We do not have a user, so go back to WelcomeScreen.');
-            Navigation.setRoot({
-                root: {
-                    stack: {
-                        children: [
-                            {
-                                component: {
-                                    name: WelcomeScreenComponentId,
-                                },
-                            },
-                        ],
-                    },
-                },
-            });
-        } else {
-            console.log('We have a user, but do we have their account info?');
-            if (!accountInfo) {
-                // We do not have any account info, so go back to WelcomeScreen to restart auth flow.
-                console.log(
-                    'We do not have their account info, so go back to WelcomeScreen.'
-                );
-                Navigation.setRoot({
-                    root: {
-                        stack: {
-                            children: [
-                                {
-                                    component: {
-                                        name: WelcomeScreenComponentId,
-                                    },
-                                },
-                            ],
-                        },
-                    },
-                });
-            } else {
-                // We have account info, but is it complete?
-                console.log('We have their account info, but is it complete?');
+            console.log(
+                'Error: User is undefined. Cannot continue account completion without a user.'
+            );
+            return; // TODO: We need a user for this page. Handle this error.
+        }
+
+        const continueAuthFlow = async () => {
+            if (accountInfo) {
+                console.log('Does Account Doc Exist? Yes');
                 if (accountInfo.isAccountComplete) {
-                    // Account is complete, so go back to WelcomeScreen to restart auth flow.
-                    console.log(
-                        'Their account info is complete, so go to WelcomeScreen.'
-                    );
-                    Navigation.setRoot({
-                        root: {
-                            stack: {
-                                children: [
-                                    {
-                                        component: {
-                                            name: WelcomeScreenComponentId,
-                                        },
-                                    },
-                                ],
-                            },
-                        },
-                    });
+                    console.log('Is Account Doc Complete? Yes');
+                    setRootScreen(WelcomeScreenComponentId);
                 } else {
-                    // Account is not complete.
+                    console.log('Is Account Doc Complete? No');
                     console.log(
-                        'Their account info is not complete, so wait for user to complete it.'
+                        'Waiting for user to complete account. This will complete the account and create a default profile.'
                     );
                 }
+            } else {
+                console.log('Does Account Doc Exist? No');
+                console.log(
+                    'Waiting for user to complete account. This will create the account, complete it, and create a default profile.'
+                );
             }
-        }
-    }, [user, accountInfo]);
+        };
+
+        continueAuthFlow();
+    }, [accountInfo, user]);
+
+    const setRootScreen = async (screenId: string) => {
+        await Navigation.setRoot({
+            root: {
+                stack: {
+                    children: [
+                        {
+                            component: {
+                                name: screenId,
+                            },
+                        },
+                    ],
+                },
+            },
+        });
+    };
 
     const handleSignOutButton = async () => {
         await signOut();
     };
 
     const handleCompleteAccountButton = async () => {
-        if (user) {
-            const success = await updateAccountInfo(user.uid, {
-                num: num,
-                phoneNumber: phoneNumber,
-                isAccountComplete: true,
-            });
-            // setAccountInfo will cause a re-render that is used to go back to WelcomeScreen.
-            if (success) {
-                console.log('Saved completed account to database.');
-            } else {
-                console.log('Failed to save completed account to database.');
-            }
+        if (!user) return; // TODO: We need a user for this page. Handle this error.
+
+        // Creates the account if it does not exist. Completes the account info. Adds a default profile.
+        console.log(
+            'Completing Account [1/3] Creating an account if one does not exist.'
+        );
+        console.log('Completing Account [2/3] Setting account info.');
+        console.log(
+            'Completing Account [3/3] Creating a default profile or resetting the existing one.'
+        );
+        const success = await initializeAccount(user.uid, {
+            num: num,
+            phoneNumber: phoneNumber,
+            isAccountComplete: true,
+        });
+
+        if (success) {
+            console.log('Saved completed account to database.');
         } else {
-            console.log('Cannot complete account when signed-out.');
+            console.log('Failed to complete the account.');
         }
     };
 

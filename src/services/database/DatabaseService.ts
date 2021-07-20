@@ -41,11 +41,25 @@ export default class DatabaseService {
         }
     }
 
-    getAccountInfo = async (uid: string): Promise<IAccountInfo> => {
+    getAccountInfo = async (uid: string): Promise<IAccountInfo | undefined> => {
         const accountInfo = await this.databaseProvider.getAccountInfo(uid);
         store.dispatch(setAccountInfo(accountInfo));
 
         return accountInfo;
+    };
+
+    initializeAccount = async (
+        uid: string,
+        accountInfo: IAccountInfo
+    ): Promise<boolean> => {
+        const success = await this.databaseProvider.initializeAccount(
+            uid,
+            accountInfo
+        );
+        if (success) {
+            store.dispatch(setAccountInfo(accountInfo));
+        }
+        return success;
     };
 
     setAccountInfo = async (
@@ -71,18 +85,27 @@ export default class DatabaseService {
         return uid;
     };
 
+    createDefaultProfile = async (uid: string): Promise<boolean> => {
+        return await this.databaseProvider.createDefaultProfile(uid);
+    };
+
     createProfile = async (
         uid: string,
         profile: IProfile
-    ): Promise<IProfile | undefined> => {
-        const newProfile = await this.databaseProvider.createProfile(
-            uid,
-            profile
-        );
-        return newProfile;
+    ): Promise<boolean> => {
+        const success = await this.databaseProvider.createProfile(uid, profile);
+
+        if (success) {
+            // TODO: Instead of refetching all profiles after creating one,
+            // consider registering a collection listener for 'profiles' and
+            // handling the ADD, DELETE, MODIFIED operations.
+            await this.getAllProfiles(uid);
+        }
+
+        return success;
     };
 
-    getAllProfiles = async (uid: string): Promise<IProfile[] | undefined> => {
+    getAllProfiles = async (uid: string): Promise<IProfile[]> => {
         const profiles = await this.databaseProvider.getAllProfiles(uid);
 
         store.dispatch(setProfiles(profiles || []));

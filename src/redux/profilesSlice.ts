@@ -3,12 +3,17 @@ import IProfile from '../api/IProfile';
 
 export interface ProfilesState {
     profiles: IProfile[];
-    currentProfileId: string | undefined;
+    currentProfileId: string;
 }
 
 const initialState: ProfilesState = {
-    profiles: [],
-    currentProfileId: undefined,
+    profiles: [
+        {
+            id: 'default',
+            name: 'Default',
+        },
+    ],
+    currentProfileId: 'default',
 };
 
 export const profilesSlice = createSlice({

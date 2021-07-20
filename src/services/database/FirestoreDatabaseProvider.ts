@@ -27,7 +27,7 @@ export default class FirestoreDatabaseProvider implements IDatabaseProvider {
         this.onShareModifiedCallback = onShareModified;
     }
 
-    getAccountInfo = async (uid: string): Promise<IAccountInfo> => {
+    getAccountInfo = async (uid: string): Promise<IAccountInfo | undefined> => {
         const accountDoc = await firestore()
             .collection('accounts')
             .doc(uid)
@@ -43,11 +43,17 @@ export default class FirestoreDatabaseProvider implements IDatabaseProvider {
             }
         }
 
-        return {
-            isAccountComplete: false,
-            phoneNumber: undefined,
-            num: undefined,
-        };
+        return undefined;
+    };
+
+    initializeAccount = async (
+        uid: string,
+        accountInfo: IAccountInfo
+    ): Promise<boolean> => {
+        const setAccountInfo = await this.setAccountInfo(uid, accountInfo);
+        if (!setAccountInfo) return false;
+
+        return await this.createDefaultProfile(uid);
     };
 
     setAccountInfo = async (
@@ -76,10 +82,27 @@ export default class FirestoreDatabaseProvider implements IDatabaseProvider {
         return matchingAccountDoc.id;
     };
 
+    createDefaultProfile = async (uid: string): Promise<boolean> => {
+        try {
+            await firestore()
+                .collection('accounts')
+                .doc(uid)
+                .collection('profiles')
+                .doc('default')
+                .set({
+                    name: 'default',
+                } as IProfile);
+            return true;
+        } catch (e) {
+            console.log(e);
+            return false;
+        }
+    };
+
     createProfile = async (
         uid: string,
         profile: IProfile
-    ): Promise<IProfile | undefined> => {
+    ): Promise<boolean> => {
         try {
             const createdProfileRef = await firestore()
                 .collection('accounts')
@@ -89,18 +112,15 @@ export default class FirestoreDatabaseProvider implements IDatabaseProvider {
             const profileDoc = await createdProfileRef.get();
             const profileData = profileDoc.data();
             if (profileData) {
-                return {
-                    id: profileDoc.id,
-                    name: profileData.name,
-                };
+                return true;
             }
         } catch (e) {
             console.log(e);
         }
-        return undefined;
+        return false;
     };
 
-    getAllProfiles = async (uid: string): Promise<IProfile[] | undefined> => {
+    getAllProfiles = async (uid: string): Promise<IProfile[]> => {
         const profilesCollection = await firestore()
             .collection('accounts')
             .doc(uid)
@@ -116,7 +136,7 @@ export default class FirestoreDatabaseProvider implements IDatabaseProvider {
             };
         });
 
-        return profiles;
+        return profiles || [];
     };
 
     getProfile = async (

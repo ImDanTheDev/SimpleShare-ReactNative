@@ -9,6 +9,13 @@ export const signOut = async (): Promise<void> => {
     await authService.signOut();
 };
 
+export const initializeAccount = async (
+    uid: string,
+    accountInfo: IAccountInfo
+): Promise<boolean> => {
+    return await databaseService.initializeAccount(uid, accountInfo);
+};
+
 export const updateAccountInfo = async (
     uid: string,
     accountInfo: IAccountInfo

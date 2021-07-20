@@ -42,7 +42,11 @@ const persistConfig: PersistConfig<
 > = {
     key: 'root',
     storage: AsyncStorage,
-    blacklist: ['user'],
+    blacklist: ['user', 'auth', 'profiles', 'shares'], // TODO: 'profiles' includes 'currentProfile.'
+    // It would be nice to persist which profile the user last selected. Right now, that
+    // means splitting the profilesReducer in two. Consider moving everything into two
+    // top-level reducers. A 'persistant' and 'nonpersistant' reducer. These top-level
+    // reducers can contain more specific reducers with combineReducers.
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

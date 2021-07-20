@@ -18,7 +18,12 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
     >(props.initialProfile);
 
     const handleSwitchProfileButton = (profile: IProfile) => {
-        if (!profile.id || selectedProfileId === profile.id) return;
+        if (!profile.id || selectedProfileId === profile.id) {
+            console.log(
+                'Selected profile is invalid or same as current profile.'
+            );
+            return;
+        }
         setSelectedProfileId(profile.id);
         props.onSwitchProfile(profile.id);
     };

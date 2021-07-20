@@ -32,8 +32,13 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
     };
 
     const handleSaveProfile = async () => {
-        if (!user) return;
+        if (!user) {
+            console.log('ERROR: Not signed in!');
+            return;
+        }
+
         if (!profileName) return;
+
         await createProfile(user.uid, {
             name: profileName,
         });
@@ -142,7 +147,6 @@ const styles = EStyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: '16rem',
-        //marginBottom: '16rem',
     },
     actionGroup: {
         flexDirection: 'row',

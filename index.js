@@ -31,10 +31,11 @@ import AccountSettingsScreen, {
 import NewProfileSheet, {
     ComponentId as NewProfileSheetComponentId,
 } from './src/components/NewProfileSheet';
+import { ProtectedScreen } from './src/components/ProtectedScreen';
 
 const persistor = persistStore(store);
 
-const WrappedComponent = (Component) => {
+const NoAuthWrappedComponent = (Component) => {
     return (props) => {
         const EnhancedComponent = () => (
             <Provider store={store}>
@@ -48,26 +49,54 @@ const WrappedComponent = (Component) => {
     };
 };
 
+const AuthWrappedComponent = (Component, requireProfile, name) => {
+    return (props) => {
+        const EnhancedComponent = () => (
+            <Provider store={store}>
+                <PersistGate loading={<SplashScreen />} persistor={persistor}>
+                    <ProtectedScreen
+                        authing={<SplashScreen {...props} />}
+                        authSuccess={<Component {...props} />}
+                        authFail={<WelcomeScreen {...props} />}
+                        requireProfile={requireProfile}
+                        name={name}
+                    />
+                </PersistGate>
+            </Provider>
+        );
+
+        return <EnhancedComponent />;
+    };
+};
+
 Navigation.registerComponent(WelcomeScreenComponentId, () =>
-    WrappedComponent(WelcomeScreen)
+    NoAuthWrappedComponent(WelcomeScreen)
 );
 Navigation.registerComponent(CompleteAccountScreenComponentId, () =>
-    WrappedComponent(CompleteAccountScreen)
+    AuthWrappedComponent(
+        CompleteAccountScreen,
+        false,
+        CompleteAccountScreenComponentId
+    )
 );
 Navigation.registerComponent(HomeScreenComponentId, () =>
-    WrappedComponent(HomeScreen)
+    AuthWrappedComponent(HomeScreen, true, HomeScreenComponentId)
 );
 Navigation.registerComponent(SigninScreenComponentId, () =>
-    WrappedComponent(SigninScreen)
+    NoAuthWrappedComponent(SigninScreen)
 );
 Navigation.registerComponent(SendShareScreenComponentId, () =>
-    WrappedComponent(SendShareScreen)
+    AuthWrappedComponent(SendShareScreen, true, SendShareScreenComponentId)
 );
 Navigation.registerComponent(AccountSettingsScreenComponentId, () =>
-    WrappedComponent(AccountSettingsScreen)
+    AuthWrappedComponent(
+        AccountSettingsScreen,
+        true,
+        AccountSettingsScreenComponentId
+    )
 );
 Navigation.registerComponent(NewProfileSheetComponentId, () =>
-    WrappedComponent(NewProfileSheet)
+    AuthWrappedComponent(NewProfileSheet, true, NewProfileSheetComponentId)
 );
 Navigation.events().registerAppLaunchedListener(() => {
     Navigation.setRoot({

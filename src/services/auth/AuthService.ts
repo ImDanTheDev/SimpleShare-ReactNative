@@ -1,4 +1,3 @@
-import { Observer } from '@reduxjs/toolkit';
 import FirebaseAuthProvider from './FirebaseAuthProvider';
 import IAuthProvider from './IAuthProvider';
 import IUser from '../../api/IUser';
@@ -12,22 +11,26 @@ export enum AuthProviderType {
 }
 
 export default class AuthService {
-    private readonly authProvider: IAuthProvider;
-    private readonly authStateChangeObservers: Observer<IUser | undefined>[] =
-        [];
+    private readonly authProviderType: AuthProviderType;
+    private authProvider: IAuthProvider | undefined;
+
+    isServiceInitialized = false;
 
     constructor(authProviderType: AuthProviderType) {
-        switch (authProviderType) {
+        this.authProviderType = authProviderType;
+    }
+
+    initialize = (): void => {
+        if (this.authProvider && this.isServiceInitialized) {
+            console.log('Auth Service is already initialized.');
+            return;
+        }
+
+        switch (this.authProviderType) {
             case AuthProviderType.Firebase:
                 this.authProvider = new FirebaseAuthProvider(
                     (user: IUser | undefined) => {
                         store.dispatch(setUser(user));
-
-                        for (const observer of this.authStateChangeObservers) {
-                            if (observer.next) {
-                                observer.next(user);
-                            }
-                        }
                     }
                 );
                 break;
@@ -35,28 +38,15 @@ export default class AuthService {
                 this.authProvider = new SimpleShareAuthProvider();
                 break;
         }
-    }
-
-    onAuthStateChanged(observer: Observer<IUser>): () => void {
-        const exists = this.authStateChangeObservers.includes(observer);
-        if (exists) {
-            console.log('Observer is already attached.');
-        } else {
-            this.authStateChangeObservers.push(observer);
-        }
-
-        return () => {
-            const observerIndex =
-                this.authStateChangeObservers.indexOf(observer);
-            if (observerIndex === -1) {
-                return console.log('Obserer does not exist.');
-            }
-
-            this.authStateChangeObservers.splice(observerIndex, 1);
-        };
-    }
+        this.isServiceInitialized = true;
+        console.log('Auth Service initialized.');
+    };
 
     googleSignIn = async (): Promise<IUser | undefined> => {
+        if (!this.authProvider) {
+            console.error('Auth Service is not initialized!');
+            return;
+        }
         try {
             const user = await this.authProvider.googleSignIn();
             return user;
@@ -67,6 +57,10 @@ export default class AuthService {
     };
 
     signOut = async (): Promise<void> => {
+        if (!this.authProvider) {
+            console.error('Auth Service is not initialized!');
+            return;
+        }
         await this.authProvider.signOut();
     };
 }

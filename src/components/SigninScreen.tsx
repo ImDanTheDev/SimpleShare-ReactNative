@@ -6,6 +6,7 @@ import {
 } from 'react-native-navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { googleSignIn } from '../api/AccountAPI';
+import IUser from '../api/IUser';
 import { increment } from '../redux/counterSlice';
 import { RootState } from '../redux/store';
 import { ComponentId as WelcomeScreenComponentId } from './WelcomeScreen';
@@ -19,14 +20,13 @@ const SigninScreen: NavigationFunctionComponent<Props> = () => {
     const dispatch = useDispatch();
     const count = useSelector((state: RootState) => state.counter.value);
 
-    const user = useSelector((state: RootState) => state.auth.user);
+    const user: IUser | undefined = useSelector(
+        (state: RootState) => state.auth.user
+    );
 
     useEffect(() => {
         if (user) {
-            console.log(
-                'We already have a user, so no need to signin. Going back to WelcomeScreen.'
-            );
-
+            console.log('Already have a user.');
             Navigation.setRoot({
                 root: {
                     stack: {
@@ -40,8 +40,6 @@ const SigninScreen: NavigationFunctionComponent<Props> = () => {
                     },
                 },
             });
-        } else {
-            console.log('We do not have a user, so wait for user to signin.');
         }
     }, [user]);
 

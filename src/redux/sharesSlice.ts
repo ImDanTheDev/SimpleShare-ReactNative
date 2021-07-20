@@ -17,6 +17,12 @@ export const sharesSlice = createSlice({
             state.shares = action.payload;
         },
         addShare: (state, action: PayloadAction<IShare>) => {
+            if (
+                state.shares.findIndex((s) => s.id === action.payload.id) !== -1
+            ) {
+                console.log('Attemped to add share with a duplicate id!');
+                return;
+            }
             state.shares.push(action.payload);
         },
         deleteShare: (state, action: PayloadAction<string>) => {

@@ -4,8 +4,17 @@ import IProfile from '../../api/IProfile';
 import IShare from '../../api/IShare';
 
 export default class SimpleShareDatabaseProvider implements IDatabaseProvider {
-    getAccountInfo = (): Promise<IAccountInfo> => {
+    getAccountInfo = (): Promise<IAccountInfo | undefined> => {
         return new Promise<IAccountInfo>(async (resolve, reject) => {
+            reject('Simple Share database is not implemented.');
+        });
+    };
+
+    initializeAccount = async (
+        uid: string,
+        accountInfo: IAccountInfo
+    ): Promise<boolean> => {
+        return new Promise<boolean>(async (resolve, reject) => {
             reject('Simple Share database is not implemented.');
         });
     };
@@ -27,17 +36,23 @@ export default class SimpleShareDatabaseProvider implements IDatabaseProvider {
         });
     };
 
-    createProfile = async (
-        uid: string,
-        profile: IProfile
-    ): Promise<IProfile | undefined> => {
-        return new Promise<IProfile>(async (resolve, reject) => {
+    createDefaultProfile = async (uid: string): Promise<boolean> => {
+        return new Promise<boolean>(async (resolve, reject) => {
             reject('Simple Share database is not implemented.');
         });
     };
 
-    getAllProfiles = async (uid: string): Promise<IProfile[] | undefined> => {
-        return new Promise<IProfile[] | undefined>(async (resolve, reject) => {
+    createProfile = async (
+        uid: string,
+        profile: IProfile
+    ): Promise<boolean> => {
+        return new Promise<boolean>(async (resolve, reject) => {
+            reject('Simple Share database is not implemented.');
+        });
+    };
+
+    getAllProfiles = async (uid: string): Promise<IProfile[]> => {
+        return new Promise<IProfile[]>(async (resolve, reject) => {
             reject('Simple Share database is not implemented.');
         });
     };

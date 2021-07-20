@@ -4,18 +4,20 @@ import IShare from '../../api/IShare';
 
 export default interface IDatabaseProvider {
     // Accounts
-    getAccountInfo: (uid: string) => Promise<IAccountInfo>;
+    getAccountInfo: (uid: string) => Promise<IAccountInfo | undefined>;
+    initializeAccount: (
+        uid: string,
+        accountInfo: IAccountInfo
+    ) => Promise<boolean>;
     setAccountInfo: (
         uid: string,
         accountInfo: IAccountInfo
     ) => Promise<boolean>;
     getUidByPhoneNumber: (phoneNumber: string) => Promise<string | undefined>;
     // Profiles
-    createProfile: (
-        uid: string,
-        profile: IProfile
-    ) => Promise<IProfile | undefined>;
-    getAllProfiles: (uid: string) => Promise<IProfile[] | undefined>;
+    createDefaultProfile: (uid: string) => Promise<boolean>;
+    createProfile: (uid: string, profile: IProfile) => Promise<boolean>;
+    getAllProfiles: (uid: string) => Promise<IProfile[]>;
     getProfile: (
         uid: string,
         profileId: string

@@ -52,22 +52,14 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
 
     const handleSendShare = async () => {
         if (!user || !currentProfile || !currentProfile.id) {
-            console.log(user);
-            console.log(currentProfile);
-            console.log(currentProfile?.id);
+            console.log('ERROR: Not signed in!');
             return;
         }
 
         const toUid = await getUidByPhoneNumber(phoneNumber);
-        if (!toUid) {
-            console.log(toUid);
-            return;
-        }
+        if (!toUid) return; // TODO: Show an error if the user could not be found.
         const toProfileId = await getProfileIdByName(toUid, profileName);
-        if (!toProfileId) {
-            console.log(toProfileId);
-            return;
-        }
+        if (!toProfileId) return; // TODO: Show an error if the profile could not be found.
 
         const share: IShare = {
             fromUid: user.uid,
