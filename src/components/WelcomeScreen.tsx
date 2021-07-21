@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
 import {
     Navigation,
     NavigationFunctionComponent,
@@ -15,6 +14,7 @@ import { ComponentId as CompleteAccountScreenComponentId } from './CompleteAccou
 import IProfile from '../api/IProfile';
 import { setCurrentProfile } from '../redux/profilesSlice';
 import { createDefaultProfile } from '../api/ProfileAPI';
+import SplashScreen from './SplashScreen';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -195,11 +195,7 @@ const WelcomeScreen: NavigationFunctionComponent<Props> = () => {
             },
         });
     };
-    return (
-        <View>
-            <Text>Determining route...</Text>
-        </View>
-    );
+    return <SplashScreen />;
 };
 
 export default WelcomeScreen;
