@@ -79,7 +79,7 @@ const SigninScreen: NavigationFunctionComponent<Props> = () => {
                         <MaterialIcons
                             style={styles.signInLogo}
                             name='login'
-                            color='#FFF'
+                            color='#2A9D8F'
                             size={32}
                         />
                     </TouchableOpacity>
