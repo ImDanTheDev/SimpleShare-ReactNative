@@ -148,6 +148,11 @@ export default class DatabaseService {
         return success;
     };
 
+    deleteShare = async (share: IShare): Promise<boolean> => {
+        const success = await this.databaseProvider.deleteShare(share);
+        return success;
+    };
+
     addShareListener = async (
         uid: string,
         profileId: string

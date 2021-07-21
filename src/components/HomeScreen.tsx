@@ -29,6 +29,7 @@ import { setShares } from '../redux/sharesSlice';
 import { RootState } from '../redux/store';
 import { ComponentId as SendShareScreenComponentId } from './SendShareScreen';
 import { ComponentId as AccountSettingsScreenComponetId } from './AccountSettingsScreen';
+import { ComponentId as ViewShareScreenComponentId } from './ViewShareScreen';
 import { ComponentId as NewProfileSheetComponentId } from './NewProfileSheet';
 import { CircleButton } from './CircleButton';
 import { ProfilePicker } from './ProfilePicker';
@@ -181,6 +182,17 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
         return `Inbox - ${shortProfileName} (${shares.length})`;
     };
 
+    const handelCardViewPress = async (share: IShare) => {
+        await Navigation.push(props.componentId, {
+            component: {
+                name: ViewShareScreenComponentId,
+                passProps: {
+                    share: share,
+                },
+            },
+        });
+    };
+
     return (
         <SafeAreaView style={styles.root}>
             <LinearGradient
@@ -245,7 +257,10 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                             {getInboxHeader()}
                         </Text>
                         <View style={styles.inboxSection}>
-                            <InboxGallery inbox={shares} />
+                            <InboxGallery
+                                inbox={shares}
+                                onCardViewPress={handelCardViewPress}
+                            />
                         </View>
                         <Text style={styles.outboxHeader}>Outbox (0)</Text>
                         <View style={styles.outboxSection}>

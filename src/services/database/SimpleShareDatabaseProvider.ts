@@ -90,6 +90,12 @@ export default class SimpleShareDatabaseProvider implements IDatabaseProvider {
         });
     };
 
+    deleteShare = async (share: IShare): Promise<boolean> => {
+        return new Promise<boolean>(async (resolve, reject) => {
+            reject('Simple Share database is not implemented.');
+        });
+    };
+
     addShareListener = async (
         uid: string,
         profileId: string

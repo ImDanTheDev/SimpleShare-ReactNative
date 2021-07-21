@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
     Animated,
-    Button,
     SafeAreaView,
     Text,
     TextInput,
@@ -32,9 +31,7 @@ interface Props {
     componentId: string;
 }
 
-const CompleteAccountScreen: NavigationFunctionComponent<Props> = (
-    props: Props
-) => {
+const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
     const user: IUser | undefined = useSelector(
         (state: RootState) => state.auth.user
     );

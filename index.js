@@ -35,6 +35,11 @@ import NewProfileSheet, {
 import HelpInfoSheet, {
     ComponentId as HelpInfoSheetComponentId,
 } from './src/components/HelpInfoSheet';
+
+import ViewShareScreen, {
+    ComponentId as ViewShareScreenComponentId,
+} from './src/components/ViewShareScreen';
+
 import { ProtectedScreen } from './src/components/ProtectedScreen';
 
 const persistor = persistStore(store);
@@ -103,8 +108,13 @@ Navigation.registerComponent(NewProfileSheetComponentId, () =>
     AuthWrappedComponent(NewProfileSheet, true, NewProfileSheetComponentId)
 );
 Navigation.registerComponent(HelpInfoSheetComponentId, () =>
-    AuthWrappedComponent(HelpInfoSheet, true, HelpInfoSheetComponentId)
+    NoAuthWrappedComponent(HelpInfoSheet, true, HelpInfoSheetComponentId)
 );
+
+Navigation.registerComponent(ViewShareScreenComponentId, () =>
+    AuthWrappedComponent(ViewShareScreen, true, ViewShareScreenComponentId)
+);
+
 Navigation.events().registerAppLaunchedListener(() => {
     Navigation.setRoot({
         root: {

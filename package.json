@@ -12,6 +12,7 @@
         "devmenu": "adb shell input keyevent 82"
     },
     "dependencies": {
+        "@react-native-clipboard/clipboard": "^1.8.4",
         "@react-native-community/async-storage": "^1.12.1",
         "@react-native-community/eslint-config": "^3.0.0",
         "@react-native-firebase/app": "^12.1.0",

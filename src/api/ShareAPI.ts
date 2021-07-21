@@ -5,6 +5,10 @@ export const createShare = async (share: IShare): Promise<boolean> => {
     return await databaseService.createShare(share);
 };
 
+export const deleteShare = async (share: IShare): Promise<boolean> => {
+    return await databaseService.deleteShare(share);
+};
+
 export const switchShareListener = async (
     uid: string,
     profileId: string

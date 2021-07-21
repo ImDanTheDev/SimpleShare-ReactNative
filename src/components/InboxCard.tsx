@@ -9,6 +9,7 @@ export interface Props {
     width: number;
     index: number;
     galleryPosition: number;
+    onViewPress: (share: IShare) => void;
 }
 
 export const InboxCard: React.FC<Props> = (props: Props) => {
@@ -47,6 +48,10 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
 
     const lerp = (a: number, b: number, t: number): number => {
         return a * (1 - t) + b * t;
+    };
+
+    const handleViewButton = async () => {
+        props.onViewPress(props.share);
     };
 
     return (
@@ -95,9 +100,7 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.viewButton}
-                        onPress={() => {
-                            console.log('wip');
-                        }}
+                        onPress={handleViewButton}
                     >
                         <Text style={styles.viewButtonLabel}>View</Text>
                     </TouchableOpacity>

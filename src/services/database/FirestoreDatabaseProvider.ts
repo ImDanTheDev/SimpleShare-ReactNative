@@ -38,7 +38,6 @@ export default class FirestoreDatabaseProvider implements IDatabaseProvider {
                 return {
                     isAccountComplete: accountDocData.isAccountComplete,
                     phoneNumber: accountDocData.phoneNumber,
-                    num: accountDocData.num,
                 };
             }
         }
@@ -200,6 +199,20 @@ export default class FirestoreDatabaseProvider implements IDatabaseProvider {
                 .doc(share.toUid)
                 .collection(share.toProfileId)
                 .add(share);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    };
+
+    deleteShare = async (share: IShare): Promise<boolean> => {
+        try {
+            await firestore()
+                .collection('shares')
+                .doc(share.toUid)
+                .collection(share.toProfileId)
+                .doc(share.id)
+                .delete();
             return true;
         } catch (e) {
             return false;

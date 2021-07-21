@@ -12,6 +12,7 @@ import { InboxCard } from './InboxCard';
 
 export interface Props {
     inbox: IShare[];
+    onCardViewPress: (share: IShare) => void;
 }
 
 const cardWidth = Dimensions.get('screen').width * 0.6;
@@ -36,6 +37,7 @@ export const InboxGallery: React.FC<Props> = (props: Props) => {
                         index={i}
                         width={cardWidth}
                         galleryPosition={galleryPosition}
+                        onViewPress={props.onCardViewPress}
                     />
                 );
             })
