@@ -31,6 +31,10 @@ import AccountSettingsScreen, {
 import NewProfileSheet, {
     ComponentId as NewProfileSheetComponentId,
 } from './src/components/NewProfileSheet';
+
+import HelpInfoSheet, {
+    ComponentId as HelpInfoSheetComponentId,
+} from './src/components/HelpInfoSheet';
 import { ProtectedScreen } from './src/components/ProtectedScreen';
 
 const persistor = persistStore(store);
@@ -97,6 +101,9 @@ Navigation.registerComponent(AccountSettingsScreenComponentId, () =>
 );
 Navigation.registerComponent(NewProfileSheetComponentId, () =>
     AuthWrappedComponent(NewProfileSheet, true, NewProfileSheetComponentId)
+);
+Navigation.registerComponent(HelpInfoSheetComponentId, () =>
+    AuthWrappedComponent(HelpInfoSheet, true, HelpInfoSheetComponentId)
 );
 Navigation.events().registerAppLaunchedListener(() => {
     Navigation.setRoot({

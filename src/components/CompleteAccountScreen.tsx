@@ -1,8 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { Button, Text, TextInput, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+    Animated,
+    Button,
+    SafeAreaView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import {
     Navigation,
     NavigationFunctionComponent,
+    OptionsModalPresentationStyle,
 } from 'react-native-navigation';
 import { useSelector } from 'react-redux';
 import { initializeAccount, signOut } from '../api/AccountAPI';
@@ -10,13 +19,22 @@ import IUser from '../api/IUser';
 import IAccountInfo from '../api/IAccountInfo';
 import { RootState } from '../redux/store';
 import { ComponentId as WelcomeScreenComponentId } from './WelcomeScreen';
+import { CircleButton } from './CircleButton';
+import LinearGradient from 'react-native-linear-gradient';
+import MaskedView from '@react-native-masked-view/masked-view';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import EStyleSheet from 'react-native-extended-stylesheet';
+import { ComponentId as HelpInfoSheetComponentId } from './HelpInfoSheet';
 
 interface Props {
     /** react-native-navigation component id. */
     componentId: string;
 }
 
-const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
+const CompleteAccountScreen: NavigationFunctionComponent<Props> = (
+    props: Props
+) => {
     const user: IUser | undefined = useSelector(
         (state: RootState) => state.auth.user
     );
@@ -25,8 +43,11 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
         (state: RootState) => state.user.accountInfo
     );
 
-    const [num, setNum] = useState<number>();
     const [phoneNumber, setPhoneNumber] = useState<string>('');
+
+    const blurOpacity = useRef(new Animated.Value(0)).current;
+    const [blueVisibility, setBlurVisibility] = useState<boolean>(false);
+    const [shouldShowBlur, setShouldShowBlur] = useState<boolean>(false);
 
     useEffect(() => {
         if (!user) {
@@ -59,6 +80,17 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
         continueAuthFlow();
     }, [accountInfo, user]);
 
+    useEffect(() => {
+        if (shouldShowBlur) {
+            setBlurVisibility(true);
+        }
+        Animated.timing(blurOpacity, {
+            toValue: shouldShowBlur ? 1 : 0,
+            duration: 150,
+            useNativeDriver: false,
+        }).start(() => setBlurVisibility(shouldShowBlur));
+    }, [shouldShowBlur, blurOpacity]);
+
     const setRootScreen = async (screenId: string) => {
         await Navigation.setRoot({
             root: {
@@ -75,10 +107,6 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
         });
     };
 
-    const handleSignOutButton = async () => {
-        await signOut();
-    };
-
     const handleCompleteAccountButton = async () => {
         if (!user) return; // TODO: We need a user for this page. Handle this error.
 
@@ -91,7 +119,6 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
             'Completing Account [3/3] Creating a default profile or resetting the existing one.'
         );
         const success = await initializeAccount(user.uid, {
-            num: num,
             phoneNumber: phoneNumber,
             isAccountComplete: true,
         });
@@ -103,28 +130,239 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
         }
     };
 
+    const handleBack = async () => {
+        await signOut();
+    };
+
+    const showPhoneNumberHelp = async () => {
+        setShouldShowBlur(true);
+
+        await Navigation.showModal({
+            component: {
+                name: HelpInfoSheetComponentId,
+                options: {
+                    modalPresentationStyle:
+                        OptionsModalPresentationStyle.overCurrentContext,
+                },
+                passProps: {
+                    header: 'Phone Number',
+                    info: 'Your phone number is needed to identify who a Share is being sent to. At no point will your phone number be provided to other users without your explicit permission.',
+                    onDismiss: () => {
+                        setShouldShowBlur(false);
+                    },
+                },
+            },
+        });
+    };
+
     return (
-        <View>
-            <Text>Complete Account</Text>
-            <Text>Welcome {user?.displayName}</Text>
-            <TextInput
-                keyboardType='decimal-pad'
-                onChangeText={(text) => setNum(Number.parseInt(text, 10))}
-                placeholder='num'
-            />
-            <TextInput
-                keyboardType='phone-pad'
-                onChangeText={setPhoneNumber}
-                placeholder='phone number'
-            />
-            <Button title='Sign-Out' onPress={handleSignOutButton} />
-            <Button
-                title='Complete Account'
-                onPress={handleCompleteAccountButton}
-            />
-        </View>
+        <SafeAreaView style={styles.root}>
+            <LinearGradient
+                colors={['#7f5a83', '#0d324d']}
+                angle={50}
+                useAngle={true}
+                style={styles.backgroundGradient}
+            >
+                <View style={styles.headerSection}>
+                    <CircleButton
+                        size={56}
+                        style={styles.settingsButton}
+                        onPress={handleBack}
+                    >
+                        <MaterialIcons
+                            name='arrow-back'
+                            color='#EAEAEA'
+                            size={42}
+                        />
+                    </CircleButton>
+                    <Text style={styles.welcomeText}>
+                        Complete Your Account
+                    </Text>
+                </View>
+                <MaskedView
+                    style={styles.mask}
+                    maskElement={
+                        <LinearGradient
+                            style={styles.maskGradient}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 0, y: 0.05 }}
+                            colors={['#FFFFFF00', '#FFFFFFFF']}
+                        />
+                    }
+                >
+                    <KeyboardAwareScrollView
+                        contentContainerStyle={styles.body}
+                    >
+                        <View style={styles.inputLabelGroup}>
+                            <Text style={styles.inputLabelText}>
+                                Enter your phone number:
+                            </Text>
+                            <CircleButton
+                                style={styles.moreInfoButton}
+                                size={28}
+                                onPress={showPhoneNumberHelp}
+                                children={
+                                    <Text style={styles.moreInfoButtonLabel}>
+                                        ?
+                                    </Text>
+                                }
+                            />
+                        </View>
+                        <TextInput
+                            style={styles.phoneNumberInput}
+                            keyboardType='phone-pad'
+                            onChangeText={setPhoneNumber}
+                            placeholder='Phone number'
+                        />
+                        <View style={styles.flexSpacer} />
+                        <TouchableOpacity
+                            style={styles.signInMethodButton}
+                            onPress={handleCompleteAccountButton}
+                        >
+                            <Text style={styles.signInMethodLabel}>
+                                Save Account
+                            </Text>
+                            <MaterialIcons
+                                style={styles.signInLogo}
+                                name='navigate-next'
+                                color='#FFF'
+                                size={32}
+                            />
+                        </TouchableOpacity>
+                    </KeyboardAwareScrollView>
+                </MaskedView>
+            </LinearGradient>
+            {blueVisibility ? (
+                <Animated.View
+                    style={{ ...styles.blurOverlay, opacity: blurOpacity }}
+                />
+            ) : (
+                <></>
+            )}
+        </SafeAreaView>
     );
 };
+
+const styles = EStyleSheet.create({
+    root: {
+        flex: 1,
+        backgroundColor: '#264653',
+    },
+    backgroundGradient: {
+        flex: 1,
+    },
+    /* Header */
+    headerSection: {
+        paddingHorizontal: '24rem',
+        height: '72rem',
+        flexDirection: 'row',
+        borderBottomWidth: 1,
+        borderColor: '#0D161F7F',
+        backgroundColor: '#0000001F',
+        alignItems: 'center',
+    },
+    welcomeText: {
+        fontSize: '22rem',
+        marginLeft: '16rem',
+        color: '#FFF',
+    },
+    settingsButton: {
+        backgroundColor: '#E9C46A19',
+        borderColor: '#F4A2617F',
+        borderWidth: 1,
+    },
+    /* Body */
+    body: {
+        margin: '32rem',
+        paddingBottom: '48rem',
+        flex: 1,
+    },
+    phoneNumberInput: {
+        backgroundColor: '#1A2633',
+        borderRadius: '16rem',
+        borderColor: '#F4A2617F',
+        borderWidth: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: '16rem',
+        marginBottom: '16rem',
+    },
+    moreInfoButton: {
+        backgroundColor: '#E9C46A19',
+        borderColor: '#F4A2617F',
+        borderWidth: 1,
+    },
+    inputLabelGroup: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '16rem',
+    },
+    inputLabelText: {
+        color: '#FFF',
+        fontSize: 20,
+    },
+    moreInfoButtonLabel: {
+        color: '#FFF',
+        fontSize: 20,
+        fontWeight: 'bold',
+    },
+    flexSpacer: {
+        flex: 1,
+    },
+    signInMethodButton: {
+        backgroundColor: '#0D161F',
+        borderRadius: '16rem',
+        borderColor: '#F4A2617F',
+        borderWidth: '1rem',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.23,
+        shadowRadius: 2.62,
+        elevation: 2,
+
+        marginTop: '16rem',
+        paddingVertical: '16rem',
+        paddingHorizontal: '16rem',
+        width: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'row',
+        height: '64rem',
+    },
+    signInMethodLabel: {
+        color: '#FFF',
+        fontSize: '22rem',
+        flex: 1,
+    },
+    signInLogo: {
+        height: '100%',
+        aspectRatio: 1,
+        textAlignVertical: 'center',
+        textAlign: 'center',
+        marginLeft: '8rem',
+    },
+    /* Mask */
+    mask: {
+        flex: 1,
+    },
+    maskGradient: {
+        flex: 1,
+        backgroundColor: 'transparent',
+    },
+    /* Misc */
+    blurOverlay: {
+        backgroundColor: '#1520247F',
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+    },
+});
 
 export default CompleteAccountScreen;
 export type { Props };

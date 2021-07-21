@@ -91,7 +91,7 @@ const styles = EStyleSheet.create({
         color: '#FFF',
     },
     welcomeUserName: {
-        fontSize: 28,
+        fontSize: 22,
         color: '#FFF',
     },
     settingsButton: {
