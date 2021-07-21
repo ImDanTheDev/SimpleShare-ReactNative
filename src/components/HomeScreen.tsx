@@ -37,6 +37,8 @@ import { InboxGallery } from './InboxGallery';
 import { OutboxList } from './OutboxList';
 import { SettingsDropdown } from './SettingsDropdown';
 import { databaseService } from '../api/api';
+import { ComponentId as HelpInfoSheetComponentId } from './HelpInfoSheet';
+import { deleteProfile } from '../api/ProfileAPI';
 
 const entireScreenWidth = Dimensions.get('window').width;
 EStyleSheet.build({ $rem: entireScreenWidth / 380 });
@@ -148,7 +150,7 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
     };
 
     const handleSettingsButton = () => {
-        setShouldShowBlur(true);
+        setShouldShowBlur(!shouldShowBlur);
         setSettingsDropdownVisibility(!settingsDropdownVisibility);
     };
 
@@ -182,12 +184,46 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
         return `Inbox - ${shortProfileName} (${shares.length})`;
     };
 
-    const handelCardViewPress = async (share: IShare) => {
+    const handleCardViewPress = async (share: IShare) => {
         await Navigation.push(props.componentId, {
             component: {
                 name: ViewShareScreenComponentId,
                 passProps: {
                     share: share,
+                },
+            },
+        });
+    };
+
+    const handleDeleteCurrentProfile = async () => {
+        setSettingsDropdownVisibility(false);
+
+        if (!user || !currentProfile?.id) return;
+
+        await Navigation.showModal({
+            component: {
+                name: HelpInfoSheetComponentId,
+                options: {
+                    modalPresentationStyle:
+                        OptionsModalPresentationStyle.overCurrentContext,
+                },
+                passProps: {
+                    header: `Deleting Profile: ${currentProfile.name}`,
+                    info: 'Are you sure you want to delete this profile?',
+                    confirmable: true,
+                    confirmText: 'Delete',
+                    onConfirm: async () => {
+                        setShouldShowBlur(false);
+                        await deleteProfile(
+                            user.uid,
+                            currentProfile.id || 'UNKNOWN_PROFILE'
+                        );
+                    },
+                    dismissable: true,
+                    dismissText: 'Cancel',
+                    onDismiss: async () => {
+                        setShouldShowBlur(false);
+                    },
                 },
             },
         });
@@ -259,7 +295,7 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                         <View style={styles.inboxSection}>
                             <InboxGallery
                                 inbox={shares}
-                                onCardViewPress={handelCardViewPress}
+                                onCardViewPress={handleCardViewPress}
                             />
                         </View>
                         <Text style={styles.outboxHeader}>Outbox (0)</Text>
@@ -284,6 +320,7 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                     right={settingsDropdownRight}
                     top={settingsDropdownTop}
                     onOpenAccountSettings={handleOpenAccountSettings}
+                    onDeleteCurrentProfile={handleDeleteCurrentProfile}
                     onSignOut={handleSignOut}
                     onDismiss={() => {
                         setShouldShowBlur(false);

@@ -144,6 +144,8 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
                 passProps: {
                     header: 'Phone Number',
                     info: 'Your phone number is needed to identify who a Share is being sent to. At no point will your phone number be provided to other users without your explicit permission.',
+                    dismissable: true,
+                    dismissText: 'Dismiss',
                     onDismiss: () => {
                         setShouldShowBlur(false);
                     },

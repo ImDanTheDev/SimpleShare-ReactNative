@@ -1,8 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { Animated, Text, TouchableOpacity, View } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
+import React, { createRef, useEffect, useRef, useState } from 'react';
+import {
+    Animated,
+    LayoutChangeEvent,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import IShare from '../api/IShare';
+import { deleteShare } from '../api/ShareAPI';
+import { CardDropdown } from './CardDropdown';
+import { CircleButton } from './CircleButton';
 
 export interface Props {
     share: IShare;
@@ -23,6 +33,26 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
     const [scale, setScale] = useState<number>(maxCardScale);
     const [borderWidth, setBorderWidth] = useState<number>(minBorderWidth);
     const [elevation, setElevation] = useState<number>(minElevation);
+
+    const moreButtonContainer = createRef<View>();
+    const [dropdownVisibility, setDropdownVisibility] =
+        useState<boolean>(false);
+    const [dropdownBottom, setDropdownBottom] = useState<number>(0);
+    const [dropdownLeft, setDropdownLeft] = useState<number>(0);
+    const blurOpacity = useRef(new Animated.Value(0)).current;
+    const [shouldShowBlur, setShouldShowBlur] = useState<boolean>(false);
+    const [blueVisibility, setBlurVisibility] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (shouldShowBlur) {
+            setBlurVisibility(true);
+        }
+        Animated.timing(blurOpacity, {
+            toValue: shouldShowBlur ? 1 : 0,
+            duration: 150,
+            useNativeDriver: false,
+        }).start(() => setBlurVisibility(shouldShowBlur));
+    }, [shouldShowBlur, blurOpacity]);
 
     useEffect(() => {
         // Position in gallery when card should appear the largest.
@@ -52,6 +82,32 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
 
     const handleViewButton = async () => {
         props.onViewPress(props.share);
+    };
+
+    const handleMoreButtonlayout = (_e: LayoutChangeEvent) => {
+        moreButtonContainer.current?.measure(
+            (x, y, _width, height, _pageX, _pageY) => {
+                setDropdownLeft(x);
+                setDropdownBottom(y + height + 8);
+            }
+        );
+    };
+
+    const handleMoreButton = () => {
+        setShouldShowBlur(true);
+        setDropdownVisibility(true);
+    };
+
+    const handleCopyCardText = () => {
+        Clipboard.setString(props.share.content);
+        setShouldShowBlur(false);
+        setDropdownVisibility(false);
+    };
+
+    const handleDeleteCard = async () => {
+        await deleteShare(props.share);
+        setShouldShowBlur(false);
+        setDropdownVisibility(false);
     };
 
     return (
@@ -86,18 +142,23 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
                 </Text>
                 <View style={styles.flexSpacer} />
                 <View style={styles.actionBar}>
-                    <TouchableOpacity
-                        style={styles.moreButton}
-                        onPress={() => {
-                            console.log('wip');
-                        }}
+                    <View
+                        ref={moreButtonContainer}
+                        onLayout={handleMoreButtonlayout}
                     >
-                        <MaterialIcons
-                            name={'more-horiz'}
-                            size={28}
-                            color='#FFF'
-                        />
-                    </TouchableOpacity>
+                        <CircleButton
+                            size={32}
+                            style={styles.moreButton}
+                            onPress={handleMoreButton}
+                            invertAnimation={dropdownVisibility}
+                        >
+                            <MaterialIcons
+                                name={'more-horiz'}
+                                size={28}
+                                color='#FFF'
+                            />
+                        </CircleButton>
+                    </View>
                     <TouchableOpacity
                         style={styles.viewButton}
                         onPress={handleViewButton}
@@ -106,6 +167,27 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
                     </TouchableOpacity>
                 </View>
             </View>
+            {blueVisibility ? (
+                <Animated.View
+                    style={{ ...styles.blurOverlay, opacity: blurOpacity }}
+                />
+            ) : (
+                <></>
+            )}
+            {dropdownVisibility ? (
+                <CardDropdown
+                    left={dropdownLeft}
+                    bottom={dropdownBottom}
+                    onCopyText={handleCopyCardText}
+                    onDelete={handleDeleteCard}
+                    onDismiss={() => {
+                        setShouldShowBlur(false);
+                        setDropdownVisibility(false);
+                    }}
+                />
+            ) : (
+                <></>
+            )}
         </Animated.View>
     );
 };
@@ -186,5 +268,14 @@ const styles = EStyleSheet.create({
         fontSize: 20,
         color: '#FFF',
         textAlignVertical: 'center',
+    },
+    blurOverlay: {
+        backgroundColor: '#1520247F',
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        borderRadius: 16,
     },
 });

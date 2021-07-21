@@ -11,7 +11,12 @@ interface Props {
     componentId: string;
     header: string;
     info: string;
+    dismissable: boolean;
+    dismissText?: string;
+    confirmText?: string;
+    confirmable: boolean;
     onDismiss?: () => void;
+    onConfirm?: () => void;
 }
 
 export const HelpInfoSheet: NavigationFunctionComponent<Props> = (
@@ -19,6 +24,11 @@ export const HelpInfoSheet: NavigationFunctionComponent<Props> = (
 ) => {
     const handleDismiss = async () => {
         props.onDismiss?.();
+        await Navigation.dismissModal(props.componentId);
+    };
+
+    const handleConfirm = async () => {
+        props.onConfirm?.();
         await Navigation.dismissModal(props.componentId);
     };
 
@@ -32,12 +42,30 @@ export const HelpInfoSheet: NavigationFunctionComponent<Props> = (
                 <Text style={styles.headerText}>{props.header}</Text>
                 <Text style={styles.infoText}>{props.info}</Text>
                 <View style={styles.actionGroup}>
-                    <TouchableOpacity
-                        style={styles.dismissButton}
-                        onPress={handleDismiss}
-                    >
-                        <Text style={styles.dismissButtonLabel}>Dismiss</Text>
-                    </TouchableOpacity>
+                    {props.dismissable ? (
+                        <TouchableOpacity
+                            style={styles.dismissButton}
+                            onPress={handleDismiss}
+                        >
+                            <Text style={styles.actionButtonLabel}>
+                                {props.dismissText}
+                            </Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <></>
+                    )}
+                    {props.confirmable ? (
+                        <TouchableOpacity
+                            style={styles.confirmButton}
+                            onPress={handleConfirm}
+                        >
+                            <Text style={styles.actionButtonLabel}>
+                                {props.confirmText}
+                            </Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <></>
+                    )}
                 </View>
             </View>
         </View>
@@ -85,6 +113,7 @@ const styles = EStyleSheet.create({
     infoText: {
         color: '#FFF',
         fontSize: '14rem',
+        flex: 1,
     },
     actionGroup: {
         flexDirection: 'row',
@@ -98,8 +127,18 @@ const styles = EStyleSheet.create({
         borderWidth: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        marginRight: '16rem',
     },
-    dismissButtonLabel: {
+    confirmButton: {
+        backgroundColor: '#1A2633',
+        flex: 1,
+        borderRadius: '16rem',
+        borderColor: '#F4A2617F',
+        borderWidth: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    actionButtonLabel: {
         fontSize: 20,
         color: '#FFF',
         textAlignVertical: 'center',

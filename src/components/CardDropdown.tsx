@@ -4,15 +4,14 @@ import EStyleSheet from 'react-native-extended-stylesheet';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 export interface Props {
-    onSignOut: () => void;
-    onOpenAccountSettings: () => void;
-    onDeleteCurrentProfile: () => void;
+    onCopyText: () => void;
+    onDelete: () => void;
     onDismiss: () => void;
-    right: number;
-    top: number;
+    left: number;
+    bottom: number;
 }
 
-export const SettingsDropdown: React.FC<Props> = (props: Props) => {
+export const CardDropdown: React.FC<Props> = (props: Props) => {
     return (
         <View style={styles.fullscreenOverlay}>
             <TouchableOpacity
@@ -22,45 +21,29 @@ export const SettingsDropdown: React.FC<Props> = (props: Props) => {
             <View
                 style={{
                     ...styles.dropdown,
-                    right: props.right,
-                    top: props.top,
+                    left: props.left,
+                    bottom: props.bottom,
                 }}
             >
                 <TouchableOpacity
                     style={styles.item}
-                    onPress={props.onDeleteCurrentProfile}
+                    onPress={props.onCopyText}
                 >
+                    <MaterialIcons name='content-copy' color='#FFF' size={24} />
+                    <Text style={styles.itemLabel}>Copy Text</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.item} onPress={props.onDelete}>
                     <MaterialIcons
                         name='delete-forever'
                         color='#E76F51'
-                        size={42}
+                        size={24}
                     />
-                    <Text style={styles.itemLabel}>Delete Profile</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.item}
-                    onPress={props.onOpenAccountSettings}
-                >
-                    <MaterialIcons
-                        name='account-circle'
-                        color='#FFF'
-                        size={42}
-                    />
-                    <Text style={styles.itemLabel}>Account Settings</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.item} onPress={props.onSignOut}>
-                    <MaterialIcons
-                        name='exit-to-app'
-                        color='#E76F51'
-                        size={42}
-                    />
-                    <Text style={styles.itemLabel}>Sign Out</Text>
+                    <Text style={styles.itemLabel}>Delete</Text>
                 </TouchableOpacity>
             </View>
         </View>
     );
 };
-
 const styles = EStyleSheet.create({
     fullscreenOverlay: {
         position: 'absolute',
@@ -76,14 +59,12 @@ const styles = EStyleSheet.create({
     dropdown: {
         width: '55%',
         position: 'absolute',
-        elevation: 8,
-        backgroundColor: '#0D161F',
         borderRadius: '16rem',
         paddingTop: '8rem',
         paddingHorizontal: '8rem',
     },
     item: {
-        height: '50rem',
+        height: '32rem',
         borderRadius: '16rem',
         backgroundColor: '#2a4355',
         borderColor: '#F4A2617F',
@@ -92,10 +73,11 @@ const styles = EStyleSheet.create({
         marginBottom: '8rem',
         flexDirection: 'row',
         alignItems: 'center',
+        elevation: 4,
     },
     itemLabel: {
-        fontSize: '16rem',
-        padding: '8rem',
+        fontSize: '12rem',
+        paddingHorizontal: '4rem',
         color: '#FFF',
     },
 });
