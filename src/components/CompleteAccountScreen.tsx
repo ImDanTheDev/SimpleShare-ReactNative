@@ -15,7 +15,7 @@ import {
 import { useSelector } from 'react-redux';
 import { initializeAccount, signOut } from '../api/AccountAPI';
 import IUser from '../api/IUser';
-import IAccountInfo from '../api/IAccountInfo';
+import IAccountInfo, { isAccountComplete } from '../api/IAccountInfo';
 import { RootState } from '../redux/store';
 import { ComponentId as WelcomeScreenComponentId } from './WelcomeScreen';
 import { CircleButton } from './CircleButton';
@@ -58,7 +58,7 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
         const continueAuthFlow = async () => {
             if (accountInfo) {
                 console.log('Does Account Doc Exist? Yes');
-                if (accountInfo.isAccountComplete) {
+                if (isAccountComplete(accountInfo)) {
                     console.log('Is Account Doc Complete? Yes');
                     setRootScreen(WelcomeScreenComponentId);
                 } else {

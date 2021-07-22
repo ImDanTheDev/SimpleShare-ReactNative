@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import IUser from '../api/IUser';
 import { authService, databaseService } from '../api/api';
-import IAccountInfo from '../api/IAccountInfo';
+import IAccountInfo, { isAccountComplete } from '../api/IAccountInfo';
 import { ComponentId as SigninScreenComponentId } from './SigninScreen';
 import { ComponentId as HomeScreenComponentId } from './HomeScreen';
 import { ComponentId as CompleteAccountScreenComponentId } from './CompleteAccountScreen';
@@ -96,8 +96,7 @@ const WelcomeScreen: NavigationFunctionComponent<Props> = () => {
             if (accountInfo) {
                 console.log('Does Account Doc Exist? Yes');
 
-                if (accountInfo.isAccountComplete) {
-                    // TODO: Check actual fields. Do not rely on isAccountComplete.
+                if (isAccountComplete(accountInfo)) {
                     console.log('Is Account Doc Complete? Yes');
                     await fetchProfiles();
                 } else {
