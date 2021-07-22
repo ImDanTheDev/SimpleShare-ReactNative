@@ -24,6 +24,13 @@ import { getProfileIdByName } from '../api/ProfileAPI';
 import { createShare } from '../api/ShareAPI';
 import { RootState } from '../redux/store';
 import { CircleButton } from './CircleButton';
+import {
+    MAX_PHONE_NUMBER_LENGTH,
+    MAX_PROFILE_NAME_LENGTH,
+    MAX_SHARE_TEXT_LENGTH,
+    MIN_PHONE_NUMBER_LENGTH,
+    MIN_PROFILE_NAME_LENGTH,
+} from '../constants';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -53,6 +60,14 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
     const handleSendShare = async () => {
         if (!user || !currentProfile || !currentProfile.id) {
             console.log('ERROR: Not signed in!');
+            return;
+        }
+
+        if (
+            phoneNumber.length < MIN_PHONE_NUMBER_LENGTH ||
+            profileName.length < MIN_PROFILE_NAME_LENGTH ||
+            shareText.length > MAX_SHARE_TEXT_LENGTH
+        ) {
             return;
         }
 
@@ -120,6 +135,7 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                     >
                         <TextInput
                             style={styles.phoneNumberInput}
+                            maxLength={MAX_PHONE_NUMBER_LENGTH}
                             onChangeText={setPhoneNumber}
                             autoCompleteType={'off'}
                             keyboardType='phone-pad'
@@ -127,11 +143,13 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                         />
                         <TextInput
                             style={styles.profileInput}
+                            maxLength={MAX_PROFILE_NAME_LENGTH}
                             onChangeText={setProfileName}
                             placeholder='Profile name'
                         />
                         <TextInput
                             style={styles.shareTextInput}
+                            maxLength={MAX_SHARE_TEXT_LENGTH}
                             onChangeText={setShareText}
                             placeholder='Enter text to share'
                             multiline={true}

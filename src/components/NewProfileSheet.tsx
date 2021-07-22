@@ -9,6 +9,7 @@ import {
 import { useSelector } from 'react-redux';
 import IUser from '../api/IUser';
 import { createProfile } from '../api/ProfileAPI';
+import { MAX_PROFILE_NAME_LENGTH, MIN_PROFILE_NAME_LENGTH } from '../constants';
 import { RootState } from '../redux/store';
 
 interface Props {
@@ -37,7 +38,9 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
             return;
         }
 
-        if (!profileName) return;
+        if (!profileName || profileName.length < MIN_PROFILE_NAME_LENGTH) {
+            return;
+        }
 
         await createProfile(user.uid, {
             name: profileName,
@@ -59,6 +62,7 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
                     </View>
                     <TextInput
                         style={styles.profileName}
+                        maxLength={MAX_PROFILE_NAME_LENGTH}
                         placeholder='Profile name'
                         onChangeText={setProfileName}
                     />

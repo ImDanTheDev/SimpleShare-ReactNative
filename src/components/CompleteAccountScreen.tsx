@@ -25,6 +25,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import { ComponentId as HelpInfoSheetComponentId } from './HelpInfoSheet';
+import { MAX_PHONE_NUMBER_LENGTH, MIN_PHONE_NUMBER_LENGTH } from '../constants';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -105,7 +106,10 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
     };
 
     const handleCompleteAccountButton = async () => {
-        if (!user) return; // TODO: We need a user for this page. Handle this error.
+        if (!user || phoneNumber.length < MIN_PHONE_NUMBER_LENGTH) {
+            // TODO: We need a user for this page. Handle this error.
+            return;
+        }
 
         // Creates the account if it does not exist. Completes the account info. Adds a default profile.
         console.log(
@@ -209,6 +213,7 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
                         </View>
                         <TextInput
                             style={styles.phoneNumberInput}
+                            maxLength={MAX_PHONE_NUMBER_LENGTH}
                             keyboardType='phone-pad'
                             onChangeText={setPhoneNumber}
                             placeholder='Phone number'

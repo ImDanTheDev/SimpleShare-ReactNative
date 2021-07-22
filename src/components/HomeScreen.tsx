@@ -49,6 +49,8 @@ interface Props {
 }
 
 const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
+    const MAX_PROFILES = 5;
+
     const dispatch = useDispatch();
 
     const user: IUser | undefined = useSelector(
@@ -114,6 +116,10 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
     };
 
     const handleCreateProfileButton = async () => {
+        if (profiles.length >= MAX_PROFILES) {
+            return;
+        }
+
         setShouldShowBlur(true);
 
         await Navigation.showModal({
