@@ -39,6 +39,7 @@ import { SettingsDropdown } from './SettingsDropdown';
 import { databaseService } from '../api/api';
 import { ComponentId as HelpInfoSheetComponentId } from './HelpInfoSheet';
 import { deleteProfile } from '../api/ProfileAPI';
+import { MAX_PROFILE_NAME_LENGTH } from '../constants';
 
 const entireScreenWidth = Dimensions.get('window').width;
 EStyleSheet.build({ $rem: entireScreenWidth / 380 });
@@ -183,8 +184,9 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
         if (!currentProfile) return '';
 
         let shortProfileName = currentProfile.name;
-        if (shortProfileName.length > 15) {
-            shortProfileName = shortProfileName.substring(0, 15) + '...';
+        if (shortProfileName.length > MAX_PROFILE_NAME_LENGTH) {
+            shortProfileName =
+                shortProfileName.substring(0, MAX_PROFILE_NAME_LENGTH) + '...';
         }
 
         return `Inbox - ${shortProfileName} (${shares.length})`;
