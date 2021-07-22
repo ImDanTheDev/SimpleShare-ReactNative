@@ -198,7 +198,11 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
     const handleDeleteCurrentProfile = async () => {
         setSettingsDropdownVisibility(false);
 
-        if (!user || !currentProfile?.id) return;
+        if (!user || !currentProfile?.id || currentProfile.id === 'default') {
+            // Cannot delete the default profile.
+            setShouldShowBlur(false);
+            return;
+        }
 
         await Navigation.showModal({
             component: {
