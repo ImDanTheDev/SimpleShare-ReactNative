@@ -135,17 +135,17 @@ const entrypoint = (): void => {
     registerScreen<WelcomeScreenProps>(
         WelcomeScreen,
         WelcomeScreenComponentId,
-        'RequireUser'
+        'Optional'
     );
     registerScreen<SigninScreenProps>(
         SigninScreen,
         SigninScreenComponentId,
-        'RequireUser'
+        'Optional'
     );
     registerScreen<HelpInfoSheetProps>(
         HelpInfoSheet,
         HelpInfoSheetComponentId,
-        'RequireUser'
+        'Optional'
     );
 
     registerScreen<CompleteAccountScreenProps>(
@@ -157,27 +157,27 @@ const entrypoint = (): void => {
     registerScreen<HomeScreenProps>(
         HomeScreen,
         HomeScreenComponentId,
-        'RequireUser'
+        'RequireProfile'
     );
     registerScreen<SendShareScreenProps>(
         SendShareScreen,
         SendShareScreenComponentId,
-        'RequireUser'
+        'RequireProfile'
     );
     registerScreen<AccountSettingsScreenProps>(
         AccountSettingsScreen,
         AccountSettingsScreenComponentId,
-        'RequireUser'
+        'RequireProfile'
     );
     registerScreen<NewProfileSheetProps>(
         NewProfileSheet,
         NewProfileSheetComponentId,
-        'RequireUser'
+        'RequireProfile'
     );
     registerScreen<ViewShareScreenProps>(
         ViewShareScreen,
         ViewShareScreenComponentId,
-        'RequireUser'
+        'RequireProfile'
     );
 
     Navigation.events().registerAppLaunchedListener(() => {
