@@ -5,7 +5,7 @@ import IProfile from '../api/IProfile';
 import IUser from '../api/IUser';
 import { RootState } from '../redux/store';
 
-interface Props {
+export interface Props {
     authing: ReactNode;
     authSuccess: ReactNode;
     authFail: ReactNode;

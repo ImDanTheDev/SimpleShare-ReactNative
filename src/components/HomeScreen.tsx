@@ -1,7 +1,6 @@
 import React, { createRef, useEffect, useRef, useState } from 'react';
 import {
     Animated,
-    Dimensions,
     LayoutChangeEvent,
     SafeAreaView,
     ScrollView,
@@ -40,9 +39,7 @@ import { databaseService } from '../api/api';
 import { ComponentId as HelpInfoSheetComponentId } from './HelpInfoSheet';
 import { deleteProfile } from '../api/ProfileAPI';
 import { MAX_PROFILE_NAME_LENGTH } from '../constants';
-
-const entireScreenWidth = Dimensions.get('window').width;
-EStyleSheet.build({ $rem: entireScreenWidth / 380 });
+import { pushToast } from '../redux/toasterSlice';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -118,6 +115,13 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
 
     const handleCreateProfileButton = async () => {
         if (profiles.length >= MAX_PROFILES) {
+            dispatch(
+                pushToast({
+                    message: 'You may only have 5 profiles.',
+                    type: 'info',
+                    duration: 5,
+                })
+            );
             return;
         }
 
@@ -401,9 +405,9 @@ const styles = EStyleSheet.create({
     inboxHeader: {
         fontSize: 20,
         color: '#FFF',
-        marginHorizontal: 16,
-        paddingHorizontal: 16,
-        marginTop: 16,
+        marginHorizontal: '16rem',
+        paddingHorizontal: '8rem',
+        marginTop: '16rem',
     },
     inboxSection: {
         marginBottom: '16rem',
@@ -412,8 +416,8 @@ const styles = EStyleSheet.create({
     outboxHeader: {
         fontSize: 20,
         color: '#FFF',
-        marginHorizontal: 16,
-        paddingHorizontal: 16,
+        marginHorizontal: '16rem',
+        paddingHorizontal: '8rem',
     },
     outboxSection: {
         flex: 1,

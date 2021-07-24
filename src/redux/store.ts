@@ -22,6 +22,7 @@ import userReducer, {
 } from './accountSlice';
 import profilesReducer, { ProfilesState } from './profilesSlice';
 import sharesReducer, { SharesState } from './sharesSlice';
+import toasterReducer, { ToasterState } from './toasterSlice';
 
 const rootReducer = combineReducers({
     counter: counterReducer,
@@ -29,6 +30,7 @@ const rootReducer = combineReducers({
     user: userReducer,
     profiles: profilesReducer,
     shares: sharesReducer,
+    toaster: toasterReducer,
 });
 
 const persistConfig: PersistConfig<
@@ -38,11 +40,12 @@ const persistConfig: PersistConfig<
         user: AccountInfoState;
         profiles: ProfilesState;
         shares: SharesState;
+        toaster: ToasterState;
     }>
 > = {
     key: 'root',
     storage: AsyncStorage,
-    blacklist: ['user', 'auth', 'profiles', 'shares'], // TODO: 'profiles' includes 'currentProfile.'
+    blacklist: ['user', 'auth', 'profiles', 'shares', 'toaster'], // TODO: 'profiles' includes 'currentProfile.'
     // It would be nice to persist which profile the user last selected. Right now, that
     // means splitting the profilesReducer in two. Consider moving everything into two
     // top-level reducers. A 'persistant' and 'nonpersistant' reducer. These top-level
