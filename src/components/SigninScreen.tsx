@@ -1,18 +1,28 @@
-import React, { useEffect } from 'react';
-import { SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+    Animated,
+    Easing,
+    SafeAreaView,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import {
     Navigation,
     NavigationFunctionComponent,
 } from 'react-native-navigation';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { googleSignIn } from '../api/AccountAPI';
 import IUser from '../api/IUser';
 import { RootState } from '../redux/store';
 import { ComponentId as WelcomeScreenComponentId } from './WelcomeScreen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
+import { pushToast } from '../redux/toasterSlice';
+import SimpleShareError, { ErrorCode } from '../SimpleShareError';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -20,9 +30,32 @@ interface Props {
 }
 
 const SigninScreen: NavigationFunctionComponent<Props> = () => {
+    const dispatch = useDispatch();
+
     const user: IUser | undefined = useSelector(
         (state: RootState) => state.auth.user
     );
+
+    const [signingIn, setSigningIn] = useState<boolean>(false);
+
+    const spinnerRotationAnim = useRef(new Animated.Value(0)).current;
+    const spinnerRotation = useRef<Animated.AnimatedInterpolation>();
+
+    useEffect(() => {
+        Animated.loop(
+            Animated.timing(spinnerRotationAnim, {
+                toValue: 1,
+                duration: 2000,
+                easing: Easing.linear,
+                useNativeDriver: true,
+            })
+        ).start();
+
+        spinnerRotation.current = spinnerRotationAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['0deg', '360deg'],
+        });
+    }, [spinnerRotationAnim]);
 
     useEffect(() => {
         if (user) {
@@ -43,10 +76,47 @@ const SigninScreen: NavigationFunctionComponent<Props> = () => {
         }
     }, [user]);
 
+    const getSignInErrorMessage = (
+        errorCode: SimpleShareError
+    ): string | undefined => {
+        switch (errorCode.code) {
+            case ErrorCode.ACCOUNT_DISABLED:
+                return 'Account disabled.';
+            case ErrorCode.SIGN_IN_INVALID_CREDENTIALS:
+                return 'Invalid credentials, try again.';
+            case ErrorCode.UNEXPECTED_SIGN_IN_ERROR:
+                return 'Unable to sign in. Please try again later.';
+        }
+        return undefined;
+    };
+
     const handleGoogleSignInButton = async () => {
+        if (signingIn) return;
+
         try {
+            setSigningIn(true);
             await googleSignIn();
-        } catch (e) {}
+        } catch (e) {
+            setSigningIn(false);
+
+            let errorMessage: string | undefined;
+
+            if (e instanceof SimpleShareError) {
+                errorMessage = getSignInErrorMessage(e);
+            } else {
+                errorMessage = 'Unable to sign in. Try again later.';
+            }
+
+            if (errorMessage) {
+                dispatch(
+                    pushToast({
+                        message: errorMessage,
+                        type: 'error',
+                        duration: 5,
+                    })
+                );
+            }
+        }
     };
 
     return (
@@ -76,12 +146,31 @@ const SigninScreen: NavigationFunctionComponent<Props> = () => {
                             size={32}
                         />
                         <Text style={styles.signInMethodLabel}>Google</Text>
-                        <MaterialIcons
-                            style={styles.signInLogo}
-                            name='login'
-                            color='#2A9D8F'
-                            size={32}
-                        />
+                        {!signingIn && spinnerRotation.current ? (
+                            <Animated.View
+                                style={{
+                                    transform: [
+                                        {
+                                            rotate: spinnerRotation.current,
+                                        },
+                                    ],
+                                }}
+                            >
+                                <MaterialCommunityIcons
+                                    style={styles.signInLogo}
+                                    name='loading'
+                                    color='#FFF'
+                                    size={32}
+                                />
+                            </Animated.View>
+                        ) : (
+                            <MaterialIcons
+                                style={styles.signInLogo}
+                                name='login'
+                                color='#2A9D8F'
+                                size={32}
+                            />
+                        )}
                     </TouchableOpacity>
                 </View>
                 <View style={styles.footer}>
@@ -100,7 +189,7 @@ const SigninScreen: NavigationFunctionComponent<Props> = () => {
         </SafeAreaView>
     );
 };
-//'#7f5a83', '#0d324d'
+
 const styles = EStyleSheet.create({
     root: {
         flex: 1,
@@ -176,7 +265,6 @@ const styles = EStyleSheet.create({
         aspectRatio: 1,
         textAlignVertical: 'center',
         textAlign: 'center',
-        marginLeft: '8rem',
     },
     /* Footer */
     footer: {

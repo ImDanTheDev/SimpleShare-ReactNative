@@ -45,15 +45,10 @@ export default class AuthService {
     googleSignIn = async (): Promise<IUser | undefined> => {
         if (!this.authProvider) {
             console.error('Auth Service is not initialized!');
-            return;
-        }
-        try {
-            const user = await this.authProvider.googleSignIn();
-            return user;
-        } catch {
-            await this.signOut();
             return undefined;
         }
+        const user = await this.authProvider.googleSignIn();
+        return user;
     };
 
     signOut = async (): Promise<void> => {
