@@ -6,11 +6,15 @@ import {
     Navigation,
     NavigationFunctionComponent,
 } from 'react-native-navigation';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import IUser from '../api/IUser';
 import { createProfile } from '../api/ProfileAPI';
 import { MAX_PROFILE_NAME_LENGTH, MIN_PROFILE_NAME_LENGTH } from '../constants';
 import { RootState } from '../redux/store';
+import { pushToast } from '../redux/toasterSlice';
+import SimpleShareError, { ErrorCode } from '../SimpleShareError';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Spinner from './Spinner';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -21,30 +25,61 @@ interface Props {
 export const NewProfileSheet: NavigationFunctionComponent<Props> = (
     props: Props
 ) => {
+    const dispatch = useDispatch();
     const user: IUser | undefined = useSelector(
         (state: RootState) => state.auth.user
     );
 
     const [profileName, setProfileName] = useState<string>();
+    const [creatingProfile, setCreatingProfile] = useState<boolean>(false);
 
     const handleDismiss = async () => {
         props.onDismiss();
-        await Navigation.dismissModal(props.componentId);
+        try {
+            await Navigation.dismissModal(props.componentId);
+        } catch {}
     };
 
     const handleSaveProfile = async () => {
+        if (creatingProfile) return;
         if (!user) {
             console.log('ERROR: Not signed in!');
             return;
         }
 
         if (!profileName || profileName.length < MIN_PROFILE_NAME_LENGTH) {
+            dispatch(
+                pushToast({
+                    duration: 5,
+                    message:
+                        'Profile names must be at least two characters long.',
+                    type: 'info',
+                })
+            );
             return;
         }
 
-        await createProfile(user.uid, {
-            name: profileName,
-        });
+        try {
+            setCreatingProfile(true);
+            await createProfile(user.uid, {
+                name: profileName,
+            });
+        } catch (e) {
+            if (e instanceof SimpleShareError) {
+                if (e.code === ErrorCode.UNEXPECTED_DATABASE_ERROR) {
+                    dispatch(
+                        pushToast({
+                            duration: 5,
+                            message:
+                                'An unexpected error occurred while creating the profile. Check your network connection.',
+                            type: 'error',
+                        })
+                    );
+                }
+            }
+        } finally {
+            setCreatingProfile(false);
+        }
         await handleDismiss();
     };
 
@@ -78,7 +113,18 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
                         style={styles.saveButton}
                         onPress={handleSaveProfile}
                     >
-                        <Text style={styles.saveButtonLabel}>Save</Text>
+                        {creatingProfile ? (
+                            <Spinner>
+                                <MaterialCommunityIcons
+                                    style={{}}
+                                    name='loading'
+                                    color='#FFF'
+                                    size={32}
+                                />
+                            </Spinner>
+                        ) : (
+                            <Text style={styles.saveButtonLabel}>Save</Text>
+                        )}
                     </TouchableOpacity>
                 </View>
             </View>

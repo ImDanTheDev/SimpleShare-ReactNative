@@ -176,6 +176,7 @@ const styles = EStyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
+        elevation: 6,
     },
     swipableContainer: {},
     swipableChildren: {},

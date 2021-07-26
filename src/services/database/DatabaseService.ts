@@ -89,20 +89,17 @@ export default class DatabaseService {
         return await this.databaseProvider.createDefaultProfile(uid);
     };
 
-    createProfile = async (
-        uid: string,
-        profile: IProfile
-    ): Promise<boolean> => {
-        const success = await this.databaseProvider.createProfile(uid, profile);
+    createProfile = async (uid: string, profile: IProfile): Promise<void> => {
+        try {
+            await this.databaseProvider.createProfile(uid, profile);
 
-        if (success) {
             // TODO: Instead of refetching all profiles after creating one,
             // consider registering a collection listener for 'profiles' and
             // handling the ADD, DELETE, MODIFIED operations.
             await this.getAllProfiles(uid);
-        }
+        } catch (e) {}
 
-        return success;
+        //return success;
     };
 
     getAllProfiles = async (uid: string): Promise<IProfile[]> => {
@@ -140,6 +137,10 @@ export default class DatabaseService {
             uid,
             profileId
         );
+        // TODO: Instead of refetching all profiles after creating one,
+        // consider registering a collection listener for 'profiles' and
+        // handling the ADD, DELETE, MODIFIED operations.
+        await this.getAllProfiles(uid);
         return success;
     };
 

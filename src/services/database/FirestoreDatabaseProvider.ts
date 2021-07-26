@@ -3,6 +3,7 @@ import IDatabaseProvider from './IDatabaseProvider';
 import IAccountInfo from '../../api/IAccountInfo';
 import IProfile from '../../api/IProfile';
 import IShare from '../../api/IShare';
+import SimpleShareError, { ErrorCode } from '../../SimpleShareError';
 
 interface IShareListener {
     uid: string;
@@ -98,10 +99,7 @@ export default class FirestoreDatabaseProvider implements IDatabaseProvider {
         }
     };
 
-    createProfile = async (
-        uid: string,
-        profile: IProfile
-    ): Promise<boolean> => {
+    createProfile = async (uid: string, profile: IProfile): Promise<void> => {
         try {
             const createdProfileRef = await firestore()
                 .collection('accounts')
@@ -110,13 +108,13 @@ export default class FirestoreDatabaseProvider implements IDatabaseProvider {
                 .add(profile);
             const profileDoc = await createdProfileRef.get();
             const profileData = profileDoc.data();
-            if (profileData) {
-                return true;
+            if (!profileData) {
+                throw new SimpleShareError(ErrorCode.UNEXPECTED_DATABASE_ERROR);
             }
         } catch (e) {
-            console.log(e);
+            console.error(e);
+            throw new SimpleShareError(ErrorCode.UNEXPECTED_DATABASE_ERROR);
         }
-        return false;
     };
 
     getAllProfiles = async (uid: string): Promise<IProfile[]> => {

@@ -16,7 +16,7 @@ export default interface IDatabaseProvider {
     getUidByPhoneNumber: (phoneNumber: string) => Promise<string | undefined>;
     // Profiles
     createDefaultProfile: (uid: string) => Promise<boolean>;
-    createProfile: (uid: string, profile: IProfile) => Promise<boolean>;
+    createProfile: (uid: string, profile: IProfile) => Promise<void>;
     getAllProfiles: (uid: string) => Promise<IProfile[]>;
     getProfile: (
         uid: string,

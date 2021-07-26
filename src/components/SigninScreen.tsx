@@ -1,12 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {
-    Animated,
-    Easing,
-    SafeAreaView,
-    Text,
-    TouchableOpacity,
-    View,
-} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import {
     Navigation,
@@ -23,6 +16,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import LinearGradient from 'react-native-linear-gradient';
 import { pushToast } from '../redux/toasterSlice';
 import SimpleShareError, { ErrorCode } from '../SimpleShareError';
+import Spinner from './Spinner';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -37,25 +31,6 @@ const SigninScreen: NavigationFunctionComponent<Props> = () => {
     );
 
     const [signingIn, setSigningIn] = useState<boolean>(false);
-
-    const spinnerRotationAnim = useRef(new Animated.Value(0)).current;
-    const spinnerRotation = useRef<Animated.AnimatedInterpolation>();
-
-    useEffect(() => {
-        Animated.loop(
-            Animated.timing(spinnerRotationAnim, {
-                toValue: 1,
-                duration: 2000,
-                easing: Easing.linear,
-                useNativeDriver: true,
-            })
-        ).start();
-
-        spinnerRotation.current = spinnerRotationAnim.interpolate({
-            inputRange: [0, 1],
-            outputRange: ['0deg', '360deg'],
-        });
-    }, [spinnerRotationAnim]);
 
     useEffect(() => {
         if (user) {
@@ -146,23 +121,15 @@ const SigninScreen: NavigationFunctionComponent<Props> = () => {
                             size={32}
                         />
                         <Text style={styles.signInMethodLabel}>Google</Text>
-                        {!signingIn && spinnerRotation.current ? (
-                            <Animated.View
-                                style={{
-                                    transform: [
-                                        {
-                                            rotate: spinnerRotation.current,
-                                        },
-                                    ],
-                                }}
-                            >
+                        {signingIn ? (
+                            <Spinner>
                                 <MaterialCommunityIcons
                                     style={styles.signInLogo}
                                     name='loading'
                                     color='#FFF'
                                     size={32}
                                 />
-                            </Animated.View>
+                            </Spinner>
                         ) : (
                             <MaterialIcons
                                 style={styles.signInLogo}

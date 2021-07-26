@@ -8,7 +8,7 @@ export const createDefaultProfile = async (uid: string): Promise<boolean> => {
 export const createProfile = async (
     uid: string,
     profile: IProfile
-): Promise<boolean> => {
+): Promise<void> => {
     return await databaseService.createProfile(uid, profile);
 };
 
