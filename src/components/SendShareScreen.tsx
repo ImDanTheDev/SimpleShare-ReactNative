@@ -15,7 +15,7 @@ import {
     NavigationFunctionComponent,
 } from 'react-native-navigation';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { getUidByPhoneNumber } from '../api/AccountAPI';
 import IProfile from '../api/IProfile';
 import IShare from '../api/IShare';
@@ -31,6 +31,7 @@ import {
     MIN_PHONE_NUMBER_LENGTH,
     MIN_PROFILE_NAME_LENGTH,
 } from '../constants';
+import { pushToast } from '../redux/toasterSlice';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -38,6 +39,8 @@ interface Props {
 }
 
 const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
+    const dispatch = useDispatch();
+
     const user: IUser | undefined = useSelector(
         (state: RootState) => state.auth.user
     );
@@ -63,18 +66,62 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
             return;
         }
 
-        if (
-            phoneNumber.length < MIN_PHONE_NUMBER_LENGTH ||
-            profileName.length < MIN_PROFILE_NAME_LENGTH ||
-            shareText.length > MAX_SHARE_TEXT_LENGTH
-        ) {
+        if (phoneNumber.length < MIN_PHONE_NUMBER_LENGTH) {
+            dispatch(
+                pushToast({
+                    message: `'${phoneNumber}' is not a valid phone number.`,
+                    duration: 5,
+                    type: 'error',
+                })
+            );
+            return;
+        }
+
+        if (profileName.length < MIN_PROFILE_NAME_LENGTH) {
+            dispatch(
+                pushToast({
+                    message: `'${profileName}' is not a valid profile name.`,
+                    duration: 5,
+                    type: 'error',
+                })
+            );
+            return;
+        }
+
+        if (shareText.length > MAX_SHARE_TEXT_LENGTH) {
+            dispatch(
+                pushToast({
+                    message: `Your message length must not exceed ${MAX_SHARE_TEXT_LENGTH} characters.`,
+                    duration: 5,
+                    type: 'error',
+                })
+            );
             return;
         }
 
         const toUid = await getUidByPhoneNumber(phoneNumber);
-        if (!toUid) return; // TODO: Show an error if the user could not be found.
+        if (!toUid) {
+            dispatch(
+                pushToast({
+                    message:
+                        'Could not find a user with the provided phone number.',
+                    duration: 5,
+                    type: 'error',
+                })
+            );
+            return;
+        }
         const toProfileId = await getProfileIdByName(toUid, profileName);
-        if (!toProfileId) return; // TODO: Show an error if the profile could not be found.
+        if (!toProfileId) {
+            dispatch(
+                pushToast({
+                    message: `Profile '${profileName}' does not exist.`,
+                    duration: 5,
+                    type: 'error',
+                })
+            );
+            return;
+        }
 
         const share: IShare = {
             fromUid: user.uid,
@@ -91,9 +138,23 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                 await Navigation.pop(props.componentId);
             } else {
                 console.log('Failed to send share');
+                dispatch(
+                    pushToast({
+                        message: `An unexpected error occurred while sending the share.`,
+                        duration: 5,
+                        type: 'error',
+                    })
+                );
             }
         } catch (e) {
             console.log(`Failed to send share: ${e}`);
+            dispatch(
+                pushToast({
+                    message: `An unexpected error occurred while sending the share.`,
+                    duration: 5,
+                    type: 'error',
+                })
+            );
         }
     };
 
