@@ -81,8 +81,8 @@ export default class SimpleShareDatabaseProvider implements IDatabaseProvider {
         });
     };
 
-    createShare = async (share: IShare): Promise<boolean> => {
-        return new Promise<boolean>(async (resolve, reject) => {
+    createShare = async (share: IShare): Promise<void> => {
+        return new Promise<void>(async (resolve, reject) => {
             reject('Simple Share database is not implemented.');
         });
     };

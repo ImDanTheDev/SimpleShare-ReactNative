@@ -28,7 +28,7 @@ export default interface IDatabaseProvider {
     ) => Promise<string | undefined>;
     deleteProfile: (uid: string, profileId: string) => Promise<boolean>;
     // Shares
-    createShare: (share: IShare) => Promise<boolean>;
+    createShare: (share: IShare) => Promise<void>;
     deleteShare: (share: IShare) => Promise<boolean>;
     addShareListener: (uid: string, profileId: string) => Promise<void>;
     removeShareListener: (uid: string, profileId: string) => Promise<void>;

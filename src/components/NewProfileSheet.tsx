@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import { TextInput } from 'react-native-gesture-handler';
@@ -32,6 +32,14 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
 
     const [profileName, setProfileName] = useState<string>();
     const [creatingProfile, setCreatingProfile] = useState<boolean>(false);
+    const goingAway = useRef<boolean>(false);
+
+    useEffect(() => {
+        goingAway.current = false;
+        return () => {
+            goingAway.current = true;
+        };
+    }, []);
 
     const handleDismiss = async () => {
         props.onDismiss();
@@ -78,9 +86,11 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
                 }
             }
         } finally {
-            setCreatingProfile(false);
+            if (!goingAway.current) {
+                await handleDismiss();
+                setCreatingProfile(false);
+            }
         }
-        await handleDismiss();
     };
 
     return (

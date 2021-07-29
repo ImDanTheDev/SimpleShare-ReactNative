@@ -1,8 +1,8 @@
 import { databaseService } from './api';
 import IShare from './IShare';
 
-export const createShare = async (share: IShare): Promise<boolean> => {
-    return await databaseService.createShare(share);
+export const createShare = async (share: IShare): Promise<void> => {
+    await databaseService.createShare(share);
 };
 
 export const deleteShare = async (share: IShare): Promise<boolean> => {

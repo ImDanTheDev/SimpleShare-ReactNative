@@ -190,17 +190,12 @@ export default class FirestoreDatabaseProvider implements IDatabaseProvider {
         }
     };
 
-    createShare = async (share: IShare): Promise<boolean> => {
-        try {
-            await firestore()
-                .collection('shares')
-                .doc(share.toUid)
-                .collection(share.toProfileId)
-                .add(share);
-            return true;
-        } catch (e) {
-            return false;
-        }
+    createShare = async (share: IShare): Promise<void> => {
+        await firestore()
+            .collection('shares')
+            .doc(share.toUid)
+            .collection(share.toProfileId)
+            .add(share);
     };
 
     deleteShare = async (share: IShare): Promise<boolean> => {

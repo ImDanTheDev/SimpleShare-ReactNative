@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     SafeAreaView,
     Text,
@@ -55,6 +55,16 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
     const [phoneNumber, setPhoneNumber] = useState<string>('');
     const [profileName, setProfileName] = useState<string>('');
     const [shareText, setShareText] = useState<string>('');
+
+    const goingAway = useRef<boolean>(false);
+
+    useEffect(() => {
+        goingAway.current = false;
+        return () => {
+            console.log('going away');
+            goingAway.current = true;
+        };
+    }, []);
 
     const handleBack = async () => {
         await Navigation.pop(props.componentId);
@@ -133,18 +143,9 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
         };
 
         try {
-            const success = await createShare(share);
-            if (success) {
+            await createShare(share);
+            if (!goingAway.current) {
                 await Navigation.pop(props.componentId);
-            } else {
-                console.log('Failed to send share');
-                dispatch(
-                    pushToast({
-                        message: `An unexpected error occurred while sending the share.`,
-                        duration: 5,
-                        type: 'error',
-                    })
-                );
             }
         } catch (e) {
             console.log(`Failed to send share: ${e}`);
