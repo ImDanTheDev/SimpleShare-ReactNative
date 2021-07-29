@@ -213,6 +213,13 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
         if (!user || !currentProfile?.id || currentProfile.id === 'default') {
             // Cannot delete the default profile.
             setShouldShowBlur(false);
+            dispatch(
+                pushToast({
+                    message: 'The default profile cannot be deleted.',
+                    type: 'info',
+                    duration: 5,
+                })
+            );
             return;
         }
 
@@ -225,7 +232,7 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                 },
                 passProps: {
                     header: `Deleting Profile: ${currentProfile.name}`,
-                    info: 'Are you sure you want to delete this profile?',
+                    info: 'Are you sure you want to delete this profile? You will permanently lose access to shares sent to this profile.',
                     confirmable: true,
                     confirmText: 'Delete',
                     onConfirm: async () => {
