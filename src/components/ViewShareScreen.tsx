@@ -51,11 +51,15 @@ const ViewShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
 
     useEffect(() => {
         const fetchProfileName = async () => {
-            const profile: IProfile | undefined = await getProfile(
-                props.share.fromUid,
-                props.share.fromProfileId
-            );
-            setProfileName(profile?.name || 'Unknown Profile');
+            try {
+                const profile: IProfile | undefined = await getProfile(
+                    props.share.fromUid,
+                    props.share.fromProfileId
+                );
+                setProfileName(profile?.name || 'Unknown Profile');
+            } catch {
+                setProfileName('Unknown Profile');
+            }
         };
         fetchProfileName();
     }, [props.share]);
