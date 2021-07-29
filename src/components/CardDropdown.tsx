@@ -29,14 +29,18 @@ export const CardDropdown: React.FC<Props> = (props: Props) => {
                     style={styles.item}
                     onPress={props.onCopyText}
                 >
-                    <MaterialIcons name='content-copy' color='#FFF' size={24} />
+                    <MaterialIcons
+                        name='content-copy'
+                        color='#FFF'
+                        size={EStyleSheet.value('24rem')}
+                    />
                     <Text style={styles.itemLabel}>Copy Text</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.item} onPress={props.onDelete}>
                     <MaterialIcons
                         name='delete-forever'
                         color='#E76F51'
-                        size={24}
+                        size={EStyleSheet.value('24rem')}
                     />
                     <Text style={styles.itemLabel}>Delete</Text>
                 </TouchableOpacity>
@@ -68,7 +72,7 @@ const styles = EStyleSheet.create({
         borderRadius: '16rem',
         backgroundColor: '#2a4355',
         borderColor: '#F4A2617F',
-        borderWidth: 1,
+        borderWidth: '1rem',
         paddingHorizontal: '8rem',
         marginBottom: '8rem',
         flexDirection: 'row',

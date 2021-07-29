@@ -23,7 +23,7 @@ export const OutboxList: React.FC<Props> = (props: Props) => {
                 <MaterialIcons
                     style={styles.icon}
                     name='add'
-                    size={56}
+                    size={EStyleSheet.value('56rem')}
                     color='white'
                 />
                 <Text style={styles.textContent}>Send a new Share</Text>
@@ -59,7 +59,7 @@ const styles = EStyleSheet.create({
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 2,
+            height: '2rem',
         },
         shadowOpacity: 0.23,
         shadowRadius: 2.62,
@@ -78,12 +78,12 @@ const styles = EStyleSheet.create({
         flexDirection: 'column',
     },
     recipient: {
-        fontSize: 14,
+        fontSize: '14rem',
         color: '#979797',
         textAlignVertical: 'center',
     },
     fileName: {
-        fontSize: 14,
+        fontSize: '14rem',
         color: '#979797',
         textAlignVertical: 'center',
     },
@@ -95,8 +95,8 @@ const styles = EStyleSheet.create({
     },
     outboxEmptyText: {
         color: '#BDBDBD',
-        fontSize: 18,
-        paddingTop: 16,
+        fontSize: '18rem',
+        paddingTop: '16rem',
         alignSelf: 'center',
     },
 });

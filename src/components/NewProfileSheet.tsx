@@ -129,7 +129,7 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
                                     style={{}}
                                     name='loading'
                                     color='#FFF'
-                                    size={32}
+                                    size={EStyleSheet.value('32rem')}
                                 />
                             </Spinner>
                         ) : (
@@ -168,7 +168,7 @@ const styles = EStyleSheet.create({
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 2,
+            height: '2rem',
         },
         shadowOpacity: 0.23,
         shadowRadius: 2.62,
@@ -196,13 +196,13 @@ const styles = EStyleSheet.create({
     profilePictureText: {
         color: '#979797',
         fontWeight: 'bold',
-        fontSize: 20,
+        fontSize: '20rem',
     },
     profileName: {
         backgroundColor: '#1A2633',
         borderRadius: '16rem',
         borderColor: '#F4A2617F',
-        borderWidth: 1,
+        borderWidth: '1rem',
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
@@ -217,13 +217,13 @@ const styles = EStyleSheet.create({
         flex: 1,
         borderRadius: '16rem',
         borderColor: '#F4A2617F',
-        borderWidth: 1,
+        borderWidth: '1rem',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: '16rem',
     },
     cancelButtonLabel: {
-        fontSize: 20,
+        fontSize: '20rem',
         color: '#FFF',
         textAlignVertical: 'center',
     },
@@ -232,12 +232,12 @@ const styles = EStyleSheet.create({
         flex: 1,
         borderRadius: '16rem',
         borderColor: '#F4A2617F',
-        borderWidth: 1,
+        borderWidth: '1rem',
         justifyContent: 'center',
         alignItems: 'center',
     },
     saveButtonLabel: {
-        fontSize: 20,
+        fontSize: '20rem',
         color: '#FFF',
         textAlignVertical: 'center',
         paddingVertical: '4rem',

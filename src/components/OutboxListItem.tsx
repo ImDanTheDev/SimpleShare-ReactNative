@@ -34,7 +34,7 @@ const styles = EStyleSheet.create({
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 2,
+            height: '2rem',
         },
         shadowOpacity: 0.23,
         shadowRadius: 2.62,
@@ -55,24 +55,24 @@ const styles = EStyleSheet.create({
     },
     pictureText: {
         color: '#FFF',
-        fontSize: 28,
+        fontSize: '28rem',
     },
     body: {
         flexDirection: 'column',
     },
     recipient: {
-        fontSize: 14,
+        fontSize: '14rem',
         color: '#BBBBBB',
         textAlignVertical: 'center',
     },
     fileName: {
-        fontSize: 14,
+        fontSize: '14rem',
         color: '#BBBBBB',
         textAlignVertical: 'center',
     },
     textContent: {
         flex: 1,
-        fontSize: 18,
+        fontSize: '18rem',
         color: '#FFF',
     },
 });

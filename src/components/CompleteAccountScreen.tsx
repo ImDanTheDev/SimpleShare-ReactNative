@@ -175,7 +175,7 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
                         <MaterialIcons
                             name='arrow-back'
                             color='#EAEAEA'
-                            size={42}
+                            size={EStyleSheet.value('42rem')}
                         />
                     </CircleButton>
                     <Text style={styles.welcomeText}>
@@ -230,7 +230,7 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
                                 style={styles.signInLogo}
                                 name='navigate-next'
                                 color='#FFF'
-                                size={32}
+                                size={EStyleSheet.value('32rem')}
                             />
                         </TouchableOpacity>
                     </KeyboardAwareScrollView>
@@ -260,7 +260,7 @@ const styles = EStyleSheet.create({
         paddingHorizontal: '24rem',
         height: '72rem',
         flexDirection: 'row',
-        borderBottomWidth: 1,
+        borderBottomWidth: '1rem',
         borderColor: '#0D161F7F',
         backgroundColor: '#0000001F',
         alignItems: 'center',
@@ -273,7 +273,7 @@ const styles = EStyleSheet.create({
     settingsButton: {
         backgroundColor: '#E9C46A19',
         borderColor: '#F4A2617F',
-        borderWidth: 1,
+        borderWidth: '1rem',
     },
     /* Body */
     body: {
@@ -285,7 +285,7 @@ const styles = EStyleSheet.create({
         backgroundColor: '#1A2633',
         borderRadius: '16rem',
         borderColor: '#F4A2617F',
-        borderWidth: 1,
+        borderWidth: '1rem',
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: '16rem',
@@ -294,7 +294,7 @@ const styles = EStyleSheet.create({
     moreInfoButton: {
         backgroundColor: '#E9C46A19',
         borderColor: '#F4A2617F',
-        borderWidth: 1,
+        borderWidth: '1rem',
     },
     inputLabelGroup: {
         flexDirection: 'row',
@@ -304,11 +304,11 @@ const styles = EStyleSheet.create({
     },
     inputLabelText: {
         color: '#FFF',
-        fontSize: 20,
+        fontSize: '20rem',
     },
     moreInfoButtonLabel: {
         color: '#FFF',
-        fontSize: 20,
+        fontSize: '20rem',
         fontWeight: 'bold',
     },
     flexSpacer: {
@@ -322,7 +322,7 @@ const styles = EStyleSheet.create({
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 2,
+            height: '2rem',
         },
         shadowOpacity: 0.23,
         shadowRadius: 2.62,

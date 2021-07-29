@@ -3,7 +3,6 @@ import {
     Animated,
     ImageStyle,
     LayoutChangeEvent,
-    StyleSheet,
     TextStyle,
     TouchableOpacity,
     View,
@@ -88,14 +87,12 @@ export const CircleButton: React.FC<Props> = (props: Props) => {
     const styles = EStyleSheet.create({
         button: {
             ...props.style,
-            width: `${props.size} rem`,
-            height: `${props.size} rem`,
+            width: `${props.size}rem`,
+            height: `${props.size}rem`,
             justifyContent: 'center',
             alignItems: 'center',
         },
-        // Disable 'any' check for auto-complete in EStyleSheet.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as StyleSheet.NamedStyles<any>);
+    });
 
     return (
         <View onLayout={props.onLayout}>
@@ -106,9 +103,13 @@ export const CircleButton: React.FC<Props> = (props: Props) => {
                 style={{
                     ...styles.button,
                     borderRadius: borderRadius,
-                    borderWidth: props.invertAnimation
-                        ? styles.button.borderWidth + 2
-                        : styles.button.borderWidth,
+                    borderWidth: EStyleSheet.value(
+                        `${
+                            props.invertAnimation
+                                ? styles.button.borderWidth + 2
+                                : styles.button.borderWidth
+                        }rem`
+                    ),
                 }}
                 activeOpacity={1.0}
             >

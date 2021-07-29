@@ -4,7 +4,6 @@ import {
     LayoutChangeEvent,
     SafeAreaView,
     ScrollView,
-    StyleSheet,
     Text,
     View,
 } from 'react-native';
@@ -284,7 +283,9 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                                         : 'settings'
                                 }
                                 color='#EAEAEA'
-                                size={settingsDropdownVisibility ? 48 : 32}
+                                size={EStyleSheet.value(
+                                    `${settingsDropdownVisibility ? 48 : 32}rem`
+                                )}
                             />
                         </CircleButton>
                     </View>
@@ -378,17 +379,17 @@ const styles = EStyleSheet.create({
         justifyContent: 'space-between',
     },
     welcomeText: {
-        fontSize: 20,
+        fontSize: '20rem',
         color: '#FFF',
     },
     welcomeUserName: {
-        fontSize: 28,
+        fontSize: '28rem',
         color: '#FFF',
     },
     settingsButton: {
         backgroundColor: '#E9C46A19',
         borderColor: '#F4A2617F',
-        borderWidth: 1,
+        borderWidth: '1rem',
     },
     /* Header Mask */
     mask: {
@@ -405,23 +406,24 @@ const styles = EStyleSheet.create({
     profileSection: {
         marginHorizontal: '16rem',
         marginVertical: '8rem',
-        padding: '8rem',
-        height: '112rem',
+        paddingHorizontal: '8rem',
+        paddingVertical: '0rem',
+        height: '82rem',
     },
     /* Inbox */
     inboxHeader: {
-        fontSize: 20,
+        fontSize: '20rem',
         color: '#FFF',
         marginHorizontal: '16rem',
         paddingHorizontal: '8rem',
-        marginTop: '16rem',
+        marginTop: '12rem',
     },
     inboxSection: {
         marginBottom: '16rem',
     },
     /* Outbox */
     outboxHeader: {
-        fontSize: 20,
+        fontSize: '20rem',
         color: '#FFF',
         marginHorizontal: '16rem',
         paddingHorizontal: '8rem',
@@ -445,9 +447,7 @@ const styles = EStyleSheet.create({
     flexFill: {
         flex: 1,
     },
-    // Disable 'any' check for auto-complete in EStyleSheet.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} as StyleSheet.NamedStyles<any>);
+});
 
 export default HomeScreen;
 export type { Props };

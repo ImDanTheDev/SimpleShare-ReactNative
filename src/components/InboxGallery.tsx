@@ -15,7 +15,8 @@ export interface Props {
     onCardViewPress: (share: IShare) => void;
 }
 
-const cardWidth = Dimensions.get('screen').width * 0.6;
+const cardWidth = EStyleSheet.value(`230rem`);
+const cardHeight = cardWidth * (10 / 7);
 
 export const InboxGallery: React.FC<Props> = (props: Props) => {
     const [galleryPosition, setGalleryPosition] = useState<number>(0);
@@ -73,22 +74,21 @@ export const InboxGallery: React.FC<Props> = (props: Props) => {
         return <Text style={styles.emptyInboxText}>Inbox Empty</Text>;
     }
 };
-
 const styles = EStyleSheet.create({
     scrollView: {
         width: '100%',
-        aspectRatio: 10 / 9,
+        height: cardHeight + EStyleSheet.value('32rem'),
     },
     scrollViewContainer: {
         flexGrow: 1,
         justifyContent: 'center',
-        paddingHorizontal: cardWidth / 3, // Add padding to push first card into center.
+        paddingHorizontal: Dimensions.get('screen').width / 2 - cardWidth / 2, // Add padding to push the selected card into the center
         paddingVertical: '16rem',
     },
     emptyInboxText: {
         color: '#BDBDBD',
-        fontSize: 18,
-        paddingTop: 16,
+        fontSize: '18rem',
+        paddingTop: '16rem',
         alignSelf: 'center',
     },
 });

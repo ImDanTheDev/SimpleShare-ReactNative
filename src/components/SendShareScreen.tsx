@@ -176,7 +176,7 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                         <MaterialIcons
                             name='arrow-back'
                             color='#EAEAEA'
-                            size={42}
+                            size={EStyleSheet.value('42rem')}
                         />
                     </CircleButton>
                     <Text style={styles.welcomeText}>New Share</Text>
@@ -243,7 +243,7 @@ const styles = EStyleSheet.create({
         paddingHorizontal: '24rem',
         height: '72rem',
         flexDirection: 'row',
-        borderBottomWidth: 1,
+        borderBottomWidth: '1rem',
         borderColor: '#0D161F7F',
         backgroundColor: '#0000001F',
         alignItems: 'center',
@@ -254,13 +254,13 @@ const styles = EStyleSheet.create({
         color: '#FFF',
     },
     welcomeUserName: {
-        fontSize: 28,
+        fontSize: '28rem',
         color: '#FFF',
     },
     settingsButton: {
         backgroundColor: '#E9C46A19',
         borderColor: '#F4A2617F',
-        borderWidth: 1,
+        borderWidth: '1rem',
     },
     /* Body */
     body: {
@@ -271,7 +271,7 @@ const styles = EStyleSheet.create({
         backgroundColor: '#1A2633',
         borderRadius: '16rem',
         borderColor: '#F4A2617F',
-        borderWidth: 1,
+        borderWidth: '1rem',
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: '16rem',
@@ -281,7 +281,7 @@ const styles = EStyleSheet.create({
         backgroundColor: '#1A2633',
         borderRadius: '16rem',
         borderColor: '#F4A2617F',
-        borderWidth: 1,
+        borderWidth: '1rem',
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: '16rem',
@@ -291,7 +291,7 @@ const styles = EStyleSheet.create({
         backgroundColor: '#1A2633',
         borderRadius: '16rem',
         borderColor: '#F4A2617F',
-        borderWidth: 1,
+        borderWidth: '1rem',
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: '16rem',
@@ -302,13 +302,13 @@ const styles = EStyleSheet.create({
         width: '50%',
         borderRadius: '16rem',
         borderColor: '#F4A2617F',
-        borderWidth: 1,
+        borderWidth: '1rem',
         justifyContent: 'center',
         alignItems: 'center',
         alignSelf: 'flex-end',
     },
     sendButtonLabel: {
-        fontSize: 20,
+        fontSize: '20rem',
         color: '#FFF',
         textAlignVertical: 'center',
         paddingVertical: '8rem',

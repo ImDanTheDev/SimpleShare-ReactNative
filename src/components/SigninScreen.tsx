@@ -118,7 +118,7 @@ const SigninScreen: NavigationFunctionComponent<Props> = () => {
                             style={styles.signInMethodLogo}
                             name='logo-google'
                             color='#FFF'
-                            size={32}
+                            size={EStyleSheet.value('32rem')}
                         />
                         <Text style={styles.signInMethodLabel}>Google</Text>
                         {signingIn ? (
@@ -127,7 +127,7 @@ const SigninScreen: NavigationFunctionComponent<Props> = () => {
                                     style={styles.signInLogo}
                                     name='loading'
                                     color='#FFF'
-                                    size={32}
+                                    size={EStyleSheet.value('32rem')}
                                 />
                             </Spinner>
                         ) : (
@@ -135,7 +135,7 @@ const SigninScreen: NavigationFunctionComponent<Props> = () => {
                                 style={styles.signInLogo}
                                 name='login'
                                 color='#2A9D8F'
-                                size={32}
+                                size={EStyleSheet.value('32rem')}
                             />
                         )}
                     </TouchableOpacity>
@@ -187,7 +187,7 @@ const styles = EStyleSheet.create({
     },
     signInMethodSectionHeader: {
         color: '#FFF',
-        fontSize: 24,
+        fontSize: '24rem',
     },
     signInMethodButton: {
         backgroundColor: '#0D161F',
@@ -197,7 +197,7 @@ const styles = EStyleSheet.create({
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 2,
+            height: '2rem',
         },
         shadowOpacity: 0.23,
         shadowRadius: 2.62,

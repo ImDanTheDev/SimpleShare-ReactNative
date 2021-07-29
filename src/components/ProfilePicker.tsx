@@ -1,11 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import {
-    StyleSheet,
-    Text,
-    View,
-    ViewabilityConfig,
-    ViewToken,
-} from 'react-native';
+import { Text, View, ViewabilityConfig, ViewToken } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import { FlatList } from 'react-native-gesture-handler';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -49,7 +43,11 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
                 style={styles.addProfileButton}
                 onPress={props.onCreateProfile}
             >
-                <MaterialIcons name='add' size={56} color='white' />
+                <MaterialIcons
+                    name='add'
+                    size={EStyleSheet.value('56rem')}
+                    color='white'
+                />
             </CircleButton>
         );
     };
@@ -58,13 +56,21 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
         if (showRightIndicator) {
             return (
                 <View style={styles.rightOffscreenIndicator}>
-                    <MaterialIcons name='arrow-right' color='#FFF' size={28} />
+                    <MaterialIcons
+                        name='arrow-right'
+                        color='#FFF'
+                        size={EStyleSheet.value('28rem')}
+                    />
                 </View>
             );
         } else if (showLeftIndicator) {
             return (
                 <View style={styles.leftOffscreenIndicator}>
-                    <MaterialIcons name='arrow-left' color='#FFF' size={28} />
+                    <MaterialIcons
+                        name='arrow-left'
+                        color='#FFF'
+                        size={EStyleSheet.value('28rem')}
+                    />
                 </View>
             );
         }
@@ -192,19 +198,19 @@ const styles = EStyleSheet.create({
         marginRight: '8rem',
         backgroundColor: '#E9C46A19',
         borderColor: '#F4A2617F',
-        borderWidth: 1,
+        borderWidth: '1rem',
     },
     profileButton: {
         marginHorizontal: '8rem',
         backgroundColor: '#E9C46A19',
         borderColor: '#F4A2617F',
-        borderWidth: 1,
+        borderWidth: '1rem',
     },
     settingsButton: {
         backgroundColor: 'gray',
     },
     profileButtonLabel: {
-        fontSize: 28,
+        fontSize: '28rem',
         color: 'white',
         fontWeight: 'bold',
     },
@@ -227,6 +233,4 @@ const styles = EStyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    // Disable 'any' check for auto-complete in EStyleSheet.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} as StyleSheet.NamedStyles<any>);
+});

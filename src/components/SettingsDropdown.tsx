@@ -33,7 +33,7 @@ export const SettingsDropdown: React.FC<Props> = (props: Props) => {
                     <MaterialIcons
                         name='delete-forever'
                         color='#E76F51'
-                        size={42}
+                        size={EStyleSheet.value('42rem')}
                     />
                     <Text style={styles.itemLabel}>Delete Profile</Text>
                 </TouchableOpacity>
@@ -44,7 +44,7 @@ export const SettingsDropdown: React.FC<Props> = (props: Props) => {
                     <MaterialIcons
                         name='account-circle'
                         color='#FFF'
-                        size={42}
+                        size={EStyleSheet.value('42rem')}
                     />
                     <Text style={styles.itemLabel}>Account Settings</Text>
                 </TouchableOpacity>
@@ -52,7 +52,7 @@ export const SettingsDropdown: React.FC<Props> = (props: Props) => {
                     <MaterialIcons
                         name='exit-to-app'
                         color='#E76F51'
-                        size={42}
+                        size={EStyleSheet.value('42rem')}
                     />
                     <Text style={styles.itemLabel}>Sign Out</Text>
                 </TouchableOpacity>
@@ -87,7 +87,7 @@ const styles = EStyleSheet.create({
         borderRadius: '16rem',
         backgroundColor: '#2a4355',
         borderColor: '#F4A2617F',
-        borderWidth: 1,
+        borderWidth: '1rem',
         paddingHorizontal: '8rem',
         marginBottom: '8rem',
         flexDirection: 'row',

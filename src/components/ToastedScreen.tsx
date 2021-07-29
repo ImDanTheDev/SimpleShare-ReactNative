@@ -73,7 +73,7 @@ export const ToastedScreen: React.FC<Props> = (props: Props) => {
                     <MaterialIcons
                         style={styles.icon}
                         name='info-outline'
-                        size={32}
+                        size={EStyleSheet.value('32rem')}
                         color='#2A9D8F'
                     />
                 );
@@ -82,7 +82,7 @@ export const ToastedScreen: React.FC<Props> = (props: Props) => {
                     <MaterialIcons
                         style={styles.icon}
                         name='warning'
-                        size={32}
+                        size={EStyleSheet.value('32rem')}
                         color='#E9C46A'
                     />
                 );
@@ -91,7 +91,7 @@ export const ToastedScreen: React.FC<Props> = (props: Props) => {
                     <MaterialIcons
                         style={styles.icon}
                         name='error-outline'
-                        size={32}
+                        size={EStyleSheet.value('32rem')}
                         color='#E76F51'
                     />
                 );
@@ -100,7 +100,7 @@ export const ToastedScreen: React.FC<Props> = (props: Props) => {
                     <MaterialIcons
                         style={styles.icon}
                         name='error-outline'
-                        size={32}
+                        size={EStyleSheet.value('32rem')}
                         color='#E76F51'
                     />
                 );
@@ -192,7 +192,7 @@ const styles = EStyleSheet.create({
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 2,
+            height: '2rem',
         },
         shadowOpacity: 0.23,
         shadowRadius: 2.62,

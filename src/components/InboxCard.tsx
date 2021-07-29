@@ -154,7 +154,7 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
                         >
                             <MaterialIcons
                                 name={'more-horiz'}
-                                size={28}
+                                size={EStyleSheet.value('28rem')}
                                 color='#FFF'
                             />
                         </CircleButton>
@@ -199,7 +199,7 @@ const styles = EStyleSheet.create({
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 2,
+            height: '2rem',
         },
         shadowOpacity: 0.23,
         shadowRadius: 2.62,
@@ -218,22 +218,22 @@ const styles = EStyleSheet.create({
     noPreviewText: {
         color: '#979797',
         fontWeight: 'bold',
-        fontSize: 18,
+        fontSize: '18rem',
     },
     noPreviewReasonText: {
         color: '#AD7466',
-        fontSize: 14,
+        fontSize: '14rem',
     },
     body: {
         padding: '8rem',
         flexGrow: 1,
     },
     sender: {
-        fontSize: 14,
+        fontSize: '14rem',
         color: '#BBBBBB',
     },
     textContent: {
-        fontSize: 18,
+        fontSize: '18rem',
         color: '#FFF',
     },
     fileName: {
@@ -249,7 +249,7 @@ const styles = EStyleSheet.create({
         width: '32rem',
         borderRadius: '16rem',
         borderColor: '#F4A2617F',
-        borderWidth: 1,
+        borderWidth: '1rem',
         aspectRatio: 1,
         justifyContent: 'center',
         alignItems: 'center',
@@ -259,13 +259,13 @@ const styles = EStyleSheet.create({
         width: '50%',
         borderRadius: '16rem',
         borderColor: '#F4A2617F',
-        borderWidth: 1,
+        borderWidth: '1rem',
         justifyContent: 'center',
         alignItems: 'center',
     },
     moreButtonIcon: {},
     viewButtonLabel: {
-        fontSize: 20,
+        fontSize: '20rem',
         color: '#FFF',
         textAlignVertical: 'center',
     },
