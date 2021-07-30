@@ -23,6 +23,7 @@ import userReducer, {
 import profilesReducer, { ProfilesState } from './profilesSlice';
 import sharesReducer, { SharesState } from './sharesSlice';
 import toasterReducer, { ToasterState } from './toasterSlice';
+import outboxReducer, { OutboxState } from './outboxSlice';
 
 const rootReducer = combineReducers({
     counter: counterReducer,
@@ -31,6 +32,7 @@ const rootReducer = combineReducers({
     profiles: profilesReducer,
     shares: sharesReducer,
     toaster: toasterReducer,
+    outbox: outboxReducer,
 });
 
 const persistConfig: PersistConfig<
@@ -41,6 +43,7 @@ const persistConfig: PersistConfig<
         profiles: ProfilesState;
         shares: SharesState;
         toaster: ToasterState;
+        outbox: OutboxState;
     }>
 > = {
     key: 'root',

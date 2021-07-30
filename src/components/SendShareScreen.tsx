@@ -32,6 +32,7 @@ import {
     MIN_PROFILE_NAME_LENGTH,
 } from '../constants';
 import { pushToast } from '../redux/toasterSlice';
+import { addShareToOutbox } from '../redux/outboxSlice';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -143,6 +144,7 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
 
         try {
             await createShare(share);
+            dispatch(addShareToOutbox(share));
             if (!goingAway.current) {
                 await Navigation.pop(props.componentId);
             }

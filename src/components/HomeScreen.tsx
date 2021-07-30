@@ -5,6 +5,7 @@ import {
     SafeAreaView,
     ScrollView,
     Text,
+    TouchableOpacity,
     View,
 } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
@@ -40,6 +41,7 @@ import { deleteProfile } from '../api/ProfileAPI';
 import { MAX_PROFILE_NAME_LENGTH } from '../constants';
 import { pushToast } from '../redux/toasterSlice';
 import IPublicGeneralInfo from '../api/IPublicGeneralInfo';
+import { clearOutbox } from '../redux/outboxSlice';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -65,6 +67,10 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
 
     const shares: IShare[] = useSelector(
         (state: RootState) => state.shares.shares
+    );
+
+    const outboxShares: IShare[] = useSelector(
+        (state: RootState) => state.outbox.shares
     );
 
     const currentProfile: IProfile | undefined = useSelector(
@@ -256,6 +262,10 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
         });
     };
 
+    const handleClearOutbox = () => {
+        dispatch(clearOutbox());
+    };
+
     return (
         <SafeAreaView style={styles.root}>
             <LinearGradient
@@ -327,10 +337,23 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                                 onCardViewPress={handleCardViewPress}
                             />
                         </View>
-                        <Text style={styles.outboxHeader}>Outbox (0)</Text>
+                        <View style={styles.outboxHeaderGroup}>
+                            <Text style={styles.outboxHeader}>
+                                Outbox ({outboxShares.length})
+                            </Text>
+                            {outboxShares.length > 0 ? (
+                                <TouchableOpacity onPress={handleClearOutbox}>
+                                    <Text style={styles.outboxClear}>
+                                        Clear
+                                    </Text>
+                                </TouchableOpacity>
+                            ) : (
+                                <></>
+                            )}
+                        </View>
                         <View style={styles.outboxSection}>
                             <OutboxList
-                                outbox={[]}
+                                outbox={outboxShares}
                                 onNewShare={handleNewSharePress}
                             />
                         </View>
@@ -427,11 +450,20 @@ const styles = EStyleSheet.create({
         marginBottom: '16rem',
     },
     /* Outbox */
-    outboxHeader: {
-        fontSize: '20rem',
-        color: '#FFF',
+    outboxHeaderGroup: {
         marginHorizontal: '16rem',
         paddingHorizontal: '8rem',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    outboxHeader: {
+        color: '#FFF',
+        fontSize: '20rem',
+    },
+    outboxClear: {
+        textDecorationLine: 'underline',
+        color: '#BCBCBC',
+        fontSize: '20rem',
     },
     outboxSection: {
         flex: 1,

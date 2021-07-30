@@ -51,15 +51,26 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
     const [profileName, setProfileName] = useState<string>('');
     const [displayName, setDisplayName] = useState<string>('');
 
+    const goingAway = useRef<boolean>(false);
+
+    useEffect(() => {
+        goingAway.current = false;
+        return () => {
+            goingAway.current = true;
+        };
+    }, []);
+
     useEffect(() => {
         const fetchDisplayName = async () => {
             try {
                 const publicGeneralInfo: IPublicGeneralInfo | undefined =
                     await getPublicGeneralInfo(props.share.fromUid);
+                if (goingAway.current) return;
                 setDisplayName(
                     publicGeneralInfo?.displayName || 'Unknown User'
                 );
             } catch {
+                if (goingAway.current) return;
                 setDisplayName('Unknown User');
             }
         };
@@ -70,8 +81,10 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
                     props.share.fromUid,
                     props.share.fromProfileId
                 );
+                if (goingAway.current) return;
                 setProfileName(profile?.name || 'Unknown Profile');
             } catch {
+                if (goingAway.current) return;
                 setProfileName('Unknown Profile');
             }
         };
@@ -82,13 +95,17 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
 
     useEffect(() => {
         if (shouldShowBlur) {
+            if (goingAway.current) return;
             setBlurVisibility(true);
         }
         Animated.timing(blurOpacity, {
             toValue: shouldShowBlur ? 1 : 0,
             duration: 150,
             useNativeDriver: false,
-        }).start(() => setBlurVisibility(shouldShowBlur));
+        }).start(() => {
+            if (goingAway.current) return;
+            setBlurVisibility(shouldShowBlur);
+        });
     }, [shouldShowBlur, blurOpacity]);
 
     useEffect(() => {
@@ -108,6 +125,7 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
             1
         );
 
+        if (goingAway.current) return;
         setScale(lerp(minCardScale, maxCardScale, clampedDistance));
         setBorderWidth(lerp(minBorderWidth, maxBorderWidth, clampedDistance));
         setElevation(lerp(minElevation, maxElevation, clampedDistance));
@@ -124,6 +142,7 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
     const handleMoreButtonlayout = (_e: LayoutChangeEvent) => {
         moreButtonContainer.current?.measure(
             (x, y, _width, height, _pageX, _pageY) => {
+                if (goingAway.current) return;
                 setDropdownLeft(x);
                 setDropdownBottom(y + height + 8);
             }

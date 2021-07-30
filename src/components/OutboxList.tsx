@@ -32,8 +32,8 @@ export const OutboxList: React.FC<Props> = (props: Props) => {
 
         if (props.outbox.length > 0) {
             items.push(
-                props.outbox.map((share) => {
-                    return <OutboxListItem key={share.id} share={share} />;
+                props.outbox.map((share, i) => {
+                    return <OutboxListItem key={i} share={share} />;
                 })
             );
         } else {
