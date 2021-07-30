@@ -1,19 +1,29 @@
 import IAccountInfo from '../../api/IAccountInfo';
 import IProfile from '../../api/IProfile';
+import IPublicGeneralInfo from '../../api/IPublicGeneralInfo';
 import IShare from '../../api/IShare';
 
 export default interface IDatabaseProvider {
     // Accounts
     getAccountInfo: (uid: string) => Promise<IAccountInfo | undefined>;
+    doesAccountExist: (uid: string) => Promise<boolean>;
     initializeAccount: (
         uid: string,
-        accountInfo: IAccountInfo
+        accountInfo: IAccountInfo,
+        publicGeneralInfo: IPublicGeneralInfo
     ) => Promise<boolean>;
     setAccountInfo: (
         uid: string,
         accountInfo: IAccountInfo
     ) => Promise<boolean>;
     getUidByPhoneNumber: (phoneNumber: string) => Promise<string | undefined>;
+    getPublicGeneralInfo: (
+        uid: string
+    ) => Promise<IPublicGeneralInfo | undefined>;
+    setPublicGeneralInfo: (
+        uid: string,
+        info: IPublicGeneralInfo
+    ) => Promise<void>;
     // Profiles
     createDefaultProfile: (uid: string) => Promise<boolean>;
     createProfile: (uid: string, profile: IProfile) => Promise<void>;

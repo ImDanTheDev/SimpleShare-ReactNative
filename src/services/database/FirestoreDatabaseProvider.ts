@@ -4,6 +4,7 @@ import IAccountInfo from '../../api/IAccountInfo';
 import IProfile from '../../api/IProfile';
 import IShare from '../../api/IShare';
 import SimpleShareError, { ErrorCode } from '../../SimpleShareError';
+import IPublicGeneralInfo from '../../api/IPublicGeneralInfo';
 
 interface IShareListener {
     uid: string;
@@ -46,6 +47,14 @@ export default class FirestoreDatabaseProvider implements IDatabaseProvider {
         return undefined;
     };
 
+    doesAccountExist = async (uid: string): Promise<boolean> => {
+        const accountDoc = await firestore()
+            .collection('accounts')
+            .doc(uid)
+            .get();
+        return accountDoc.exists;
+    };
+
     initializeAccount = async (
         uid: string,
         accountInfo: IAccountInfo
@@ -80,6 +89,39 @@ export default class FirestoreDatabaseProvider implements IDatabaseProvider {
         if (matchingAccountDocs.size <= 0) return undefined;
         const matchingAccountDoc = matchingAccountDocs.docs[0];
         return matchingAccountDoc.id;
+    };
+
+    getPublicGeneralInfo = async (
+        uid: string
+    ): Promise<IPublicGeneralInfo | undefined> => {
+        const generalInfoDoc = await firestore()
+            .collection('accounts')
+            .doc(uid)
+            .collection('public')
+            .doc('GeneralInfo')
+            .get();
+        if (generalInfoDoc.exists) {
+            const generalInfoData = generalInfoDoc.data();
+            if (generalInfoData) {
+                return {
+                    displayName: generalInfoData.displayName,
+                    isComplete: generalInfoData.isComplete,
+                } as IPublicGeneralInfo;
+            }
+        }
+        return undefined;
+    };
+
+    setPublicGeneralInfo = async (
+        uid: string,
+        info: IPublicGeneralInfo
+    ): Promise<void> => {
+        await firestore()
+            .collection('accounts')
+            .doc(uid)
+            .collection('public')
+            .doc('GeneralInfo')
+            .set(info);
     };
 
     createDefaultProfile = async (uid: string): Promise<boolean> => {

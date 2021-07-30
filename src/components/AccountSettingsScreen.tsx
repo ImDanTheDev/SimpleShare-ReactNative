@@ -1,6 +1,12 @@
 import MaskedView from '@react-native-masked-view/masked-view';
-import React from 'react';
-import { SafeAreaView, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+    SafeAreaView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import LinearGradient from 'react-native-linear-gradient';
@@ -9,6 +15,19 @@ import {
     NavigationFunctionComponent,
 } from 'react-native-navigation';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useDispatch, useSelector } from 'react-redux';
+import { setPublicGeneralInfo, updateAccountInfo } from '../api/AccountAPI';
+import IAccountInfo from '../api/IAccountInfo';
+import IPublicGeneralInfo from '../api/IPublicGeneralInfo';
+import IUser from '../api/IUser';
+import {
+    MAX_DISPLAY_NAME_LENGTH,
+    MAX_PHONE_NUMBER_LENGTH,
+    MIN_DISPLAY_NAME_LENGTH,
+    MIN_PHONE_NUMBER_LENGTH,
+} from '../constants';
+import { RootState } from '../redux/store';
+import { pushToast } from '../redux/toasterSlice';
 import { CircleButton } from './CircleButton';
 
 interface Props {
@@ -19,8 +38,88 @@ interface Props {
 const AccountSettingsScreen: NavigationFunctionComponent<Props> = (
     props: Props
 ) => {
+    const dispatch = useDispatch();
+    const user: IUser | undefined = useSelector(
+        (state: RootState) => state.auth.user
+    );
+
+    const accountInfo: IAccountInfo | undefined = useSelector(
+        (state: RootState) => state.user.accountInfo
+    );
+
+    const publicGeneralInfo: IPublicGeneralInfo | undefined = useSelector(
+        (state: RootState) => state.user.publicGeneralInfo
+    );
+
+    const [phoneNumber, setPhoneNumber] = useState<string>(
+        accountInfo?.phoneNumber || ''
+    );
+    const [displayName, setDisplayName] = useState<string>(
+        publicGeneralInfo?.displayName || ''
+    );
+
+    const goingAway = useRef<boolean>(false);
+
+    useEffect(() => {
+        goingAway.current = false;
+        return () => {
+            goingAway.current = true;
+        };
+    }, []);
+
     const handleBack = async () => {
         await Navigation.pop(props.componentId);
+    };
+
+    const handleSave = async () => {
+        if (!user) {
+            console.log('ERROR: Not signed in!');
+            return;
+        }
+
+        if (phoneNumber.length < MIN_PHONE_NUMBER_LENGTH) {
+            dispatch(
+                pushToast({
+                    message: `'${phoneNumber}' is not a valid phone number.`,
+                    duration: 5,
+                    type: 'error',
+                })
+            );
+            return;
+        }
+
+        if (displayName.length < MIN_DISPLAY_NAME_LENGTH) {
+            dispatch(
+                pushToast({
+                    message: `'${displayName}' is not a valid display name.`,
+                    duration: 5,
+                    type: 'error',
+                })
+            );
+            return;
+        }
+
+        try {
+            await updateAccountInfo(user.uid, {
+                phoneNumber: phoneNumber,
+                isAccountComplete: true,
+            });
+            await setPublicGeneralInfo(user.uid, {
+                displayName: displayName,
+                isComplete: true,
+            });
+            if (!goingAway.current) {
+                await Navigation.pop(props.componentId);
+            }
+        } catch {
+            dispatch(
+                pushToast({
+                    message: `An unexpected error occurred while updating your account.`,
+                    duration: 5,
+                    type: 'error',
+                })
+            );
+        }
     };
 
     return (
@@ -59,7 +158,28 @@ const AccountSettingsScreen: NavigationFunctionComponent<Props> = (
                     <KeyboardAwareScrollView
                         contentContainerStyle={styles.body}
                     >
-                        <Text style={styles.wipWarning}>WIP</Text>
+                        <TextInput
+                            style={styles.phoneNumberInput}
+                            maxLength={MAX_PHONE_NUMBER_LENGTH}
+                            onChangeText={setPhoneNumber}
+                            autoCompleteType={'off'}
+                            keyboardType='phone-pad'
+                            defaultValue={accountInfo?.phoneNumber || ''}
+                            placeholder='Phone number'
+                        />
+                        <TextInput
+                            style={styles.profileInput}
+                            maxLength={MAX_DISPLAY_NAME_LENGTH}
+                            onChangeText={setDisplayName}
+                            defaultValue={publicGeneralInfo?.displayName || ''}
+                            placeholder='Profile name'
+                        />
+                        <TouchableOpacity
+                            style={styles.sendButton}
+                            onPress={handleSave}
+                        >
+                            <Text style={styles.sendButtonLabel}>Save</Text>
+                        </TouchableOpacity>
                     </KeyboardAwareScrollView>
                 </MaskedView>
             </LinearGradient>

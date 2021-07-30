@@ -39,6 +39,7 @@ import { ComponentId as HelpInfoSheetComponentId } from './HelpInfoSheet';
 import { deleteProfile } from '../api/ProfileAPI';
 import { MAX_PROFILE_NAME_LENGTH } from '../constants';
 import { pushToast } from '../redux/toasterSlice';
+import IPublicGeneralInfo from '../api/IPublicGeneralInfo';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -52,6 +53,10 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
 
     const user: IUser | undefined = useSelector(
         (state: RootState) => state.auth.user
+    );
+
+    const publicGeneralInfo: IPublicGeneralInfo | undefined = useSelector(
+        (state: RootState) => state.user.publicGeneralInfo
     );
 
     const profiles: IProfile[] = useSelector(
@@ -263,7 +268,7 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                     <View style={styles.welcomeGroup}>
                         <Text style={styles.welcomeText}>Welcome</Text>
                         <Text style={styles.welcomeUserName}>
-                            {user?.displayName || 'Unknown User'}
+                            {publicGeneralInfo?.displayName || 'Unknown User'}
                         </Text>
                     </View>
                     <View

@@ -15,6 +15,9 @@ import IProfile from '../api/IProfile';
 import { setCurrentProfile } from '../redux/profilesSlice';
 import { createDefaultProfile } from '../api/ProfileAPI';
 import SplashScreen from './SplashScreen';
+import IPublicGeneralInfo, {
+    isPublicGeneralInfoComplete,
+} from '../api/IPublicGeneralInfo';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -36,12 +39,18 @@ const WelcomeScreen: NavigationFunctionComponent<Props> = () => {
     const accountInfo: IAccountInfo | undefined = useSelector(
         (state: RootState) => state.user.accountInfo
     );
+    const publicGeneralInfo: IPublicGeneralInfo | undefined = useSelector(
+        (state: RootState) => state.user.publicGeneralInfo
+    );
 
     const profiles: IProfile[] = useSelector(
         (state: RootState) => state.profiles.profiles
     );
 
     const [fetchedAccountInfo, setFetchedAccountInfo] =
+        useState<boolean>(false);
+
+    const [fetchedPublicGeneralInfo, setFetchedPublicGeneralInfo] =
         useState<boolean>(false);
 
     const [fetchedProfiles, setFetchedProfiles] = useState<boolean>(false);
@@ -82,6 +91,11 @@ const WelcomeScreen: NavigationFunctionComponent<Props> = () => {
                     // Fetch account info.
                     await databaseService.getAccountInfo(user.uid);
                     setFetchedAccountInfo(true);
+
+                    console.log('Fetching public general info');
+                    // Fetch account info.
+                    await databaseService.getPublicGeneralInfo(user.uid);
+                    setFetchedPublicGeneralInfo(true);
                 }
             }
         };
@@ -91,21 +105,34 @@ const WelcomeScreen: NavigationFunctionComponent<Props> = () => {
 
     useEffect(() => {
         const continueAuthFlow = async () => {
-            if (!user || !fetchedAccountInfo) return;
+            if (!user || !fetchedAccountInfo || !fetchedPublicGeneralInfo) {
+                return;
+            }
 
-            if (accountInfo) {
-                console.log('Does Account Doc Exist? Yes');
+            if (accountInfo && publicGeneralInfo) {
+                console.log(
+                    'Does Account Doc and Public General Info Doc Exist? Yes'
+                );
 
-                if (isAccountComplete(accountInfo)) {
-                    console.log('Is Account Doc Complete? Yes');
+                if (
+                    isAccountComplete(accountInfo) &&
+                    isPublicGeneralInfoComplete(publicGeneralInfo)
+                ) {
+                    console.log(
+                        'Is Account Doc and Public General Info Doc Complete? Yes'
+                    );
                     await fetchProfiles();
                 } else {
-                    console.log('Is Account Doc Complete? No');
+                    console.log(
+                        'Is Account Doc and Public General Info Doc Complete? No'
+                    );
                     console.log('Going to Complete Account Screen');
                     await setRootScreen(CompleteAccountScreenComponentId);
                 }
             } else {
-                console.log('Does Account Doc Exist? No');
+                console.log(
+                    'Does Account Doc and Public General Info Doc Exist? No'
+                );
                 console.log('Going to Complete Account Screen');
                 await setRootScreen(CompleteAccountScreenComponentId);
             }
@@ -120,7 +147,13 @@ const WelcomeScreen: NavigationFunctionComponent<Props> = () => {
         };
 
         continueAuthFlow();
-    }, [accountInfo, fetchedAccountInfo, user]);
+    }, [
+        accountInfo,
+        publicGeneralInfo,
+        fetchedAccountInfo,
+        fetchedPublicGeneralInfo,
+        user,
+    ]);
 
     useEffect(() => {
         if (!fetchedProfiles) return;

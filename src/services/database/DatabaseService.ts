@@ -1,5 +1,5 @@
 import { store } from '../../redux/store';
-import { setAccountInfo } from '../../redux/accountSlice';
+import { setAccountInfo, setPublicGeneralInfo } from '../../redux/accountSlice';
 import FirestoreDatabaseProvider from './FirestoreDatabaseProvider';
 import IDatabaseProvider from './IDatabaseProvider';
 import IAccountInfo from '../../api/IAccountInfo';
@@ -8,6 +8,7 @@ import IProfile from '../../api/IProfile';
 import { setProfiles } from '../../redux/profilesSlice';
 import { addShare, deleteShare, updateShare } from '../../redux/sharesSlice';
 import IShare from '../../api/IShare';
+import IPublicGeneralInfo from '../../api/IPublicGeneralInfo';
 
 export enum DatabaseProviderType {
     Firestore,
@@ -48,16 +49,23 @@ export default class DatabaseService {
         return accountInfo;
     };
 
+    doesAccountExist = async (uid: string): Promise<boolean> => {
+        return await this.databaseProvider.doesAccountExist(uid);
+    };
+
     initializeAccount = async (
         uid: string,
-        accountInfo: IAccountInfo
+        accountInfo: IAccountInfo,
+        publicGeneralInfo: IPublicGeneralInfo
     ): Promise<boolean> => {
         const success = await this.databaseProvider.initializeAccount(
             uid,
-            accountInfo
+            accountInfo,
+            publicGeneralInfo
         );
         if (success) {
             store.dispatch(setAccountInfo(accountInfo));
+            store.dispatch(setPublicGeneralInfo(publicGeneralInfo));
         }
         return success;
     };
@@ -85,6 +93,23 @@ export default class DatabaseService {
         return uid;
     };
 
+    getPublicGeneralInfo = async (
+        uid: string
+    ): Promise<IPublicGeneralInfo | undefined> => {
+        const publicGeneralInfo =
+            await this.databaseProvider.getPublicGeneralInfo(uid);
+        store.dispatch(setPublicGeneralInfo(publicGeneralInfo));
+        return publicGeneralInfo;
+    };
+
+    setPublicGeneralInfo = async (
+        uid: string,
+        info: IPublicGeneralInfo
+    ): Promise<void> => {
+        await this.databaseProvider.setPublicGeneralInfo(uid, info);
+        store.dispatch(setPublicGeneralInfo(info));
+    };
+
     createDefaultProfile = async (uid: string): Promise<boolean> => {
         return await this.databaseProvider.createDefaultProfile(uid);
     };
@@ -98,8 +123,6 @@ export default class DatabaseService {
             // handling the ADD, DELETE, MODIFIED operations.
             await this.getAllProfiles(uid);
         } catch (e) {}
-
-        //return success;
     };
 
     getAllProfiles = async (uid: string): Promise<IProfile[]> => {
@@ -144,9 +167,8 @@ export default class DatabaseService {
         return success;
     };
 
-    createShare = async (share: IShare): Promise<boolean> => {
-        const success = await this.databaseProvider.createShare(share);
-        return success;
+    createShare = async (share: IShare): Promise<void> => {
+        await this.databaseProvider.createShare(share);
     };
 
     deleteShare = async (share: IShare): Promise<boolean> => {

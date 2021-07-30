@@ -2,6 +2,7 @@ import IDatabaseProvider from './IDatabaseProvider';
 import IAccountInfo from '../../api/IAccountInfo';
 import IProfile from '../../api/IProfile';
 import IShare from '../../api/IShare';
+import IPublicGeneralInfo from '../../api/IPublicGeneralInfo';
 
 export default class SimpleShareDatabaseProvider implements IDatabaseProvider {
     getAccountInfo = (): Promise<IAccountInfo | undefined> => {
@@ -10,9 +11,16 @@ export default class SimpleShareDatabaseProvider implements IDatabaseProvider {
         });
     };
 
+    doesAccountExist = async (uid: string): Promise<boolean> => {
+        return new Promise<boolean>(async (resolve, reject) => {
+            reject('Simple Share database is not implemented.');
+        });
+    };
+
     initializeAccount = async (
         uid: string,
-        accountInfo: IAccountInfo
+        accountInfo: IAccountInfo,
+        publicGeneralInfo: IPublicGeneralInfo
     ): Promise<boolean> => {
         return new Promise<boolean>(async (resolve, reject) => {
             reject('Simple Share database is not implemented.');
@@ -32,6 +40,25 @@ export default class SimpleShareDatabaseProvider implements IDatabaseProvider {
         phoneNumber: string
     ): Promise<string | undefined> => {
         return new Promise<string | undefined>(async (resolve, reject) => {
+            reject('Simple Share database is not implemented.');
+        });
+    };
+
+    getPublicGeneralInfo = async (
+        phoneNumber: string
+    ): Promise<IPublicGeneralInfo | undefined> => {
+        return new Promise<IPublicGeneralInfo | undefined>(
+            async (resolve, reject) => {
+                reject('Simple Share database is not implemented.');
+            }
+        );
+    };
+
+    setPublicGeneralInfo = async (
+        uid: string,
+        info: IPublicGeneralInfo
+    ): Promise<void> => {
+        return new Promise<void>(async (resolve, reject) => {
             reject('Simple Share database is not implemented.');
         });
     };

@@ -10,7 +10,9 @@ import {
     NavigationFunctionComponent,
 } from 'react-native-navigation';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { getPublicGeneralInfo } from '../api/AccountAPI';
 import IProfile from '../api/IProfile';
+import IPublicGeneralInfo from '../api/IPublicGeneralInfo';
 import IShare from '../api/IShare';
 import { getProfile } from '../api/ProfileAPI';
 import { deleteShare } from '../api/ShareAPI';
@@ -41,6 +43,7 @@ const ViewShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
     const cancelTimeout = useRef<boolean>(false);
 
     const [profileName, setProfileName] = useState<string>('');
+    const [displayName, setDisplayName] = useState<string>('');
 
     useEffect(() => {
         cancelTimeout.current = false;
@@ -50,6 +53,18 @@ const ViewShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
     }, []);
 
     useEffect(() => {
+        const fetchDisplayName = async () => {
+            try {
+                const publicGeneralInfo: IPublicGeneralInfo | undefined =
+                    await getPublicGeneralInfo(props.share.fromUid);
+                setDisplayName(
+                    publicGeneralInfo?.displayName || 'Unknown User'
+                );
+            } catch {
+                setDisplayName('Unknown User');
+            }
+        };
+
         const fetchProfileName = async () => {
             try {
                 const profile: IProfile | undefined = await getProfile(
@@ -61,6 +76,7 @@ const ViewShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                 setProfileName('Unknown Profile');
             }
         };
+        fetchDisplayName();
         fetchProfileName();
     }, [props.share]);
 
@@ -104,7 +120,7 @@ const ViewShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
 
     const copyFromUser = () => {
         setShowFromUserCopied(true);
-        Clipboard.setString(props.share.fromUid);
+        Clipboard.setString(displayName);
     };
     const copyFromProfile = () => {
         setShowFromProfileCopied(true);
@@ -173,7 +189,7 @@ const ViewShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                             style={styles.phoneNumberInput}
                             onPress={copyFromUser}
                         >
-                            {props.share.fromUid}
+                            {displayName}
                         </Text>
                         <View style={styles.inputLabelGroup}>
                             <Text style={styles.inputLabelText}>

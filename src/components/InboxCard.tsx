@@ -9,8 +9,13 @@ import {
 } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { getPublicGeneralInfo } from '../api/AccountAPI';
+import IProfile from '../api/IProfile';
+import IPublicGeneralInfo from '../api/IPublicGeneralInfo';
 import IShare from '../api/IShare';
+import { getProfile } from '../api/ProfileAPI';
 import { deleteShare } from '../api/ShareAPI';
+import { MAX_DISPLAY_NAME_LENGTH, MAX_PROFILE_NAME_LENGTH } from '../constants';
 import { CardDropdown } from './CardDropdown';
 import { CircleButton } from './CircleButton';
 
@@ -42,6 +47,38 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
     const blurOpacity = useRef(new Animated.Value(0)).current;
     const [shouldShowBlur, setShouldShowBlur] = useState<boolean>(false);
     const [blueVisibility, setBlurVisibility] = useState<boolean>(false);
+
+    const [profileName, setProfileName] = useState<string>('');
+    const [displayName, setDisplayName] = useState<string>('');
+
+    useEffect(() => {
+        const fetchDisplayName = async () => {
+            try {
+                const publicGeneralInfo: IPublicGeneralInfo | undefined =
+                    await getPublicGeneralInfo(props.share.fromUid);
+                setDisplayName(
+                    publicGeneralInfo?.displayName || 'Unknown User'
+                );
+            } catch {
+                setDisplayName('Unknown User');
+            }
+        };
+
+        const fetchProfileName = async () => {
+            try {
+                const profile: IProfile | undefined = await getProfile(
+                    props.share.fromUid,
+                    props.share.fromProfileId
+                );
+                setProfileName(profile?.name || 'Unknown Profile');
+            } catch {
+                setProfileName('Unknown Profile');
+            }
+        };
+
+        fetchDisplayName();
+        fetchProfileName();
+    }, [props.share]);
 
     useEffect(() => {
         if (shouldShowBlur) {
@@ -134,8 +171,8 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
             </View>
             <View style={styles.body}>
                 <Text style={styles.sender}>
-                    From: {props.share.fromUid.slice(0, 10)} [
-                    {props.share.fromProfileId.slice(0, 7)}]
+                    From: {displayName.slice(0, MAX_DISPLAY_NAME_LENGTH)} [
+                    {profileName.slice(0, MAX_PROFILE_NAME_LENGTH)}]
                 </Text>
                 <Text style={styles.textContent} numberOfLines={6}>
                     {props.share.content}

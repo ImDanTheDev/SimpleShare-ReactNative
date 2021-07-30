@@ -12,8 +12,14 @@ import {
     NavigationFunctionComponent,
     OptionsModalPresentationStyle,
 } from 'react-native-navigation';
-import { useSelector } from 'react-redux';
-import { initializeAccount, signOut } from '../api/AccountAPI';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+    doesAccountExist,
+    initializeAccount,
+    setPublicGeneralInfo,
+    signOut,
+    updateAccountInfo,
+} from '../api/AccountAPI';
 import IUser from '../api/IUser';
 import IAccountInfo, { isAccountComplete } from '../api/IAccountInfo';
 import { RootState } from '../redux/store';
@@ -25,7 +31,15 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import { ComponentId as HelpInfoSheetComponentId } from './HelpInfoSheet';
-import { MAX_PHONE_NUMBER_LENGTH, MIN_PHONE_NUMBER_LENGTH } from '../constants';
+import {
+    MAX_DISPLAY_NAME_LENGTH,
+    MAX_PHONE_NUMBER_LENGTH,
+    MIN_PHONE_NUMBER_LENGTH,
+} from '../constants';
+import { pushToast } from '../redux/toasterSlice';
+import IPublicGeneralInfo, {
+    isPublicGeneralInfoComplete,
+} from '../api/IPublicGeneralInfo';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -33,6 +47,7 @@ interface Props {
 }
 
 const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
+    const dispatch = useDispatch();
     const user: IUser | undefined = useSelector(
         (state: RootState) => state.auth.user
     );
@@ -41,7 +56,16 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
         (state: RootState) => state.user.accountInfo
     );
 
-    const [phoneNumber, setPhoneNumber] = useState<string>('');
+    const publicGeneralInfo: IPublicGeneralInfo | undefined = useSelector(
+        (state: RootState) => state.user.publicGeneralInfo
+    );
+
+    const [phoneNumber, setPhoneNumber] = useState<string>(
+        accountInfo?.phoneNumber || ''
+    );
+    const [displayName, setDisplayName] = useState<string>(
+        publicGeneralInfo?.displayName || ''
+    );
 
     const blurOpacity = useRef(new Animated.Value(0)).current;
     const [blueVisibility, setBlurVisibility] = useState<boolean>(false);
@@ -56,19 +80,30 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
         }
 
         const continueAuthFlow = async () => {
-            if (accountInfo) {
-                console.log('Does Account Doc Exist? Yes');
-                if (isAccountComplete(accountInfo)) {
-                    console.log('Is Account Doc Complete? Yes');
+            if (accountInfo && publicGeneralInfo) {
+                console.log(
+                    'Does Account Doc and Public General Info Doc Exist? Yes'
+                );
+                if (
+                    isAccountComplete(accountInfo) &&
+                    isPublicGeneralInfoComplete(publicGeneralInfo)
+                ) {
+                    console.log(
+                        'Is Account Doc and Public General Info Doc Complete? Yes'
+                    );
                     setRootScreen(WelcomeScreenComponentId);
                 } else {
-                    console.log('Is Account Doc Complete? No');
+                    console.log(
+                        'Is Account Doc and Public General Info Doc Complete? No'
+                    );
                     console.log(
                         'Waiting for user to complete account. This will complete the account and create a default profile.'
                     );
                 }
             } else {
-                console.log('Does Account Doc Exist? No');
+                console.log(
+                    'Does Account Doc and Public General Info Doc Exist? No'
+                );
                 console.log(
                     'Waiting for user to complete account. This will create the account, complete it, and create a default profile.'
                 );
@@ -76,7 +111,7 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
         };
 
         continueAuthFlow();
-    }, [accountInfo, user]);
+    }, [accountInfo, publicGeneralInfo, user]);
 
     useEffect(() => {
         if (shouldShowBlur) {
@@ -106,9 +141,25 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
     };
 
     const handleCompleteAccountButton = async () => {
-        if (!user || phoneNumber.length < MIN_PHONE_NUMBER_LENGTH) {
-            // TODO: We need a user for this page. Handle this error.
+        if (!user) {
+            dispatch(
+                pushToast({
+                    message: `An unexpected error occurred.`,
+                    duration: 5,
+                    type: 'error',
+                })
+            );
             return;
+        }
+
+        if (phoneNumber.length < MIN_PHONE_NUMBER_LENGTH) {
+            dispatch(
+                pushToast({
+                    message: `'${phoneNumber}' is not a valid phone number.`,
+                    duration: 5,
+                    type: 'error',
+                })
+            );
         }
 
         // Creates the account if it does not exist. Completes the account info. Adds a default profile.
@@ -119,15 +170,49 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
         console.log(
             'Completing Account [3/3] Creating a default profile or resetting the existing one.'
         );
-        const success = await initializeAccount(user.uid, {
-            phoneNumber: phoneNumber,
-            isAccountComplete: true,
-        });
 
-        if (success) {
-            console.log('Saved completed account to database.');
+        const accountExists = await doesAccountExist(user.uid);
+        if (accountExists) {
+            const success = await updateAccountInfo(user.uid, {
+                phoneNumber: phoneNumber,
+                isAccountComplete: true,
+            });
+
+            if (success) {
+                console.log('Saved completed account info to database.');
+            } else {
+                console.log('Failed to complete the account.');
+                return;
+            }
+
+            try {
+                await setPublicGeneralInfo(user.uid, {
+                    displayName: displayName,
+                    isComplete: true,
+                });
+                console.log('Saved completed public general info to database.');
+            } catch {
+                console.log('Failed to complete the account.');
+            }
         } else {
-            console.log('Failed to complete the account.');
+            const success = await initializeAccount(
+                user.uid,
+                {
+                    phoneNumber: phoneNumber,
+                    isAccountComplete: true,
+                },
+                {
+                    displayName: displayName,
+                    isComplete: true,
+                }
+            );
+            if (success) {
+                console.log(
+                    'Saved completed account and public general info to database.'
+                );
+            } else {
+                console.log('Failed to complete the account.');
+            }
         }
     };
 
@@ -216,7 +301,20 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
                             maxLength={MAX_PHONE_NUMBER_LENGTH}
                             keyboardType='phone-pad'
                             onChangeText={setPhoneNumber}
+                            defaultValue={accountInfo?.phoneNumber || ''}
                             placeholder='Phone number'
+                        />
+                        <View style={styles.inputLabelGroup}>
+                            <Text style={styles.inputLabelText}>
+                                Enter your display name:
+                            </Text>
+                        </View>
+                        <TextInput
+                            style={styles.phoneNumberInput}
+                            maxLength={MAX_DISPLAY_NAME_LENGTH}
+                            onChangeText={setDisplayName}
+                            defaultValue={publicGeneralInfo?.displayName || ''}
+                            placeholder='Display name'
                         />
                         <View style={styles.flexSpacer} />
                         <TouchableOpacity

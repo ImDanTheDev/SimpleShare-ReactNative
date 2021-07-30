@@ -61,7 +61,6 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
     useEffect(() => {
         goingAway.current = false;
         return () => {
-            console.log('going away');
             goingAway.current = true;
         };
     }, []);
