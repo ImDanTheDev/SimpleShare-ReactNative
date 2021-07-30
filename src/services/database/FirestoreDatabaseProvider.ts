@@ -226,6 +226,15 @@ export default class FirestoreDatabaseProvider implements IDatabaseProvider {
                 .collection('profiles')
                 .doc(profileId)
                 .delete();
+
+            const profileSharesCollection = await firestore()
+                .collection('shares')
+                .doc(uid)
+                .collection(profileId)
+                .get();
+            profileSharesCollection.forEach(async (doc) => {
+                await this.deleteShareById(uid, profileId, doc.id);
+            });
             return true;
         } catch (e) {
             return false;
@@ -240,14 +249,26 @@ export default class FirestoreDatabaseProvider implements IDatabaseProvider {
             .add(share);
     };
 
+    deleteShareById = async (
+        userId: string,
+        profileId: string,
+        shareId: string | undefined
+    ): Promise<void> => {
+        await firestore()
+            .collection('shares')
+            .doc(userId)
+            .collection(profileId)
+            .doc(shareId)
+            .delete();
+    };
+
     deleteShare = async (share: IShare): Promise<boolean> => {
         try {
-            await firestore()
-                .collection('shares')
-                .doc(share.toUid)
-                .collection(share.toProfileId)
-                .doc(share.id)
-                .delete();
+            await this.deleteShareById(
+                share.toUid,
+                share.toProfileId,
+                share.id
+            );
             return true;
         } catch (e) {
             return false;
