@@ -158,21 +158,24 @@ const AccountSettingsScreen: NavigationFunctionComponent<Props> = (
                     <KeyboardAwareScrollView
                         contentContainerStyle={styles.body}
                     >
+                        <Text style={styles.fieldLabel}>Phone Number:</Text>
                         <TextInput
                             style={styles.phoneNumberInput}
                             maxLength={MAX_PHONE_NUMBER_LENGTH}
                             onChangeText={setPhoneNumber}
                             autoCompleteType={'off'}
                             keyboardType='phone-pad'
+                            contextMenuHidden={true}
                             defaultValue={accountInfo?.phoneNumber || ''}
-                            placeholder='Phone number'
+                            placeholder='+11234567890'
                         />
+                        <Text style={styles.fieldLabel}>Display Name:</Text>
                         <TextInput
                             style={styles.profileInput}
                             maxLength={MAX_DISPLAY_NAME_LENGTH}
                             onChangeText={setDisplayName}
                             defaultValue={publicGeneralInfo?.displayName || ''}
-                            placeholder='Profile name'
+                            placeholder='John Smith'
                         />
                         <TouchableOpacity
                             style={styles.sendButton}
@@ -223,6 +226,11 @@ const styles = EStyleSheet.create({
     body: {
         margin: '32rem',
         paddingBottom: '48rem',
+    },
+    fieldLabel: {
+        color: '#FFF',
+        fontSize: '16rem',
+        paddingBottom: '4rem',
     },
     phoneNumberInput: {
         backgroundColor: '#1A2633',

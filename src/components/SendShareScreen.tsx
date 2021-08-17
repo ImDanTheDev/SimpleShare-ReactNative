@@ -196,25 +196,29 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                     <KeyboardAwareScrollView
                         contentContainerStyle={styles.body}
                     >
+                        <Text style={styles.fieldLabel}>Phone Number:</Text>
                         <TextInput
                             style={styles.phoneNumberInput}
                             maxLength={MAX_PHONE_NUMBER_LENGTH}
                             onChangeText={setPhoneNumber}
                             autoCompleteType={'off'}
+                            contextMenuHidden={true}
                             keyboardType='phone-pad'
-                            placeholder='Phone number'
+                            placeholder='+11234567890'
                         />
+                        <Text style={styles.fieldLabel}>Profile Name:</Text>
                         <TextInput
                             style={styles.profileInput}
                             maxLength={MAX_PROFILE_NAME_LENGTH}
                             onChangeText={setProfileName}
-                            placeholder='Profile name'
+                            placeholder='Laptop'
                         />
+                        <Text style={styles.fieldLabel}>Text:</Text>
                         <TextInput
                             style={styles.shareTextInput}
                             maxLength={MAX_SHARE_TEXT_LENGTH}
                             onChangeText={setShareText}
-                            placeholder='Enter text to share'
+                            placeholder='Enter anything you want here!'
                             multiline={true}
                             numberOfLines={5}
                         />
@@ -267,6 +271,11 @@ const styles = EStyleSheet.create({
     body: {
         margin: '32rem',
         paddingBottom: '48rem',
+    },
+    fieldLabel: {
+        color: '#FFF',
+        fontSize: '16rem',
+        paddingBottom: '4rem',
     },
     phoneNumberInput: {
         backgroundColor: '#1A2633',

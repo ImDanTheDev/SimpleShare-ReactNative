@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import { TextInput } from 'react-native-gesture-handler';
 import {
@@ -105,12 +105,18 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
                     <View style={styles.profilePicture}>
                         <Text style={styles.profilePictureText}>PFP</Text>
                     </View>
-                    <TextInput
-                        style={styles.profileName}
-                        maxLength={MAX_PROFILE_NAME_LENGTH}
-                        placeholder='Profile name'
-                        onChangeText={setProfileName}
-                    />
+                    <View style={styles.labeledField}>
+                        <Text style={styles.profileNameLabel}>
+                            Profile Name:
+                        </Text>
+                        <View style={styles.spacer} />
+                        <TextInput
+                            style={styles.profileName}
+                            maxLength={MAX_PROFILE_NAME_LENGTH}
+                            placeholder='Phone'
+                            onChangeText={setProfileName}
+                        />
+                    </View>
                 </View>
                 <View style={styles.actionGroup}>
                     <TouchableOpacity
@@ -198,12 +204,20 @@ const styles = EStyleSheet.create({
         fontWeight: 'bold',
         fontSize: '20rem',
     },
+    labeledField: {
+        flex: 1,
+        flexDirection: 'column',
+    },
+    profileNameLabel: {
+        fontSize: '14rem',
+        color: '#FFF',
+        //paddingBottom: '4rem',
+    },
     profileName: {
         backgroundColor: '#1A2633',
         borderRadius: '16rem',
         borderColor: '#F4A2617F',
         borderWidth: '1rem',
-        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: '16rem',
@@ -241,6 +255,9 @@ const styles = EStyleSheet.create({
         color: '#FFF',
         textAlignVertical: 'center',
         paddingVertical: '4rem',
+    },
+    spacer: {
+        flex: 1,
     },
 });
 

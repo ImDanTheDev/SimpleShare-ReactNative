@@ -282,9 +282,17 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
                         contentContainerStyle={styles.body}
                     >
                         <View style={styles.inputLabelGroup}>
-                            <Text style={styles.inputLabelText}>
-                                Enter your phone number:
-                            </Text>
+                            <Text style={styles.fieldLabel}>Display Name:</Text>
+                        </View>
+                        <TextInput
+                            style={styles.phoneNumberInput}
+                            maxLength={MAX_DISPLAY_NAME_LENGTH}
+                            onChangeText={setDisplayName}
+                            defaultValue={publicGeneralInfo?.displayName || ''}
+                            placeholder='John Smith'
+                        />
+                        <View style={styles.inputLabelGroup}>
+                            <Text style={styles.fieldLabel}>Phone Number:</Text>
                             <CircleButton
                                 style={styles.moreInfoButton}
                                 size={28}
@@ -301,20 +309,9 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
                             maxLength={MAX_PHONE_NUMBER_LENGTH}
                             keyboardType='phone-pad'
                             onChangeText={setPhoneNumber}
+                            contextMenuHidden={true}
                             defaultValue={accountInfo?.phoneNumber || ''}
-                            placeholder='Phone number'
-                        />
-                        <View style={styles.inputLabelGroup}>
-                            <Text style={styles.inputLabelText}>
-                                Enter your display name:
-                            </Text>
-                        </View>
-                        <TextInput
-                            style={styles.phoneNumberInput}
-                            maxLength={MAX_DISPLAY_NAME_LENGTH}
-                            onChangeText={setDisplayName}
-                            defaultValue={publicGeneralInfo?.displayName || ''}
-                            placeholder='Display name'
+                            placeholder='+11234567890'
                         />
                         <View style={styles.flexSpacer} />
                         <TouchableOpacity
@@ -398,11 +395,11 @@ const styles = EStyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: '16rem',
+        marginBottom: '4rem',
     },
-    inputLabelText: {
+    fieldLabel: {
         color: '#FFF',
-        fontSize: '20rem',
+        fontSize: '16rem',
     },
     moreInfoButtonLabel: {
         color: '#FFF',
