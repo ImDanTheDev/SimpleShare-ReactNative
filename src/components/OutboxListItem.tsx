@@ -1,13 +1,62 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
+import { getPublicGeneralInfo } from '../api/AccountAPI';
+import IProfile from '../api/IProfile';
+import IPublicGeneralInfo from '../api/IPublicGeneralInfo';
 import IShare from '../api/IShare';
+import { getProfile } from '../api/ProfileAPI';
 
 export interface Props {
     share: IShare;
 }
 
 export const OutboxListItem: React.FC<Props> = (props: Props) => {
+    const [profileName, setProfileName] = useState<string>('');
+    const [displayName, setDisplayName] = useState<string>('');
+
+    const goingAway = useRef<boolean>(false);
+
+    useEffect(() => {
+        goingAway.current = false;
+        return () => {
+            goingAway.current = true;
+        };
+    }, []);
+
+    useEffect(() => {
+        const fetchDisplayName = async () => {
+            try {
+                const publicGeneralInfo: IPublicGeneralInfo | undefined =
+                    await getPublicGeneralInfo(props.share.toUid);
+                if (goingAway.current) return;
+                setDisplayName(
+                    publicGeneralInfo?.displayName || 'Unknown User'
+                );
+            } catch {
+                if (goingAway.current) return;
+                setDisplayName('Unknown User');
+            }
+        };
+
+        const fetchProfileName = async () => {
+            try {
+                const profile: IProfile | undefined = await getProfile(
+                    props.share.toUid,
+                    props.share.toProfileId
+                );
+                if (goingAway.current) return;
+                setProfileName(profile?.name || 'Unknown Profile');
+            } catch {
+                if (goingAway.current) return;
+                setProfileName('Unknown Profile');
+            }
+        };
+
+        fetchDisplayName();
+        fetchProfileName();
+    }, [props.share]);
+
     return (
         <View style={styles.item}>
             <View style={styles.picture}>
@@ -15,10 +64,9 @@ export const OutboxListItem: React.FC<Props> = (props: Props) => {
             </View>
             <View style={styles.body}>
                 <Text style={styles.recipient}>
-                    To: {props.share.toUid.slice(0, 10)} [
-                    {props.share.toProfileId.slice(0, 7)}]
+                    To: {displayName.slice(0, 15)} [{profileName.slice(0, 7)}]
                 </Text>
-                <Text style={styles.fileName}>File: what.png</Text>
+                <Text style={styles.fileName}>File: No File</Text>
                 <Text style={styles.textContent}>{props.share.content}</Text>
             </View>
         </View>
