@@ -57,10 +57,17 @@ export default class FirestoreDatabaseProvider implements IDatabaseProvider {
 
     initializeAccount = async (
         uid: string,
-        accountInfo: IAccountInfo
+        accountInfo: IAccountInfo,
+        publicGeneralInfo: IPublicGeneralInfo
     ): Promise<boolean> => {
         const setAccountInfo = await this.setAccountInfo(uid, accountInfo);
         if (!setAccountInfo) return false;
+
+        try {
+            await this.setPublicGeneralInfo(uid, publicGeneralInfo);
+        } catch {
+            return false;
+        }
 
         return await this.createDefaultProfile(uid);
     };
