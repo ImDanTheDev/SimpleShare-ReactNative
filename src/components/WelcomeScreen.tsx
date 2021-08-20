@@ -18,6 +18,7 @@ import SplashScreen from './SplashScreen';
 import IPublicGeneralInfo, {
     isPublicGeneralInfoComplete,
 } from '../api/IPublicGeneralInfo';
+import { setPublicGeneralInfo } from '../redux/accountSlice';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -93,15 +94,19 @@ const WelcomeScreen: NavigationFunctionComponent<Props> = () => {
                     setFetchedAccountInfo(true);
 
                     console.log('Fetching public general info');
-                    // Fetch account info.
-                    await databaseService.getPublicGeneralInfo(user.uid);
+                    // Fetch public general info.
+                    dispatch(
+                        setPublicGeneralInfo(
+                            await databaseService.getPublicGeneralInfo(user.uid)
+                        )
+                    );
                     setFetchedPublicGeneralInfo(true);
                 }
             }
         };
 
         startAuthFlow();
-    }, [initializing, user]);
+    }, [dispatch, initializing, user]);
 
     useEffect(() => {
         const continueAuthFlow = async () => {

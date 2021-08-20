@@ -98,7 +98,7 @@ export default class DatabaseService {
     ): Promise<IPublicGeneralInfo | undefined> => {
         const publicGeneralInfo =
             await this.databaseProvider.getPublicGeneralInfo(uid);
-        store.dispatch(setPublicGeneralInfo(publicGeneralInfo));
+        //store.dispatch(setPublicGeneralInfo(publicGeneralInfo));
         return publicGeneralInfo;
     };
 

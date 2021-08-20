@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
+import {
+    Linking,
+    SafeAreaView,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import {
     Navigation,
@@ -94,6 +100,32 @@ const SigninScreen: NavigationFunctionComponent<Props> = () => {
         }
     };
 
+    const handlePrivacyPolicyPress = async () => {
+        const privacyPolicy = 'https://simple-share.flycricket.io/privacy.html';
+        const supported = await Linking.canOpenURL(privacyPolicy);
+        if (supported) {
+            try {
+                Linking.openURL(privacyPolicy);
+            } catch {
+                dispatch(
+                    pushToast({
+                        duration: 30,
+                        message: `Failed to open link. Find the privacy policy on the Google Play Store or visit: ${privacyPolicy}`,
+                        type: 'info',
+                    })
+                );
+            }
+        } else {
+            dispatch(
+                pushToast({
+                    duration: 30,
+                    message: `Your device does not support opening external links. Find the privacy policy on the Google Play Store or visit: ${privacyPolicy}`,
+                    type: 'info',
+                })
+            );
+        }
+    };
+
     return (
         <SafeAreaView style={styles.root}>
             <LinearGradient
@@ -141,16 +173,19 @@ const SigninScreen: NavigationFunctionComponent<Props> = () => {
                     </TouchableOpacity>
                 </View>
                 <View style={styles.footer}>
-                    <TouchableOpacity style={styles.footerLink}>
+                    <TouchableOpacity
+                        style={styles.footerLink}
+                        onPress={handlePrivacyPolicyPress}
+                    >
                         <Text style={styles.footerLinkLabel}>
                             Privacy Policy
                         </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.footerLink}>
+                    {/* <TouchableOpacity style={styles.footerLink}>
                         <Text style={styles.footerLinkLabel}>
                             Terms of Service
                         </Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                 </View>
             </LinearGradient>
         </SafeAreaView>
