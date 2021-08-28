@@ -20,8 +20,6 @@ import {
     signOut,
     updateAccountInfo,
 } from '../api/AccountAPI';
-import IUser from '../api/IUser';
-import IAccountInfo, { isAccountComplete } from '../api/IAccountInfo';
 import { RootState } from '../redux/store';
 import { ComponentId as WelcomeScreenComponentId } from './WelcomeScreen';
 import { CircleButton } from './CircleButton';
@@ -31,15 +29,15 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import { ComponentId as HelpInfoSheetComponentId } from './HelpInfoSheet';
-import {
-    MAX_DISPLAY_NAME_LENGTH,
-    MAX_PHONE_NUMBER_LENGTH,
-    MIN_PHONE_NUMBER_LENGTH,
-} from '../constants';
 import { pushToast } from '../redux/toasterSlice';
-import IPublicGeneralInfo, {
+import {
+    constants,
+    IAccountInfo,
+    IPublicGeneralInfo,
+    isAccountComplete,
     isPublicGeneralInfoComplete,
-} from '../api/IPublicGeneralInfo';
+    IUser,
+} from 'simpleshare-common';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -152,7 +150,7 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
             return;
         }
 
-        if (phoneNumber.length < MIN_PHONE_NUMBER_LENGTH) {
+        if (phoneNumber.length < constants.MIN_PHONE_NUMBER_LENGTH) {
             dispatch(
                 pushToast({
                     message: `'${phoneNumber}' is not a valid phone number.`,
@@ -286,7 +284,7 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
                         </View>
                         <TextInput
                             style={styles.phoneNumberInput}
-                            maxLength={MAX_DISPLAY_NAME_LENGTH}
+                            maxLength={constants.MAX_DISPLAY_NAME_LENGTH}
                             onChangeText={setDisplayName}
                             defaultValue={publicGeneralInfo?.displayName || ''}
                             placeholder='John Smith'
@@ -306,7 +304,7 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
                         </View>
                         <TextInput
                             style={styles.phoneNumberInput}
-                            maxLength={MAX_PHONE_NUMBER_LENGTH}
+                            maxLength={constants.MAX_PHONE_NUMBER_LENGTH}
                             keyboardType='phone-pad'
                             onChangeText={setPhoneNumber}
                             contextMenuHidden={true}

@@ -16,16 +16,13 @@ import {
 } from 'react-native-navigation';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
-import { setPublicGeneralInfo, updateAccountInfo } from '../api/AccountAPI';
-import IAccountInfo from '../api/IAccountInfo';
-import IPublicGeneralInfo from '../api/IPublicGeneralInfo';
-import IUser from '../api/IUser';
 import {
-    MAX_DISPLAY_NAME_LENGTH,
-    MAX_PHONE_NUMBER_LENGTH,
-    MIN_DISPLAY_NAME_LENGTH,
-    MIN_PHONE_NUMBER_LENGTH,
-} from '../constants';
+    constants,
+    IAccountInfo,
+    IPublicGeneralInfo,
+    IUser,
+} from 'simpleshare-common';
+import { setPublicGeneralInfo, updateAccountInfo } from '../api/AccountAPI';
 import { RootState } from '../redux/store';
 import { pushToast } from '../redux/toasterSlice';
 import { CircleButton } from './CircleButton';
@@ -77,7 +74,7 @@ const AccountSettingsScreen: NavigationFunctionComponent<Props> = (
             return;
         }
 
-        if (phoneNumber.length < MIN_PHONE_NUMBER_LENGTH) {
+        if (phoneNumber.length < constants.MIN_PHONE_NUMBER_LENGTH) {
             dispatch(
                 pushToast({
                     message: `'${phoneNumber}' is not a valid phone number.`,
@@ -88,7 +85,7 @@ const AccountSettingsScreen: NavigationFunctionComponent<Props> = (
             return;
         }
 
-        if (displayName.length < MIN_DISPLAY_NAME_LENGTH) {
+        if (displayName.length < constants.MIN_DISPLAY_NAME_LENGTH) {
             dispatch(
                 pushToast({
                     message: `'${displayName}' is not a valid display name.`,
@@ -161,7 +158,7 @@ const AccountSettingsScreen: NavigationFunctionComponent<Props> = (
                         <Text style={styles.fieldLabel}>Phone Number:</Text>
                         <TextInput
                             style={styles.phoneNumberInput}
-                            maxLength={MAX_PHONE_NUMBER_LENGTH}
+                            maxLength={constants.MAX_PHONE_NUMBER_LENGTH}
                             onChangeText={setPhoneNumber}
                             autoCompleteType={'off'}
                             keyboardType='phone-pad'
@@ -172,7 +169,7 @@ const AccountSettingsScreen: NavigationFunctionComponent<Props> = (
                         <Text style={styles.fieldLabel}>Display Name:</Text>
                         <TextInput
                             style={styles.profileInput}
-                            maxLength={MAX_DISPLAY_NAME_LENGTH}
+                            maxLength={constants.MAX_DISPLAY_NAME_LENGTH}
                             onChangeText={setDisplayName}
                             defaultValue={publicGeneralInfo?.displayName || ''}
                             placeholder='John Smith'

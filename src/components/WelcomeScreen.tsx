@@ -5,19 +5,22 @@ import {
 } from 'react-native-navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import IUser from '../api/IUser';
 import { authService, databaseService } from '../api/api';
-import IAccountInfo, { isAccountComplete } from '../api/IAccountInfo';
 import { ComponentId as SigninScreenComponentId } from './SigninScreen';
 import { ComponentId as HomeScreenComponentId } from './HomeScreen';
 import { ComponentId as CompleteAccountScreenComponentId } from './CompleteAccountScreen';
-import IProfile from '../api/IProfile';
 import { setCurrentProfile } from '../redux/profilesSlice';
 import { createDefaultProfile } from '../api/ProfileAPI';
 import SplashScreen from './SplashScreen';
-import IPublicGeneralInfo, {
+import {
+    IAccountInfo,
+    IProfile,
+    IPublicGeneralInfo,
+    isAccountComplete,
     isPublicGeneralInfoComplete,
-} from '../api/IPublicGeneralInfo';
+    IUser,
+} from 'simpleshare-common';
+
 import { setPublicGeneralInfo } from '../redux/accountSlice';
 
 interface Props {
@@ -67,6 +70,7 @@ const WelcomeScreen: NavigationFunctionComponent<Props> = () => {
     useEffect(() => {
         console.log('Initializing...');
         authService.initialize();
+        databaseService.initialize();
     }, []);
 
     useEffect(() => {

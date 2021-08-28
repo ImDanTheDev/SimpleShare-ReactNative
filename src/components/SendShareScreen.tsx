@@ -17,22 +17,13 @@ import {
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUidByPhoneNumber } from '../api/AccountAPI';
-import IProfile from '../api/IProfile';
-import IShare from '../api/IShare';
-import IUser from '../api/IUser';
 import { getProfileIdByName } from '../api/ProfileAPI';
 import { createShare } from '../api/ShareAPI';
 import { RootState } from '../redux/store';
 import { CircleButton } from './CircleButton';
-import {
-    MAX_PHONE_NUMBER_LENGTH,
-    MAX_PROFILE_NAME_LENGTH,
-    MAX_SHARE_TEXT_LENGTH,
-    MIN_PHONE_NUMBER_LENGTH,
-    MIN_PROFILE_NAME_LENGTH,
-} from '../constants';
 import { pushToast } from '../redux/toasterSlice';
 import { addShareToOutbox } from '../redux/outboxSlice';
+import { constants, IProfile, IShare, IUser } from 'simpleshare-common';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -76,7 +67,7 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
             return;
         }
 
-        if (phoneNumber.length < MIN_PHONE_NUMBER_LENGTH) {
+        if (phoneNumber.length < constants.MIN_PHONE_NUMBER_LENGTH) {
             dispatch(
                 pushToast({
                     message: `'${phoneNumber}' is not a valid phone number.`,
@@ -87,7 +78,7 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
             return;
         }
 
-        if (profileName.length < MIN_PROFILE_NAME_LENGTH) {
+        if (profileName.length < constants.MIN_PROFILE_NAME_LENGTH) {
             dispatch(
                 pushToast({
                     message: `'${profileName}' is not a valid profile name.`,
@@ -98,10 +89,10 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
             return;
         }
 
-        if (shareText.length > MAX_SHARE_TEXT_LENGTH) {
+        if (shareText.length > constants.MAX_SHARE_TEXT_LENGTH) {
             dispatch(
                 pushToast({
-                    message: `Your message length must not exceed ${MAX_SHARE_TEXT_LENGTH} characters.`,
+                    message: `Your message length must not exceed ${constants.MAX_SHARE_TEXT_LENGTH} characters.`,
                     duration: 5,
                     type: 'error',
                 })
@@ -199,7 +190,7 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                         <Text style={styles.fieldLabel}>Phone Number:</Text>
                         <TextInput
                             style={styles.phoneNumberInput}
-                            maxLength={MAX_PHONE_NUMBER_LENGTH}
+                            maxLength={constants.MAX_PHONE_NUMBER_LENGTH}
                             onChangeText={setPhoneNumber}
                             autoCompleteType={'off'}
                             contextMenuHidden={true}
@@ -209,14 +200,14 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                         <Text style={styles.fieldLabel}>Profile Name:</Text>
                         <TextInput
                             style={styles.profileInput}
-                            maxLength={MAX_PROFILE_NAME_LENGTH}
+                            maxLength={constants.MAX_PROFILE_NAME_LENGTH}
                             onChangeText={setProfileName}
                             placeholder='Laptop'
                         />
                         <Text style={styles.fieldLabel}>Text:</Text>
                         <TextInput
                             style={styles.shareTextInput}
-                            maxLength={MAX_SHARE_TEXT_LENGTH}
+                            maxLength={constants.MAX_SHARE_TEXT_LENGTH}
                             onChangeText={setShareText}
                             placeholder='Enter anything you want here!'
                             multiline={true}

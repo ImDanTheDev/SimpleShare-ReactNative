@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import IShare from '../api/IShare';
+import { IShare } from 'simpleshare-common';
 import { OutboxListItem } from './OutboxListItem';
 
 export interface Props {

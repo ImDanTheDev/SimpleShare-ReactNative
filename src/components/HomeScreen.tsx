@@ -19,9 +19,6 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { signOut } from '../api/AccountAPI';
-import IProfile from '../api/IProfile';
-import IShare from '../api/IShare';
-import IUser from '../api/IUser';
 import { switchShareListener } from '../api/ShareAPI';
 import { setCurrentProfile } from '../redux/profilesSlice';
 import { setShares } from '../redux/sharesSlice';
@@ -38,10 +35,15 @@ import { SettingsDropdown } from './SettingsDropdown';
 import { databaseService } from '../api/api';
 import { ComponentId as HelpInfoSheetComponentId } from './HelpInfoSheet';
 import { deleteProfile } from '../api/ProfileAPI';
-import { MAX_PROFILE_NAME_LENGTH } from '../constants';
 import { pushToast } from '../redux/toasterSlice';
-import IPublicGeneralInfo from '../api/IPublicGeneralInfo';
 import { clearOutbox } from '../redux/outboxSlice';
+import {
+    constants,
+    IProfile,
+    IPublicGeneralInfo,
+    IShare,
+    IUser,
+} from 'simpleshare-common';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -198,9 +200,12 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
         if (!currentProfile) return '';
 
         let shortProfileName = currentProfile.name;
-        if (shortProfileName.length > MAX_PROFILE_NAME_LENGTH) {
+        if (shortProfileName.length > constants.MAX_PROFILE_NAME_LENGTH) {
             shortProfileName =
-                shortProfileName.substring(0, MAX_PROFILE_NAME_LENGTH) + '...';
+                shortProfileName.substring(
+                    0,
+                    constants.MAX_PROFILE_NAME_LENGTH
+                ) + '...';
         }
 
         return `Inbox - ${shortProfileName} (${shares.length})`;

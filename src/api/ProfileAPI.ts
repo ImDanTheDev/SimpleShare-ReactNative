@@ -1,5 +1,5 @@
+import { IProfile } from 'simpleshare-common';
 import { databaseService } from './api';
-import IProfile from './IProfile';
 
 export const createDefaultProfile = async (uid: string): Promise<boolean> => {
     return await databaseService.createDefaultProfile(uid);

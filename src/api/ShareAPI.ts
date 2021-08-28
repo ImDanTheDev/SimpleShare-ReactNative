@@ -1,5 +1,5 @@
+import { IShare } from 'simpleshare-common';
 import { databaseService } from './api';
-import IShare from './IShare';
 
 export const createShare = async (share: IShare): Promise<void> => {
     await databaseService.createShare(share);

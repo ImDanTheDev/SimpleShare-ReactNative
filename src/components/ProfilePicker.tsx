@@ -3,7 +3,7 @@ import { Text, View, ViewabilityConfig, ViewToken } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import { FlatList } from 'react-native-gesture-handler';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import IProfile from '../api/IProfile';
+import { IProfile } from 'simpleshare-common';
 import { CircleButton } from './CircleButton';
 
 export interface Props {

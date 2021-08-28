@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import { TextInput } from 'react-native-gesture-handler';
 import {
@@ -7,14 +7,17 @@ import {
     NavigationFunctionComponent,
 } from 'react-native-navigation';
 import { useDispatch, useSelector } from 'react-redux';
-import IUser from '../api/IUser';
 import { createProfile } from '../api/ProfileAPI';
-import { MAX_PROFILE_NAME_LENGTH, MIN_PROFILE_NAME_LENGTH } from '../constants';
 import { RootState } from '../redux/store';
 import { pushToast } from '../redux/toasterSlice';
-import SimpleShareError, { ErrorCode } from '../SimpleShareError';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Spinner from './Spinner';
+import {
+    constants,
+    ErrorCode,
+    IUser,
+    SimpleShareError,
+} from 'simpleshare-common';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -55,7 +58,10 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
             return;
         }
 
-        if (!profileName || profileName.length < MIN_PROFILE_NAME_LENGTH) {
+        if (
+            !profileName ||
+            profileName.length < constants.MIN_PROFILE_NAME_LENGTH
+        ) {
             dispatch(
                 pushToast({
                     duration: 5,
@@ -112,7 +118,7 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
                         <View style={styles.spacer} />
                         <TextInput
                             style={styles.profileName}
-                            maxLength={MAX_PROFILE_NAME_LENGTH}
+                            maxLength={constants.MAX_PROFILE_NAME_LENGTH}
                             placeholder='Phone'
                             onChangeText={setProfileName}
                         />

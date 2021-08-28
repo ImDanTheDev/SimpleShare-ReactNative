@@ -1,10 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
+import { IProfile, IPublicGeneralInfo, IShare } from 'simpleshare-common';
 import { getPublicGeneralInfo } from '../api/AccountAPI';
-import IProfile from '../api/IProfile';
-import IPublicGeneralInfo from '../api/IPublicGeneralInfo';
-import IShare from '../api/IShare';
 import { getProfile } from '../api/ProfileAPI';
 
 export interface Props {

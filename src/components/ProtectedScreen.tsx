@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ReactNode } from 'react';
 import { useSelector } from 'react-redux';
-import IProfile from '../api/IProfile';
-import IUser from '../api/IUser';
+import { IProfile, IUser } from 'simpleshare-common';
 import { RootState } from '../redux/store';
 
 export interface Props {

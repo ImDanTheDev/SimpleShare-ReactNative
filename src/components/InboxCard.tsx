@@ -9,13 +9,15 @@ import {
 } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {
+    constants,
+    IProfile,
+    IPublicGeneralInfo,
+    IShare,
+} from 'simpleshare-common';
 import { getPublicGeneralInfo } from '../api/AccountAPI';
-import IProfile from '../api/IProfile';
-import IPublicGeneralInfo from '../api/IPublicGeneralInfo';
-import IShare from '../api/IShare';
 import { getProfile } from '../api/ProfileAPI';
 import { deleteShare } from '../api/ShareAPI';
-import { MAX_DISPLAY_NAME_LENGTH, MAX_PROFILE_NAME_LENGTH } from '../constants';
 import { CardDropdown } from './CardDropdown';
 import { CircleButton } from './CircleButton';
 
@@ -190,8 +192,9 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
             </View>
             <View style={styles.body}>
                 <Text style={styles.sender}>
-                    From: {displayName.slice(0, MAX_DISPLAY_NAME_LENGTH)} [
-                    {profileName.slice(0, MAX_PROFILE_NAME_LENGTH)}]
+                    From:{' '}
+                    {displayName.slice(0, constants.MAX_DISPLAY_NAME_LENGTH)} [
+                    {profileName.slice(0, constants.MAX_PROFILE_NAME_LENGTH)}]
                 </Text>
                 <Text style={styles.textContent} numberOfLines={6}>
                     {props.share.content}

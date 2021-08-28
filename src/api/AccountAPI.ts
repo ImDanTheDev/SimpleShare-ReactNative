@@ -1,6 +1,5 @@
+import { IAccountInfo, IPublicGeneralInfo } from 'simpleshare-common';
 import { authService, databaseService } from './api';
-import IAccountInfo from './IAccountInfo';
-import IPublicGeneralInfo from './IPublicGeneralInfo';
 
 export const googleSignIn = async (): Promise<void> => {
     await authService.googleSignIn();

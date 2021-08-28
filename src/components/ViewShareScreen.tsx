@@ -10,10 +10,8 @@ import {
     NavigationFunctionComponent,
 } from 'react-native-navigation';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { IProfile, IPublicGeneralInfo, IShare } from 'simpleshare-common';
 import { getPublicGeneralInfo } from '../api/AccountAPI';
-import IProfile from '../api/IProfile';
-import IPublicGeneralInfo from '../api/IPublicGeneralInfo';
-import IShare from '../api/IShare';
 import { getProfile } from '../api/ProfileAPI';
 import { deleteShare } from '../api/ShareAPI';
 import { CircleButton } from './CircleButton';

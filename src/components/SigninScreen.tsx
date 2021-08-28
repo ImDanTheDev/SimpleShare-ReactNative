@@ -13,7 +13,6 @@ import {
 } from 'react-native-navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { googleSignIn } from '../api/AccountAPI';
-import IUser from '../api/IUser';
 import { RootState } from '../redux/store';
 import { ComponentId as WelcomeScreenComponentId } from './WelcomeScreen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -21,8 +20,8 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { pushToast } from '../redux/toasterSlice';
-import SimpleShareError, { ErrorCode } from '../SimpleShareError';
 import Spinner from './Spinner';
+import { ErrorCode, IUser, SimpleShareError } from 'simpleshare-common';
 
 interface Props {
     /** react-native-navigation component id. */
