@@ -13,7 +13,7 @@
     },
     "dependencies": {
         "@omnifire/api": "^1.2.0",
-        "@omnifire/rn": "^1.2.0",
+        "@omnifire/rn": "^1.2.3",
         "@react-native-clipboard/clipboard": "^1.8.4",
         "@react-native-community/async-storage": "^1.12.1",
         "@react-native-community/eslint-config": "^3.0.0",
