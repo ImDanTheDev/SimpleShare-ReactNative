@@ -18,31 +18,28 @@ import { useDispatch, useSelector } from 'react-redux';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
-import { signOut } from '../api/AccountAPI';
-import { switchShareListener } from '../api/ShareAPI';
-import { setCurrentProfile } from '../redux/profilesSlice';
-import { setShares } from '../redux/sharesSlice';
-import { RootState } from '../redux/store';
+import { RootState } from '../../redux/store';
 import { ComponentId as SendShareScreenComponentId } from './SendShareScreen';
 import { ComponentId as AccountSettingsScreenComponetId } from './AccountSettingsScreen';
 import { ComponentId as ViewShareScreenComponentId } from './ViewShareScreen';
-import { ComponentId as NewProfileSheetComponentId } from './NewProfileSheet';
-import { CircleButton } from './CircleButton';
-import { ProfilePicker } from './ProfilePicker';
-import { InboxGallery } from './InboxGallery';
-import { OutboxList } from './OutboxList';
-import { SettingsDropdown } from './SettingsDropdown';
-import { databaseService } from '../api/api';
-import { ComponentId as HelpInfoSheetComponentId } from './HelpInfoSheet';
-import { deleteProfile } from '../api/ProfileAPI';
-import { pushToast } from '../redux/toasterSlice';
-import { clearOutbox } from '../redux/outboxSlice';
+import { ComponentId as NewProfileSheetComponentId } from '../sheets/NewProfileSheet';
+import { CircleButton } from '../common/CircleButton';
+import { ProfilePicker } from '../ProfilePicker';
+import { InboxGallery } from '../InboxGallery';
+import { OutboxList } from '../OutboxList';
+import { SettingsDropdown } from '../SettingsDropdown';
+import { ComponentId as HelpInfoSheetComponentId } from '../sheets/HelpInfoSheet';
+import { pushToast } from '../../redux/toasterSlice';
 import {
+    clearOutbox,
     constants,
+    deleteCloudProfile,
     IProfile,
     IPublicGeneralInfo,
     IShare,
     IUser,
+    signOut,
+    switchProfile,
 } from 'simpleshare-common';
 
 interface Props {
@@ -104,25 +101,14 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
     }, [shouldShowBlur, blurOpacity]);
 
     useEffect(() => {
-        if (!user) return; // TODO: We need a user for this page. Handle this error.
-    }, [user]);
-
-    useEffect(() => {
-        if (!user) return; // TODO: We need a user for this page. Handle this error.
-
-        const switchListener = async () => {
-            if (!currentProfile || !currentProfile.id) return;
-            console.log('Selected profile changed. Switching share listener.');
-            await switchShareListener(user.uid, currentProfile.id);
-        };
-        switchListener();
-    }, [currentProfile, user]);
+        if (!user) {
+            dispatch(signOut());
+        }
+    }, [dispatch, user]);
 
     const handleSignOut = async () => {
         setShouldShowBlur(false);
-        await databaseService.removeAllShareListeners();
-        dispatch(setShares([]));
-        await signOut();
+        dispatch(signOut());
     };
 
     const handleCreateProfileButton = async () => {
@@ -155,13 +141,8 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
         });
     };
 
-    const handleSwitchProfile = async (profileId: string) => {
-        if (!user) {
-            console.log('ERROR: Not signed in!');
-            return;
-        }
-        dispatch(setShares([]));
-        dispatch(setCurrentProfile(profileId));
+    const handleSwitchProfile = async (profile: IProfile) => {
+        dispatch(switchProfile(profile));
     };
 
     const handleNewSharePress = async () => {
@@ -252,10 +233,7 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                     confirmText: 'Delete',
                     onConfirm: async () => {
                         setShouldShowBlur(false);
-                        await deleteProfile(
-                            user.uid,
-                            currentProfile.id || 'UNKNOWN_PROFILE'
-                        );
+                        dispatch(deleteCloudProfile(currentProfile));
                     },
                     dismissable: true,
                     dismissText: 'Cancel',

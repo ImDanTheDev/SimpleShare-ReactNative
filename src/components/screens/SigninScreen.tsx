@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
     Linking,
     SafeAreaView,
@@ -12,16 +12,15 @@ import {
     NavigationFunctionComponent,
 } from 'react-native-navigation';
 import { useDispatch, useSelector } from 'react-redux';
-import { googleSignIn } from '../api/AccountAPI';
-import { RootState } from '../redux/store';
-import { ComponentId as WelcomeScreenComponentId } from './WelcomeScreen';
+import { RootState } from '../../redux/store';
+import { ComponentId as HomeScreenComponentId } from './HomeScreen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
-import { pushToast } from '../redux/toasterSlice';
-import Spinner from './Spinner';
-import { ErrorCode, IUser, SimpleShareError } from 'simpleshare-common';
+import { pushToast } from '../../redux/toasterSlice';
+import Spinner from '../common/Spinner';
+import { IUser, signInWithGoogle } from 'simpleshare-common';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -31,22 +30,35 @@ interface Props {
 const SigninScreen: NavigationFunctionComponent<Props> = () => {
     const dispatch = useDispatch();
 
+    const signingIn = useSelector((state: RootState) => state.auth.signingIn);
+    const signInError = useSelector(
+        (state: RootState) => state.auth.signInError
+    );
+
     const user: IUser | undefined = useSelector(
         (state: RootState) => state.auth.user
     );
 
-    const [signingIn, setSigningIn] = useState<boolean>(false);
-
     useEffect(() => {
-        if (user) {
-            console.log('Already have a user.');
+        if (!signingIn && !user && signInError) {
+            // Failed to sign in.
+            dispatch(
+                pushToast({
+                    message:
+                        'An error occurred while signing in. Try again later.',
+                    type: 'error',
+                    duration: 5,
+                })
+            );
+        } else if (!signingIn && user && !signInError) {
+            // Signed in.
             Navigation.setRoot({
                 root: {
                     stack: {
                         children: [
                             {
                                 component: {
-                                    name: WelcomeScreenComponentId,
+                                    name: HomeScreenComponentId,
                                 },
                             },
                         ],
@@ -54,49 +66,10 @@ const SigninScreen: NavigationFunctionComponent<Props> = () => {
                 },
             });
         }
-    }, [user]);
-
-    const getSignInErrorMessage = (
-        errorCode: SimpleShareError
-    ): string | undefined => {
-        switch (errorCode.code) {
-            case ErrorCode.ACCOUNT_DISABLED:
-                return 'Account disabled.';
-            case ErrorCode.SIGN_IN_INVALID_CREDENTIALS:
-                return 'Invalid credentials, try again.';
-            case ErrorCode.UNEXPECTED_SIGN_IN_ERROR:
-                return 'Unable to sign in. Please try again later.';
-        }
-        return undefined;
-    };
+    }, [signingIn, user, signInError, dispatch]);
 
     const handleGoogleSignInButton = async () => {
-        if (signingIn) return;
-
-        try {
-            setSigningIn(true);
-            await googleSignIn();
-        } catch (e) {
-            setSigningIn(false);
-
-            let errorMessage: string | undefined;
-
-            if (e instanceof SimpleShareError) {
-                errorMessage = getSignInErrorMessage(e);
-            } else {
-                errorMessage = 'Unable to sign in. Try again later.';
-            }
-
-            if (errorMessage) {
-                dispatch(
-                    pushToast({
-                        message: errorMessage,
-                        type: 'error',
-                        duration: 5,
-                    })
-                );
-            }
-        }
+        dispatch(signInWithGoogle());
     };
 
     const handlePrivacyPolicyPress = async () => {
@@ -144,6 +117,7 @@ const SigninScreen: NavigationFunctionComponent<Props> = () => {
                     <TouchableOpacity
                         style={styles.signInMethodButton}
                         onPress={handleGoogleSignInButton}
+                        disabled={signingIn}
                     >
                         <Ionicons
                             style={styles.signInMethodLogo}

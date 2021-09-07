@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     SafeAreaView,
     Text,
@@ -16,14 +16,12 @@ import {
 } from 'react-native-navigation';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUidByPhoneNumber } from '../api/AccountAPI';
-import { getProfileIdByName } from '../api/ProfileAPI';
-import { createShare } from '../api/ShareAPI';
-import { RootState } from '../redux/store';
-import { CircleButton } from './CircleButton';
-import { pushToast } from '../redux/toasterSlice';
-import { addShareToOutbox } from '../redux/outboxSlice';
-import { constants, IProfile, IShare, IUser } from 'simpleshare-common';
+import { RootState } from '../../redux/store';
+import { CircleButton } from '../common/CircleButton';
+import { pushToast } from '../../redux/toasterSlice';
+import { constants, IProfile, IUser, sendShare } from 'simpleshare-common';
+import Spinner from '../common/Spinner';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -44,18 +42,48 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
             )
     );
 
+    const sendingShare: boolean = useSelector(
+        (state: RootState) => state.shares.sendingShare
+    );
+    const sentShare = useSelector((state: RootState) => state.shares.sentShare);
+    const sendShareError = useSelector(
+        (state: RootState) => state.shares.sendShareError
+    );
+
+    const [triedSendingShare, setTriedSendingShare] = useState<boolean>(false);
     const [phoneNumber, setPhoneNumber] = useState<string>('');
     const [profileName, setProfileName] = useState<string>('');
     const [shareText, setShareText] = useState<string>('');
 
-    const goingAway = useRef<boolean>(false);
-
     useEffect(() => {
-        goingAway.current = false;
-        return () => {
-            goingAway.current = true;
+        const checkForSent = async () => {
+            if (
+                triedSendingShare &&
+                !sendingShare &&
+                sentShare &&
+                !sendShareError
+            ) {
+                await Navigation.pop(props.componentId);
+            } else if (!sendingShare && !sentShare && sendShareError) {
+                dispatch(
+                    pushToast({
+                        duration: 5,
+                        message:
+                            'An error occurred while sending. Try again later.',
+                        type: 'error',
+                    })
+                );
+            }
         };
-    }, []);
+        checkForSent();
+    }, [
+        sendingShare,
+        sentShare,
+        sendShareError,
+        props.componentId,
+        dispatch,
+        triedSendingShare,
+    ]);
 
     const handleBack = async () => {
         await Navigation.pop(props.componentId);
@@ -100,55 +128,17 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
             return;
         }
 
-        const toUid = await getUidByPhoneNumber(phoneNumber);
-        if (!toUid) {
-            dispatch(
-                pushToast({
-                    message:
-                        'Could not find a user with the provided phone number.',
-                    duration: 5,
-                    type: 'error',
-                })
-            );
-            return;
-        }
-        const toProfileId = await getProfileIdByName(toUid, profileName);
-        if (!toProfileId) {
-            dispatch(
-                pushToast({
-                    message: `Profile '${profileName}' does not exist.`,
-                    duration: 5,
-                    type: 'error',
-                })
-            );
-            return;
-        }
-
-        const share: IShare = {
-            fromUid: user.uid,
-            fromProfileId: currentProfile.id,
-            toUid: toUid,
-            toProfileId: toProfileId,
-            content: shareText,
-            type: 'text',
-        };
-
-        try {
-            await createShare(share);
-            dispatch(addShareToOutbox(share));
-            if (!goingAway.current) {
-                await Navigation.pop(props.componentId);
-            }
-        } catch (e) {
-            console.log(`Failed to send share: ${e}`);
-            dispatch(
-                pushToast({
-                    message: `An unexpected error occurred while sending the share.`,
-                    duration: 5,
-                    type: 'error',
-                })
-            );
-        }
+        dispatch(
+            sendShare({
+                share: {
+                    content: shareText,
+                    type: 'text',
+                },
+                toPhoneNumber: phoneNumber,
+                toProfileName: profileName,
+            })
+        );
+        setTriedSendingShare(true);
     };
 
     return (
@@ -215,9 +205,21 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                         />
                         <TouchableOpacity
                             style={styles.sendButton}
+                            disabled={sendingShare}
                             onPress={handleSendShare}
                         >
-                            <Text style={styles.sendButtonLabel}>Send</Text>
+                            {sendingShare ? (
+                                <Spinner>
+                                    <MaterialCommunityIcons
+                                        style={styles.loadingIcon}
+                                        name='loading'
+                                        color='#FFF'
+                                        size={EStyleSheet.value('32rem')}
+                                    />
+                                </Spinner>
+                            ) : (
+                                <Text style={styles.sendButtonLabel}>Send</Text>
+                            )}
                         </TouchableOpacity>
                     </KeyboardAwareScrollView>
                 </MaskedView>
@@ -307,12 +309,19 @@ const styles = EStyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         alignSelf: 'flex-end',
+        height: '50rem',
     },
     sendButtonLabel: {
         fontSize: '20rem',
         color: '#FFF',
         textAlignVertical: 'center',
         paddingVertical: '8rem',
+    },
+    loadingIcon: {
+        flex: 1,
+        aspectRatio: 1,
+        textAlignVertical: 'center',
+        textAlign: 'center',
     },
     /* Mask */
     mask: {

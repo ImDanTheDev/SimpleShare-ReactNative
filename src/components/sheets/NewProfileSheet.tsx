@@ -7,17 +7,11 @@ import {
     NavigationFunctionComponent,
 } from 'react-native-navigation';
 import { useDispatch, useSelector } from 'react-redux';
-import { createProfile } from '../api/ProfileAPI';
-import { RootState } from '../redux/store';
-import { pushToast } from '../redux/toasterSlice';
+import { RootState } from '../../redux/store';
+import { pushToast } from '../../redux/toasterSlice';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import Spinner from './Spinner';
-import {
-    constants,
-    ErrorCode,
-    IUser,
-    SimpleShareError,
-} from 'simpleshare-common';
+import Spinner from '../common/Spinner';
+import { constants, createProfile, IUser } from 'simpleshare-common';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -33,8 +27,19 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
         (state: RootState) => state.auth.user
     );
 
+    const creatingProfile: boolean = useSelector(
+        (state: RootState) => state.profiles.creatingProfile
+    );
+    const createdProfile: boolean = useSelector(
+        (state: RootState) => state.profiles.createdProfile
+    );
+    const createProfileError = useSelector(
+        (state: RootState) => state.profiles.createProfileError
+    );
+
+    const [triedCreatingProfile, setTriedCreatingProfile] =
+        useState<boolean>(false);
     const [profileName, setProfileName] = useState<string>();
-    const [creatingProfile, setCreatingProfile] = useState<boolean>(false);
     const goingAway = useRef<boolean>(false);
 
     useEffect(() => {
@@ -43,6 +48,42 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
             goingAway.current = true;
         };
     }, []);
+
+    useEffect(() => {
+        const checkForCreate = async () => {
+            if (
+                triedCreatingProfile &&
+                !creatingProfile &&
+                createdProfile &&
+                !createProfileError
+            ) {
+                props.onDismiss();
+                await Navigation.dismissModal(props.componentId);
+            } else if (
+                triedCreatingProfile &&
+                !creatingProfile &&
+                !createdProfile &&
+                createProfileError
+            ) {
+                dispatch(
+                    pushToast({
+                        duration: 5,
+                        message:
+                            'An error occurred while creating the profile. Try again later.',
+                        type: 'error',
+                    })
+                );
+            }
+        };
+        checkForCreate();
+    }, [
+        createProfileError,
+        createdProfile,
+        creatingProfile,
+        dispatch,
+        props,
+        triedCreatingProfile,
+    ]);
 
     const handleDismiss = async () => {
         props.onDismiss();
@@ -54,7 +95,13 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
     const handleSaveProfile = async () => {
         if (creatingProfile) return;
         if (!user) {
-            console.log('ERROR: Not signed in!');
+            dispatch(
+                pushToast({
+                    duration: 5,
+                    message: 'You are signed out. Sign in and try again.',
+                    type: 'error',
+                })
+            );
             return;
         }
 
@@ -73,30 +120,12 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
             return;
         }
 
-        try {
-            setCreatingProfile(true);
-            await createProfile(user.uid, {
+        dispatch(
+            createProfile({
                 name: profileName,
-            });
-        } catch (e) {
-            if (e instanceof SimpleShareError) {
-                if (e.code === ErrorCode.UNEXPECTED_DATABASE_ERROR) {
-                    dispatch(
-                        pushToast({
-                            duration: 5,
-                            message:
-                                'An unexpected error occurred while creating the profile. Check your network connection.',
-                            type: 'error',
-                        })
-                    );
-                }
-            }
-        } finally {
-            if (!goingAway.current) {
-                await handleDismiss();
-                setCreatingProfile(false);
-            }
-        }
+            })
+        );
+        setTriedCreatingProfile(true);
     };
 
     return (

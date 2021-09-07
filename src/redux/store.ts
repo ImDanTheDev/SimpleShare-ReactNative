@@ -3,7 +3,6 @@ import {
     CombinedState,
     combineReducers,
     configureStore,
-    getDefaultMiddleware,
 } from '@reduxjs/toolkit';
 import {
     FLUSH,
@@ -14,30 +13,29 @@ import {
     REHYDRATE,
     PersistConfig,
     persistReducer,
+    persistStore,
 } from 'redux-persist';
-import counterReducer, { CounterState } from './counterSlice';
-import authReducer, { AuthState } from './authSlice';
-import userReducer, {
-    AccountInfoState as AccountInfoState,
-} from './accountSlice';
-import profilesReducer, { ProfilesState } from './profilesSlice';
-import sharesReducer, { SharesState } from './sharesSlice';
+import {
+    AccountInfoState,
+    AuthState,
+    OutboxState,
+    ProfilesState,
+    reduxReducers,
+    SharesState,
+} from 'simpleshare-common';
 import toasterReducer, { ToasterState } from './toasterSlice';
-import outboxReducer, { OutboxState } from './outboxSlice';
 
 const rootReducer = combineReducers({
-    counter: counterReducer,
-    auth: authReducer,
-    user: userReducer,
-    profiles: profilesReducer,
-    shares: sharesReducer,
+    auth: reduxReducers.authReducer,
+    user: reduxReducers.accountReducer,
+    profiles: reduxReducers.profilesReducer,
+    shares: reduxReducers.sharesReducer,
+    outbox: reduxReducers.outboxReducer,
     toaster: toasterReducer,
-    outbox: outboxReducer,
 });
 
 const persistConfig: PersistConfig<
     CombinedState<{
-        counter: CounterState;
         auth: AuthState;
         user: AccountInfoState;
         profiles: ProfilesState;
@@ -59,12 +57,22 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
     reducer: persistedReducer,
-    middleware: getDefaultMiddleware({
-        serializableCheck: {
-            ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-        },
-    }),
+    middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware({
+            serializableCheck: {
+                ignoredActions: [
+                    FLUSH,
+                    REHYDRATE,
+                    PAUSE,
+                    PERSIST,
+                    PURGE,
+                    REGISTER,
+                ],
+            },
+        }),
 });
+
+export const persistor = persistStore(store);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

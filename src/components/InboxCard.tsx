@@ -9,17 +9,10 @@ import {
 } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import {
-    constants,
-    IProfile,
-    IPublicGeneralInfo,
-    IShare,
-} from 'simpleshare-common';
-import { getPublicGeneralInfo } from '../api/AccountAPI';
-import { getProfile } from '../api/ProfileAPI';
-import { deleteShare } from '../api/ShareAPI';
+import { useDispatch } from 'react-redux';
+import { constants, deleteCloudShare, IShare } from 'simpleshare-common';
 import { CardDropdown } from './CardDropdown';
-import { CircleButton } from './CircleButton';
+import { CircleButton } from './common/CircleButton';
 
 export interface Props {
     share: IShare;
@@ -30,6 +23,8 @@ export interface Props {
 }
 
 export const InboxCard: React.FC<Props> = (props: Props) => {
+    const dispatch = useDispatch();
+
     const minCardScale = 0.8;
     const maxCardScale = 1.0;
     const minBorderWidth = 1;
@@ -50,9 +45,6 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
     const [shouldShowBlur, setShouldShowBlur] = useState<boolean>(false);
     const [blueVisibility, setBlurVisibility] = useState<boolean>(false);
 
-    const [profileName, setProfileName] = useState<string>('');
-    const [displayName, setDisplayName] = useState<string>('');
-
     const goingAway = useRef<boolean>(false);
 
     useEffect(() => {
@@ -61,39 +53,6 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
             goingAway.current = true;
         };
     }, []);
-
-    useEffect(() => {
-        const fetchDisplayName = async () => {
-            try {
-                const publicGeneralInfo: IPublicGeneralInfo | undefined =
-                    await getPublicGeneralInfo(props.share.fromUid);
-                if (goingAway.current) return;
-                setDisplayName(
-                    publicGeneralInfo?.displayName || 'Unknown User'
-                );
-            } catch {
-                if (goingAway.current) return;
-                setDisplayName('Unknown User');
-            }
-        };
-
-        const fetchProfileName = async () => {
-            try {
-                const profile: IProfile | undefined = await getProfile(
-                    props.share.fromUid,
-                    props.share.fromProfileId
-                );
-                if (goingAway.current) return;
-                setProfileName(profile?.name || 'Unknown Profile');
-            } catch {
-                if (goingAway.current) return;
-                setProfileName('Unknown Profile');
-            }
-        };
-
-        fetchDisplayName();
-        fetchProfileName();
-    }, [props.share]);
 
     useEffect(() => {
         if (shouldShowBlur) {
@@ -163,7 +122,7 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
     };
 
     const handleDeleteCard = async () => {
-        await deleteShare(props.share);
+        dispatch(deleteCloudShare(props.share));
         setShouldShowBlur(false);
         setDropdownVisibility(false);
     };
@@ -193,8 +152,16 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
             <View style={styles.body}>
                 <Text style={styles.sender}>
                     From:{' '}
-                    {displayName.slice(0, constants.MAX_DISPLAY_NAME_LENGTH)} [
-                    {profileName.slice(0, constants.MAX_PROFILE_NAME_LENGTH)}]
+                    {props.share.fromDisplayName?.slice(
+                        0,
+                        constants.MAX_DISPLAY_NAME_LENGTH
+                    )}{' '}
+                    [
+                    {props.share.fromProfileName?.slice(
+                        0,
+                        constants.MAX_PROFILE_NAME_LENGTH
+                    )}
+                    ]
                 </Text>
                 <Text style={styles.textContent} numberOfLines={6}>
                     {props.share.content}

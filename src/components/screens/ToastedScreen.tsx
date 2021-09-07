@@ -4,13 +4,13 @@ import EStyleSheet from 'react-native-extended-stylesheet';
 import { Swipeable } from 'react-native-gesture-handler';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../redux/store';
+import { RootState } from '../../redux/store';
 import {
     ageToast,
     dismissToast,
     IToast,
     setTimer,
-} from '../redux/toasterSlice';
+} from '../../redux/toasterSlice';
 export type ToastType = 'info' | 'warn' | 'error';
 
 interface Props {
@@ -42,7 +42,6 @@ export const ToastedScreen: React.FC<Props> = (props: Props) => {
                 // This is a new toast without a timer.
                 // Create the timer.
                 const timer: NodeJS.Timer = setInterval(() => {
-                    console.log('tick');
                     dispatch(ageToast(toast));
                 }, 1000);
 

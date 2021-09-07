@@ -1,5 +1,5 @@
 import MaskedView from '@react-native-masked-view/masked-view';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     SafeAreaView,
     Text,
@@ -14,6 +14,7 @@ import {
     Navigation,
     NavigationFunctionComponent,
 } from 'react-native-navigation';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -21,11 +22,12 @@ import {
     IAccountInfo,
     IPublicGeneralInfo,
     IUser,
+    updateAccount,
 } from 'simpleshare-common';
-import { setPublicGeneralInfo, updateAccountInfo } from '../api/AccountAPI';
-import { RootState } from '../redux/store';
-import { pushToast } from '../redux/toasterSlice';
-import { CircleButton } from './CircleButton';
+import { RootState } from '../../redux/store';
+import { pushToast } from '../../redux/toasterSlice';
+import { CircleButton } from '../common/CircleButton';
+import Spinner from '../common/Spinner';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -48,6 +50,18 @@ const AccountSettingsScreen: NavigationFunctionComponent<Props> = (
         (state: RootState) => state.user.publicGeneralInfo
     );
 
+    const updatingAccount = useSelector(
+        (state: RootState) => state.user.updatingAccount
+    );
+    const updatedAccount = useSelector(
+        (state: RootState) => state.user.updatedAccount
+    );
+    const updateAccountError = useSelector(
+        (state: RootState) => state.user.updateAccountError
+    );
+
+    const [triedUpdatingAccount, setTriedUpdatingAccount] =
+        useState<boolean>(false);
     const [phoneNumber, setPhoneNumber] = useState<string>(
         accountInfo?.phoneNumber || ''
     );
@@ -55,14 +69,39 @@ const AccountSettingsScreen: NavigationFunctionComponent<Props> = (
         publicGeneralInfo?.displayName || ''
     );
 
-    const goingAway = useRef<boolean>(false);
-
     useEffect(() => {
-        goingAway.current = false;
-        return () => {
-            goingAway.current = true;
+        const checkForUpdate = async () => {
+            if (
+                triedUpdatingAccount &&
+                !updatingAccount &&
+                updatedAccount &&
+                !updateAccountError
+            ) {
+                await Navigation.pop(props.componentId);
+            } else if (
+                !updatingAccount &&
+                !updatedAccount &&
+                updateAccountError
+            ) {
+                dispatch(
+                    pushToast({
+                        duration: 5,
+                        message:
+                            'An error occurred while updating your account. Try again later.',
+                        type: 'error',
+                    })
+                );
+            }
         };
-    }, []);
+        checkForUpdate();
+    }, [
+        updatingAccount,
+        updatedAccount,
+        updateAccountError,
+        triedUpdatingAccount,
+        props.componentId,
+        dispatch,
+    ]);
 
     const handleBack = async () => {
         await Navigation.pop(props.componentId);
@@ -96,27 +135,20 @@ const AccountSettingsScreen: NavigationFunctionComponent<Props> = (
             return;
         }
 
-        try {
-            await updateAccountInfo(user.uid, {
-                phoneNumber: phoneNumber,
-                isAccountComplete: true,
-            });
-            await setPublicGeneralInfo(user.uid, {
-                displayName: displayName,
-                isComplete: true,
-            });
-            if (!goingAway.current) {
-                await Navigation.pop(props.componentId);
-            }
-        } catch {
-            dispatch(
-                pushToast({
-                    message: `An unexpected error occurred while updating your account.`,
-                    duration: 5,
-                    type: 'error',
-                })
-            );
-        }
+        dispatch(
+            updateAccount({
+                accountInfo: {
+                    phoneNumber: phoneNumber,
+                    isAccountComplete: true,
+                },
+                publicGeneralInfo: {
+                    displayName: displayName,
+                    isComplete: true,
+                },
+            })
+        );
+
+        setTriedUpdatingAccount(true);
     };
 
     return (
@@ -176,9 +208,21 @@ const AccountSettingsScreen: NavigationFunctionComponent<Props> = (
                         />
                         <TouchableOpacity
                             style={styles.sendButton}
+                            disabled={updatingAccount}
                             onPress={handleSave}
                         >
-                            <Text style={styles.sendButtonLabel}>Save</Text>
+                            {updatingAccount ? (
+                                <Spinner>
+                                    <MaterialCommunityIcons
+                                        style={styles.loadingIcon}
+                                        name='loading'
+                                        color='#FFF'
+                                        size={EStyleSheet.value('32rem')}
+                                    />
+                                </Spinner>
+                            ) : (
+                                <Text style={styles.sendButtonLabel}>Save</Text>
+                            )}
                         </TouchableOpacity>
                     </KeyboardAwareScrollView>
                 </MaskedView>
@@ -268,6 +312,7 @@ const styles = EStyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         alignSelf: 'flex-end',
+        height: '50rem',
     },
     sendButtonLabel: {
         fontSize: '20rem',
@@ -279,6 +324,12 @@ const styles = EStyleSheet.create({
         fontSize: '18rem',
         color: '#FFF',
         alignSelf: 'center',
+    },
+    loadingIcon: {
+        flex: 1,
+        aspectRatio: 1,
+        textAlignVertical: 'center',
+        textAlign: 'center',
     },
     /* Mask */
     mask: {

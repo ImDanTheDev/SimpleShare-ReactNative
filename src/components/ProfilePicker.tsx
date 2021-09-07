@@ -4,12 +4,12 @@ import EStyleSheet from 'react-native-extended-stylesheet';
 import { FlatList } from 'react-native-gesture-handler';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { IProfile } from 'simpleshare-common';
-import { CircleButton } from './CircleButton';
+import { CircleButton } from './common/CircleButton';
 
 export interface Props {
     profiles: IProfile[];
     initialProfile?: string;
-    onSwitchProfile: (profileId: string) => void;
+    onSwitchProfile: (profile: IProfile) => void;
     onCreateProfile: () => void;
 }
 
@@ -30,7 +30,7 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
             return;
         }
         setSelectedProfileId(profile.id);
-        props.onSwitchProfile(profile.id);
+        props.onSwitchProfile(profile);
         setShowRightIndicator(false);
         setShowLeftIndicator(false);
     };
