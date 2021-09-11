@@ -1,34 +1,43 @@
-import React, { useEffect, useRef } from 'react';
-import { Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Image, Text, View } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
-import { IShare } from 'simpleshare-common';
+import { constants, OutboxEntry } from 'simpleshare-common';
 
 export interface Props {
-    share: IShare;
+    entry: OutboxEntry;
 }
 
 export const OutboxListItem: React.FC<Props> = (props: Props) => {
-    const goingAway = useRef<boolean>(false);
-
-    useEffect(() => {
-        goingAway.current = false;
-        return () => {
-            goingAway.current = true;
-        };
-    }, []);
+    const [fallback, setFallback] = useState<boolean>(false);
 
     return (
         <View style={styles.item}>
-            <View style={styles.picture}>
-                <Text style={styles.pictureText}>PFP</Text>
+            <View style={styles.pictureBox}>
+                {fallback || props.entry.pfpURL === constants.DEFAULT_PFP_ID ? (
+                    <Text style={styles.pictureText}>
+                        {props.entry.share.toProfileName &&
+                        props.entry.share.toProfileName.length > 2
+                            ? props.entry.share.toProfileName.slice(0, 2)
+                            : props.entry.share.toProfileName}
+                    </Text>
+                ) : (
+                    <Image
+                        style={styles.pfp}
+                        resizeMode='contain'
+                        source={{ uri: props.entry.pfpURL }}
+                        onError={() => setFallback(true)}
+                    />
+                )}
             </View>
             <View style={styles.body}>
                 <Text style={styles.recipient}>
-                    To: {props.share.toDisplayName?.slice(0, 15)} [
-                    {props.share.toProfileName?.slice(0, 7)}]
+                    To: {props.entry.share.toDisplayName?.slice(0, 15)} [
+                    {props.entry.share.toProfileName?.slice(0, 7)}]
                 </Text>
                 <Text style={styles.fileName}>File: No File</Text>
-                <Text style={styles.textContent}>{props.share.content}</Text>
+                <Text style={styles.textContent}>
+                    {props.entry.share.content}
+                </Text>
             </View>
         </View>
     );
@@ -53,7 +62,7 @@ const styles = EStyleSheet.create({
         height: '100rem',
         marginBottom: '8rem',
     },
-    picture: {
+    pictureBox: {
         borderRadius: '16rem',
         height: '100%',
         aspectRatio: 1,
@@ -61,6 +70,13 @@ const styles = EStyleSheet.create({
         marginRight: '8rem',
         justifyContent: 'center',
         alignItems: 'center',
+        overflow: 'hidden',
+    },
+    pfp: {
+        flex: 1,
+        width: '100%',
+        height: '100%',
+        margin: '8rem',
     },
     pictureText: {
         color: '#FFF',

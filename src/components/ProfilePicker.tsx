@@ -1,9 +1,9 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Text, View, ViewabilityConfig, ViewToken } from 'react-native';
+import { Image, Text, View, ViewabilityConfig, ViewToken } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import { FlatList } from 'react-native-gesture-handler';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { IProfile } from 'simpleshare-common';
+import { constants, IProfile } from 'simpleshare-common';
 import { CircleButton } from './common/CircleButton';
 
 export interface Props {
@@ -18,6 +18,7 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
         string | undefined
     >(props.initialProfile);
 
+    const [fallback, setFallback] = useState<boolean>(false);
     const [showLeftIndicator, setShowLeftIndicator] = useState<boolean>(false);
     const [showRightIndicator, setShowRightIndicator] =
         useState<boolean>(false);
@@ -86,11 +87,22 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
                     invertAnimation={true}
                     onPress={() => handleSwitchProfileButton(profile)}
                 >
-                    <Text style={styles.profileButtonLabel}>
-                        {profile.name.length > 2
-                            ? profile.name.slice(0, 2)
-                            : profile.name}
-                    </Text>
+                    {fallback ||
+                    !profile.pfp ||
+                    profile.pfp === constants.DEFAULT_PFP_ID ? (
+                        <Text style={styles.profileButtonLabel}>
+                            {profile.name.length > 2
+                                ? profile.name.slice(0, 2)
+                                : profile.name}
+                        </Text>
+                    ) : (
+                        <Image
+                            style={styles.pfp}
+                            resizeMode='contain'
+                            source={{ uri: profile.pfp }}
+                            onError={() => setFallback(true)}
+                        />
+                    )}
                 </CircleButton>
             );
         } else {
@@ -102,11 +114,22 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
                     invertAnimation={selectedProfileId === profile.id}
                     onPress={() => handleSwitchProfileButton(profile)}
                 >
-                    <Text style={styles.profileButtonLabel}>
-                        {profile.name.length > 2
-                            ? profile.name.slice(0, 2)
-                            : profile.name}
-                    </Text>
+                    {fallback ||
+                    !profile.pfp ||
+                    profile.pfp === constants.DEFAULT_PFP_ID ? (
+                        <Text style={styles.profileButtonLabel}>
+                            {profile.name.length > 2
+                                ? profile.name.slice(0, 2)
+                                : profile.name}
+                        </Text>
+                    ) : (
+                        <Image
+                            style={styles.pfp}
+                            resizeMode='contain'
+                            source={{ uri: profile.pfp }}
+                            onError={() => setFallback(true)}
+                        />
+                    )}
                 </CircleButton>
             );
         }
@@ -205,6 +228,12 @@ const styles = EStyleSheet.create({
         backgroundColor: '#E9C46A19',
         borderColor: '#F4A2617F',
         borderWidth: '1rem',
+        overflow: 'hidden',
+    },
+    pfp: {
+        flex: 1,
+        width: '100%',
+        height: '100%',
     },
     settingsButton: {
         backgroundColor: 'gray',

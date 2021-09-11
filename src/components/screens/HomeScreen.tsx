@@ -38,6 +38,7 @@ import {
     IPublicGeneralInfo,
     IShare,
     IUser,
+    OutboxEntry,
     signOut,
     switchProfile,
 } from 'simpleshare-common';
@@ -68,7 +69,7 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
         (state: RootState) => state.shares.shares
     );
 
-    const outboxShares: IShare[] = useSelector(
+    const outboxEntries: OutboxEntry[] = useSelector(
         (state: RootState) => state.outbox.shares
     );
 
@@ -322,9 +323,9 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                         </View>
                         <View style={styles.outboxHeaderGroup}>
                             <Text style={styles.outboxHeader}>
-                                Outbox ({outboxShares.length})
+                                Outbox ({outboxEntries.length})
                             </Text>
-                            {outboxShares.length > 0 ? (
+                            {outboxEntries.length > 0 ? (
                                 <TouchableOpacity onPress={handleClearOutbox}>
                                     <Text style={styles.outboxClear}>
                                         Clear
@@ -336,7 +337,7 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                         </View>
                         <View style={styles.outboxSection}>
                             <OutboxList
-                                outbox={outboxShares}
+                                outboxEntries={outboxEntries}
                                 onNewShare={handleNewSharePress}
                             />
                         </View>

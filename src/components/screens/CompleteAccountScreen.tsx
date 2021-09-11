@@ -196,8 +196,10 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = (
             );
             dispatch(
                 createProfile({
-                    name: 'Default',
-                    id: 'default',
+                    profile: {
+                        name: 'Default',
+                        id: 'default',
+                    },
                 })
             );
         }

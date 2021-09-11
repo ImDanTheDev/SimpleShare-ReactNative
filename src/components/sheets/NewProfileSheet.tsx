@@ -1,5 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import {
+    Image,
+    PermissionsAndroid,
+    Platform,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import { TextInput } from 'react-native-gesture-handler';
 import {
@@ -10,6 +17,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 import { pushToast } from '../../redux/toasterSlice';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import DocumentPicker from 'react-native-document-picker';
 import Spinner from '../common/Spinner';
 import { constants, createProfile, IUser } from 'simpleshare-common';
 
@@ -41,6 +49,9 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
         useState<boolean>(false);
     const [profileName, setProfileName] = useState<string>();
     const goingAway = useRef<boolean>(false);
+
+    const [pfpURI, setPFPURI] = useState<string | undefined>(undefined);
+    const [pfpType, setPFPType] = useState<string | undefined>(undefined);
 
     useEffect(() => {
         goingAway.current = false;
@@ -120,12 +131,87 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
             return;
         }
 
-        dispatch(
-            createProfile({
-                name: profileName,
-            })
-        );
+        if (pfpURI && pfpType) {
+            let permissionGranted = false;
+
+            if (Platform.OS === 'android') {
+                const granted = await PermissionsAndroid.request(
+                    'android.permission.READ_EXTERNAL_STORAGE',
+                    {
+                        title: 'Simple Share Permission',
+                        message:
+                            'Simple Share needs access to documents so you can set profile pictures.',
+                        buttonPositive: 'OK',
+                        buttonNegative: 'Cancel',
+                        buttonNeutral: 'Ask Me Later',
+                    }
+                );
+                permissionGranted =
+                    granted === 'granted' || granted === 'never_ask_again';
+            } else {
+                // TODO: Check permissions for IOS.
+                permissionGranted = false;
+            }
+
+            if (permissionGranted) {
+                dispatch(
+                    createProfile({
+                        profile: {
+                            name: profileName,
+                        },
+                        pfpSrc: {
+                            filePath: pfpURI,
+                            fileType: pfpType,
+                        },
+                    })
+                );
+            } else {
+                dispatch(
+                    pushToast({
+                        duration: 5,
+                        message:
+                            'Permission to access profile picture was denied.',
+                        type: 'warn',
+                    })
+                );
+            }
+        } else {
+            dispatch(
+                createProfile({
+                    profile: {
+                        name: profileName,
+                    },
+                })
+            );
+        }
         setTriedCreatingProfile(true);
+    };
+
+    const handlePFPPress = async () => {
+        try {
+            const pickerResponse = await DocumentPicker.pickSingle({
+                allowMultiSelection: false,
+                mode: 'open',
+                copyTo: 'documentDirectory',
+                type: DocumentPicker.types.images,
+            });
+
+            // TODO: This probably only works on Android. This URI conversion may need changed or removed for IOS.
+            const fileUri = `file://${decodeURIComponent(
+                pickerResponse.fileCopyUri
+            )}`;
+
+            setPFPURI(fileUri);
+            setPFPType(pickerResponse.type);
+        } catch (e) {
+            dispatch(
+                pushToast({
+                    duration: 5,
+                    message: 'An error occurred while opening the file picker.',
+                    type: 'error',
+                })
+            );
+        }
     };
 
     return (
@@ -137,9 +223,19 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
             <View style={styles.modal}>
                 <Text style={styles.header}>New Profile</Text>
                 <View style={styles.profileInfoGroup}>
-                    <View style={styles.profilePicture}>
-                        <Text style={styles.profilePictureText}>PFP</Text>
-                    </View>
+                    <TouchableOpacity
+                        style={styles.profilePicture}
+                        onPress={handlePFPPress}
+                    >
+                        {pfpURI ? (
+                            <Image
+                                style={styles.pfp}
+                                source={{ uri: pfpURI }}
+                            />
+                        ) : (
+                            <Text style={styles.profilePictureText}>PFP</Text>
+                        )}
+                    </TouchableOpacity>
                     <View style={styles.labeledField}>
                         <Text style={styles.profileNameLabel}>
                             Profile Name:
@@ -234,6 +330,12 @@ const styles = EStyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    pfp: {
+        flex: 1,
+        width: '100%',
+        height: '100%',
+        margin: '8rem',
+    },
     profilePictureText: {
         color: '#979797',
         fontWeight: 'bold',
@@ -246,7 +348,6 @@ const styles = EStyleSheet.create({
     profileNameLabel: {
         fontSize: '14rem',
         color: '#FFF',
-        //paddingBottom: '4rem',
     },
     profileName: {
         backgroundColor: '#1A2633',
