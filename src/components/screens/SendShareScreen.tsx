@@ -22,6 +22,7 @@ import { pushToast } from '../../redux/toasterSlice';
 import { constants, IProfile, IUser, sendShare } from 'simpleshare-common';
 import Spinner from '../common/Spinner';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import DocumentPicker from 'react-native-document-picker';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -54,6 +55,9 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
     const [phoneNumber, setPhoneNumber] = useState<string>('');
     const [profileName, setProfileName] = useState<string>('');
     const [shareText, setShareText] = useState<string>('');
+    const [fileUri, setFileUri] = useState<string | undefined>(undefined);
+    const [fileType, setFileType] = useState<string | undefined>(undefined);
+    const [fileName, setFileName] = useState<string | undefined>(undefined);
 
     useEffect(() => {
         const checkForSent = async () => {
@@ -127,18 +131,58 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
             );
             return;
         }
-
+        console.log(fileUri);
+        console.log(fileType);
         dispatch(
             sendShare({
                 share: {
-                    content: shareText,
-                    type: 'text',
+                    textContent: shareText,
+                    fileSrc:
+                        fileUri && fileType
+                            ? {
+                                  filePath: fileUri,
+                                  fileType: fileType,
+                              }
+                            : undefined,
                 },
                 toPhoneNumber: phoneNumber,
                 toProfileName: profileName,
             })
         );
         setTriedSendingShare(true);
+    };
+
+    const handleSelectFile = async () => {
+        try {
+            const pickerResponse = await DocumentPicker.pickSingle({
+                allowMultiSelection: false,
+                mode: 'open',
+                copyTo: 'documentDirectory',
+                type: DocumentPicker.types.allFiles,
+            });
+
+            const fileUri = `file://${decodeURIComponent(
+                pickerResponse.fileCopyUri
+            )}`;
+
+            setFileUri(fileUri);
+            setFileType(pickerResponse.type);
+            setFileName(fileUri.split('/').pop());
+        } catch {
+            dispatch(
+                pushToast({
+                    duration: 5,
+                    message: 'An error occurred while opening the file picker.',
+                    type: 'error',
+                })
+            );
+        }
+    };
+
+    const handleClearFile = () => {
+        setFileName(undefined);
+        setFileType(undefined);
+        setFileUri(undefined);
     };
 
     return (
@@ -203,6 +247,39 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                             multiline={true}
                             numberOfLines={5}
                         />
+                        {fileUri ? (
+                            <View style={styles.selectedFileButtonGroup}>
+                                <TouchableOpacity
+                                    style={styles.clearFileButton}
+                                    disabled={sendingShare}
+                                    onPress={handleClearFile}
+                                >
+                                    <MaterialCommunityIcons
+                                        name='close'
+                                        size={30}
+                                        color='#FFF'
+                                    />
+                                </TouchableOpacity>
+                                <Text
+                                    style={styles.selectedFileButtonLabel}
+                                    numberOfLines={1}
+                                    ellipsizeMode='middle'
+                                >
+                                    {fileName}
+                                </Text>
+                            </View>
+                        ) : (
+                            <TouchableOpacity
+                                style={styles.selectFileButton}
+                                disabled={sendingShare}
+                                onPress={handleSelectFile}
+                            >
+                                <Text style={styles.selectFileButtonLabel}>
+                                    Select File
+                                </Text>
+                            </TouchableOpacity>
+                        )}
+
                         <TouchableOpacity
                             style={styles.sendButton}
                             disabled={sendingShare}
@@ -299,6 +376,51 @@ const styles = EStyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: '16rem',
         marginBottom: '16rem',
+    },
+    selectedFileButtonGroup: {
+        backgroundColor: '#0D161F',
+        width: '100%',
+        borderRadius: '16rem',
+        borderColor: '#F4A2617F',
+        borderWidth: '1rem',
+        justifyContent: 'center',
+        alignItems: 'center',
+        alignSelf: 'flex-end',
+        height: '50rem',
+        flexDirection: 'row',
+        paddingRight: '8rem',
+        marginBottom: '16rem',
+    },
+    clearFileButton: {
+        height: '100%',
+        aspectRatio: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    selectedFileButtonLabel: {
+        flex: 1,
+        fontSize: '16rem',
+        color: '#FFF',
+        textAlignVertical: 'center',
+        paddingVertical: '8rem',
+    },
+    selectFileButton: {
+        backgroundColor: '#0D161F',
+        width: '100%',
+        borderRadius: '16rem',
+        borderColor: '#F4A2617F',
+        borderWidth: '1rem',
+        justifyContent: 'center',
+        alignItems: 'center',
+        alignSelf: 'flex-end',
+        height: '50rem',
+        marginBottom: '16rem',
+    },
+    selectFileButtonLabel: {
+        fontSize: '20rem',
+        color: '#FFF',
+        textAlignVertical: 'center',
+        paddingVertical: '8rem',
     },
     sendButton: {
         backgroundColor: '#0D161F',

@@ -2,7 +2,10 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import React, { createRef, useEffect, useRef, useState } from 'react';
 import {
     Animated,
+    Image,
     LayoutChangeEvent,
+    PermissionsAndroid,
+    Platform,
     Text,
     TouchableOpacity,
     View,
@@ -13,6 +16,8 @@ import { useDispatch } from 'react-redux';
 import { constants, deleteCloudShare, IShare } from 'simpleshare-common';
 import { CardDropdown } from './CardDropdown';
 import { CircleButton } from './common/CircleButton';
+import RNFS from 'react-native-fs';
+import { pushToast } from '../redux/toasterSlice';
 
 export interface Props {
     share: IShare;
@@ -44,6 +49,7 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
     const blurOpacity = useRef(new Animated.Value(0)).current;
     const [shouldShowBlur, setShouldShowBlur] = useState<boolean>(false);
     const [blueVisibility, setBlurVisibility] = useState<boolean>(false);
+    const [fallback, setFallback] = useState<boolean>(false);
 
     const goingAway = useRef<boolean>(false);
 
@@ -116,7 +122,7 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
     };
 
     const handleCopyCardText = () => {
-        Clipboard.setString(props.share.content);
+        Clipboard.setString(props.share.textContent || '');
         setShouldShowBlur(false);
         setDropdownVisibility(false);
     };
@@ -125,6 +131,91 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
         dispatch(deleteCloudShare(props.share));
         setShouldShowBlur(false);
         setDropdownVisibility(false);
+    };
+
+    const handleDownloadFile = async () => {
+        setShouldShowBlur(false);
+        setDropdownVisibility(false);
+        if (props.share.fileURL) {
+            const fileName = decodeURIComponent(props.share.fileURL)
+                .split('/')
+                .pop()
+                ?.split('#')[0]
+                .split('?')[0];
+            try {
+                let permissionGranted = false;
+                if (Platform.OS === 'android') {
+                    const writeGranted = await PermissionsAndroid.request(
+                        'android.permission.WRITE_EXTERNAL_STORAGE',
+                        {
+                            title: 'Simple Share Permission',
+                            message:
+                                'Simple Share needs access to save files to your device.',
+                            buttonPositive: 'OK',
+                            buttonNegative: 'Cancel',
+                            buttonNeutral: 'Ask Me Later',
+                        }
+                    );
+                    const readGranted = await PermissionsAndroid.request(
+                        'android.permission.READ_EXTERNAL_STORAGE',
+                        {
+                            title: 'Simple Share Permission',
+                            message:
+                                'Simple Share needs access to save files to your device.',
+                            buttonPositive: 'OK',
+                            buttonNegative: 'Cancel',
+                            buttonNeutral: 'Ask Me Later',
+                        }
+                    );
+                    permissionGranted =
+                        (writeGranted === 'granted' ||
+                            writeGranted === 'never_ask_again') &&
+                        (readGranted === 'granted' ||
+                            readGranted === 'never_ask_again');
+                }
+                if (permissionGranted) {
+                    const fileDestination = `${RNFS.DownloadDirectoryPath}/${fileName}`;
+                    await RNFS.writeFile(fileDestination, '');
+                    await RNFS.downloadFile({
+                        fromUrl: props.share.fileURL,
+                        toFile: fileDestination,
+                    }).promise;
+                    dispatch(
+                        pushToast({
+                            duration: 5,
+                            message: `File downloaded to: ${RNFS.DownloadDirectoryPath}/${fileName}`,
+                            type: 'info',
+                        })
+                    );
+                } else {
+                    dispatch(
+                        pushToast({
+                            duration: 5,
+                            message: 'Permission to save file was denied.',
+                            type: 'warn',
+                        })
+                    );
+                }
+            } catch (e) {
+                dispatch(
+                    pushToast({
+                        duration: 5,
+                        message:
+                            'An error occurred while downloading the file.',
+                        type: 'error',
+                    })
+                );
+                console.error(e);
+            }
+        } else {
+            dispatch(
+                pushToast({
+                    duration: 5,
+                    message: 'This share does not have a file.',
+                    type: 'info',
+                })
+            );
+        }
     };
 
     return (
@@ -137,18 +228,26 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
                 elevation: elevation,
             }}
         >
-            <View style={styles.preview}>
-                {false ? (
-                    <Text style={styles.previewImage}>Preview</Text>
-                ) : (
-                    <View style={styles.noPreview}>
-                        <Text style={styles.noPreviewReasonText}>No File</Text>
-                        <Text style={styles.noPreviewText}>
-                            Preview Not Available
-                        </Text>
-                    </View>
-                )}
-            </View>
+            {props.share.fileURL && (
+                <View style={styles.preview}>
+                    {!fallback ? (
+                        <Image
+                            style={styles.previewImage}
+                            source={{
+                                uri: props.share.fileURL,
+                            }}
+                            resizeMode='contain'
+                            onError={() => setFallback(true)}
+                        />
+                    ) : (
+                        <View style={styles.noPreview}>
+                            <Text style={styles.noPreviewText}>
+                                Preview Not Available
+                            </Text>
+                        </View>
+                    )}
+                </View>
+            )}
             <View style={styles.body}>
                 <Text style={styles.sender}>
                     From:{' '}
@@ -164,7 +263,7 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
                     ]
                 </Text>
                 <Text style={styles.textContent} numberOfLines={6}>
-                    {props.share.content}
+                    {props.share.textContent}
                 </Text>
                 <View style={styles.flexSpacer} />
                 <View style={styles.actionBar}>
@@ -206,6 +305,9 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
                     bottom={dropdownBottom}
                     onCopyText={handleCopyCardText}
                     onDelete={handleDeleteCard}
+                    onDownloadFile={
+                        props.share.fileURL ? handleDownloadFile : undefined
+                    }
                     onDismiss={() => {
                         setShouldShowBlur(false);
                         setDropdownVisibility(false);
@@ -232,19 +334,25 @@ const styles = EStyleSheet.create({
     },
     preview: {
         backgroundColor: '#1A2633',
-        height: '40%',
         borderTopLeftRadius: '16rem',
         borderTopRightRadius: '16rem',
         alignItems: 'center',
         justifyContent: 'center',
+        height: '40%',
+        overflow: 'hidden',
     },
     noPreview: {
         alignItems: 'center',
+    },
+    previewImage: {
+        width: '100%',
+        height: '100%',
     },
     noPreviewText: {
         color: '#979797',
         fontWeight: 'bold',
         fontSize: '18rem',
+        padding: '8rem',
     },
     noPreviewReasonText: {
         color: '#AD7466',

@@ -96,7 +96,7 @@ const ViewShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
 
     const copyTextContent = () => {
         setShowTextContentCopied(true);
-        Clipboard.setString(props.share.content);
+        Clipboard.setString(props.share.textContent || '');
     };
 
     const handleDeleteShare = async () => {
@@ -192,7 +192,7 @@ const ViewShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                             style={styles.phoneNumberInput}
                             onPress={copyTextContent}
                         >
-                            {props.share.content}
+                            {props.share.textContent}
                         </Text>
                         <TouchableOpacity
                             style={styles.sendButton}

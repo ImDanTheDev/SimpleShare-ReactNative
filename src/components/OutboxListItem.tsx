@@ -36,7 +36,7 @@ export const OutboxListItem: React.FC<Props> = (props: Props) => {
                 </Text>
                 <Text style={styles.fileName}>File: No File</Text>
                 <Text style={styles.textContent}>
-                    {props.entry.share.content}
+                    {props.entry.share.textContent}
                 </Text>
             </View>
         </View>
