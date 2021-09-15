@@ -156,7 +156,7 @@ const ViewShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                             style={styles.phoneNumberInput}
                             onPress={copyFromUser}
                         >
-                            {props.share.fromDisplayName}
+                            {props.share.fromDisplayName || 'Unknown User'}
                         </Text>
                         <View style={styles.inputLabelGroup}>
                             <Text style={styles.inputLabelText}>
@@ -174,7 +174,7 @@ const ViewShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                             style={styles.phoneNumberInput}
                             onPress={copyFromProfile}
                         >
-                            {props.share.fromProfileName}
+                            {props.share.fromProfileName || 'Unknown Profile'}
                         </Text>
                         <View style={styles.inputLabelGroup}>
                             <Text style={styles.inputLabelText}>

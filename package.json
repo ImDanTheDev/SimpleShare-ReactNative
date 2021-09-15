@@ -12,8 +12,8 @@
         "devmenu": "adb shell input keyevent 82"
     },
     "dependencies": {
-        "@omnifire/api": "^1.2.6",
-        "@omnifire/rn": "^1.2.6",
+        "@omnifire/api": "^1.2.7",
+        "@omnifire/rn": "^1.2.7",
         "@react-native-clipboard/clipboard": "^1.8.4",
         "@react-native-community/async-storage": "^1.12.1",
         "@react-native-community/eslint-config": "^3.0.0",
@@ -37,7 +37,7 @@
         "react-native-vector-icons": "^8.1.0",
         "react-redux": "^7.2.4",
         "redux-persist": "^6.0.0",
-        "simpleshare-common": "^1.2.8"
+        "simpleshare-common": "^1.2.11"
     },
     "devDependencies": {
         "@babel/core": "^7.12.9",

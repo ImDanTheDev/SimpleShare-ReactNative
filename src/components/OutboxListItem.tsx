@@ -30,14 +30,32 @@ export const OutboxListItem: React.FC<Props> = (props: Props) => {
                 )}
             </View>
             <View style={styles.body}>
-                <Text style={styles.recipient}>
-                    To: {props.entry.share.toDisplayName?.slice(0, 15)} [
-                    {props.entry.share.toProfileName?.slice(0, 7)}]
-                </Text>
-                <Text style={styles.fileName}>File: No File</Text>
-                <Text style={styles.textContent}>
-                    {props.entry.share.textContent}
-                </Text>
+                <View style={styles.infoGroup}>
+                    <Text style={styles.infoLabel}>To: </Text>
+                    <Text style={styles.infoValue}>
+                        {props.entry.share.toDisplayName?.slice(0, 15)} [
+                        {props.entry.share.toProfileName?.slice(0, 7)}]
+                    </Text>
+                </View>
+                <View style={styles.infoGroup}>
+                    <Text style={styles.infoLabel}>File: </Text>
+                    {props.entry.share.fileURL ? (
+                        <Text style={styles.infoValue}>
+                            {props.entry.share.fileURL.slice(
+                                props.entry.share.fileURL.length - 20
+                            )}
+                        </Text>
+                    ) : (
+                        <Text style={styles.infoNoValue}>No File</Text>
+                    )}
+                </View>
+                {props.entry.share.textContent ? (
+                    <Text style={styles.textContent}>
+                        {props.entry.share.textContent}
+                    </Text>
+                ) : (
+                    <Text style={styles.noTextContent}>No Text</Text>
+                )}
             </View>
         </View>
     );
@@ -85,6 +103,25 @@ const styles = EStyleSheet.create({
     body: {
         flexDirection: 'column',
     },
+    infoGroup: {
+        flexDirection: 'row',
+    },
+    infoLabel: {
+        fontSize: '14rem',
+        color: '#BBBBBB',
+        textAlignVertical: 'center',
+    },
+    infoValue: {
+        fontSize: '14rem',
+        color: '#BBBBBB',
+        textAlignVertical: 'center',
+    },
+    infoNoValue: {
+        fontSize: '14rem',
+        color: '#BBBBBB',
+        textAlignVertical: 'center',
+        fontStyle: 'italic',
+    },
     recipient: {
         fontSize: '14rem',
         color: '#BBBBBB',
@@ -99,5 +136,11 @@ const styles = EStyleSheet.create({
         flex: 1,
         fontSize: '18rem',
         color: '#FFF',
+    },
+    noTextContent: {
+        flex: 1,
+        fontSize: '18rem',
+        color: '#BBBBBB',
+        fontStyle: 'italic',
     },
 });

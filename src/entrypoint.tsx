@@ -38,21 +38,131 @@ import ViewShareScreen, {
     ComponentId as ViewShareScreenComponentId,
     Props as ViewShareScreenProps,
 } from './components/screens/ViewShareScreen';
+import UpdateScreen, {
+    ComponentId as UpdateScreenComponentId,
+    Props as UpdateScreenProps,
+} from './components/screens/UpdateScreen';
 import { IAuth, IFirebase, IFirestore, IStorage } from '@omnifire/api';
 import { OFAuth, OFFirebase, OFFirestore, OFStorage } from '@omnifire/rn';
-import { initFirebase, startAuthStateListener } from 'simpleshare-common';
+import {
+    initFirebase,
+    serviceHandler,
+    startAuthStateListener,
+} from 'simpleshare-common';
 import BaseScreenComponentType from './components/screens/BaseScreen';
 
 const entrypoint = (): void => {
-    const firebase: IFirebase = new OFFirebase();
-    const auth: IAuth = new OFAuth();
-    auth.configureGoogle(
-        '555940005658-jv7ungr9jbepa8ttcnu0e2rmub7siteo.apps.googleusercontent.com'
-    );
-    const firestore: IFirestore = new OFFirestore();
-    const storage: IStorage = new OFStorage();
-    initFirebase(firebase, firestore, auth, storage);
-    store.dispatch(startAuthStateListener());
+    const initApp = async () => {
+        const firebase: IFirebase = new OFFirebase();
+        const auth: IAuth = new OFAuth();
+        auth.configureGoogle(
+            '555940005658-jv7ungr9jbepa8ttcnu0e2rmub7siteo.apps.googleusercontent.com'
+        );
+        const firestore: IFirestore = new OFFirestore();
+        const storage: IStorage = new OFStorage();
+        initFirebase(firebase, firestore, auth, storage);
+
+        store.dispatch(startAuthStateListener());
+        const servicesUpToDate =
+            await serviceHandler.isServiceHandlerUpToDate();
+        if (!servicesUpToDate) {
+            Navigation.setRoot({
+                root: {
+                    stack: {
+                        children: [
+                            {
+                                component: {
+                                    name: UpdateScreenComponentId,
+                                },
+                            },
+                        ],
+                    },
+                },
+            });
+        }
+    };
+
+    const registerScreens = () => {
+        registerScreen<SigninScreenProps>(
+            SigninScreen,
+            SigninScreenComponentId,
+            false,
+            false
+        );
+        registerScreen<HelpInfoSheetProps>(
+            HelpInfoSheet,
+            HelpInfoSheetComponentId,
+            false,
+            false
+        );
+
+        registerScreen<CompleteAccountScreenProps>(
+            CompleteAccountScreen,
+            CompleteAccountScreenComponentId,
+            true,
+            false
+        );
+
+        registerScreen<HomeScreenProps>(
+            HomeScreen,
+            HomeScreenComponentId,
+            true,
+            true
+        );
+        registerScreen<SendShareScreenProps>(
+            SendShareScreen,
+            SendShareScreenComponentId,
+            true,
+            true
+        );
+        registerScreen<AccountSettingsScreenProps>(
+            AccountSettingsScreen,
+            AccountSettingsScreenComponentId,
+            true,
+            true
+        );
+        registerScreen<NewProfileSheetProps>(
+            NewProfileSheet,
+            NewProfileSheetComponentId,
+            true,
+            true
+        );
+        registerScreen<ViewShareScreenProps>(
+            ViewShareScreen,
+            ViewShareScreenComponentId,
+            true,
+            true
+        );
+        registerScreen<UpdateScreenProps>(
+            UpdateScreen,
+            UpdateScreenComponentId,
+            false,
+            false
+        );
+    };
+
+    const setupNavigation = () => {
+        Navigation.events().registerAppLaunchedListener(() => {
+            Navigation.setRoot({
+                root: {
+                    stack: {
+                        children: [
+                            {
+                                component: {
+                                    name: HomeScreenComponentId,
+                                },
+                            },
+                        ],
+                    },
+                },
+            });
+        });
+        Navigation.setDefaultOptions({
+            topBar: {
+                visible: false,
+            },
+        });
+    };
 
     const createScreen = <T extends NavigationComponentProps>(
         Screen: NavigationFunctionComponent<T>,
@@ -81,77 +191,9 @@ const entrypoint = (): void => {
         );
     };
 
-    registerScreen<SigninScreenProps>(
-        SigninScreen,
-        SigninScreenComponentId,
-        false,
-        false
-    );
-    registerScreen<HelpInfoSheetProps>(
-        HelpInfoSheet,
-        HelpInfoSheetComponentId,
-        false,
-        false
-    );
-
-    registerScreen<CompleteAccountScreenProps>(
-        CompleteAccountScreen,
-        CompleteAccountScreenComponentId,
-        true,
-        false
-    );
-
-    registerScreen<HomeScreenProps>(
-        HomeScreen,
-        HomeScreenComponentId,
-        true,
-        true
-    );
-    registerScreen<SendShareScreenProps>(
-        SendShareScreen,
-        SendShareScreenComponentId,
-        true,
-        true
-    );
-    registerScreen<AccountSettingsScreenProps>(
-        AccountSettingsScreen,
-        AccountSettingsScreenComponentId,
-        true,
-        true
-    );
-    registerScreen<NewProfileSheetProps>(
-        NewProfileSheet,
-        NewProfileSheetComponentId,
-        true,
-        true
-    );
-    registerScreen<ViewShareScreenProps>(
-        ViewShareScreen,
-        ViewShareScreenComponentId,
-        true,
-        true
-    );
-
-    Navigation.events().registerAppLaunchedListener(() => {
-        Navigation.setRoot({
-            root: {
-                stack: {
-                    children: [
-                        {
-                            component: {
-                                name: HomeScreenComponentId,
-                            },
-                        },
-                    ],
-                },
-            },
-        });
-    });
-    Navigation.setDefaultOptions({
-        topBar: {
-            visible: false,
-        },
-    });
+    registerScreens();
+    setupNavigation();
+    initApp();
 };
 
 export default entrypoint;

@@ -4,7 +4,7 @@ import EStyleSheet from 'react-native-extended-stylesheet';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 export interface Props {
-    onCopyText: () => void;
+    onCopyText?: () => void;
     onDelete: () => void;
     onDismiss: () => void;
     onDownloadFile?: () => void;
@@ -26,17 +26,19 @@ export const CardDropdown: React.FC<Props> = (props: Props) => {
                     bottom: props.bottom,
                 }}
             >
-                <TouchableOpacity
-                    style={styles.item}
-                    onPress={props.onCopyText}
-                >
-                    <MaterialIcons
-                        name='content-copy'
-                        color='#FFF'
-                        size={EStyleSheet.value('24rem')}
-                    />
-                    <Text style={styles.itemLabel}>Copy Text</Text>
-                </TouchableOpacity>
+                {props.onCopyText && (
+                    <TouchableOpacity
+                        style={styles.item}
+                        onPress={props.onCopyText}
+                    >
+                        <MaterialIcons
+                            name='content-copy'
+                            color='#FFF'
+                            size={EStyleSheet.value('24rem')}
+                        />
+                        <Text style={styles.itemLabel}>Copy Text</Text>
+                    </TouchableOpacity>
+                )}
                 {props.onDownloadFile && (
                     <TouchableOpacity
                         style={styles.item}

@@ -229,7 +229,13 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
             }}
         >
             {props.share.fileURL && (
-                <View style={styles.preview}>
+                <View
+                    style={
+                        fallback
+                            ? styles.noPreviewContainer
+                            : styles.previewContainer
+                    }
+                >
                     {!fallback ? (
                         <Image
                             style={styles.previewImage}
@@ -251,20 +257,30 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
             <View style={styles.body}>
                 <Text style={styles.sender}>
                     From:{' '}
-                    {props.share.fromDisplayName?.slice(
-                        0,
-                        constants.MAX_DISPLAY_NAME_LENGTH
-                    )}{' '}
+                    {props.share.fromDisplayName
+                        ? props.share.fromDisplayName.slice(
+                              0,
+                              constants.MAX_DISPLAY_NAME_LENGTH
+                          )
+                        : 'Unknown User'}{' '}
                     [
-                    {props.share.fromProfileName?.slice(
-                        0,
-                        constants.MAX_PROFILE_NAME_LENGTH
-                    )}
+                    {props.share.fromProfileName
+                        ? props.share.fromProfileName.slice(
+                              0,
+                              constants.MAX_PROFILE_NAME_LENGTH
+                          )
+                        : 'Unknown Profile'}
                     ]
                 </Text>
-                <Text style={styles.textContent} numberOfLines={6}>
-                    {props.share.textContent}
-                </Text>
+                {props.share.textContent ? (
+                    <Text style={styles.textContent} numberOfLines={6}>
+                        {props.share.textContent}
+                    </Text>
+                ) : (
+                    <Text style={styles.noTextContent} numberOfLines={6}>
+                        No Text
+                    </Text>
+                )}
                 <View style={styles.flexSpacer} />
                 <View style={styles.actionBar}>
                     <View
@@ -303,7 +319,9 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
                 <CardDropdown
                     left={dropdownLeft}
                     bottom={dropdownBottom}
-                    onCopyText={handleCopyCardText}
+                    onCopyText={
+                        props.share.textContent ? handleCopyCardText : undefined
+                    }
                     onDelete={handleDeleteCard}
                     onDownloadFile={
                         props.share.fileURL ? handleDownloadFile : undefined
@@ -332,13 +350,22 @@ const styles = EStyleSheet.create({
         shadowOpacity: 0.23,
         shadowRadius: 2.62,
     },
-    preview: {
+    previewContainer: {
         backgroundColor: '#1A2633',
         borderTopLeftRadius: '16rem',
         borderTopRightRadius: '16rem',
         alignItems: 'center',
         justifyContent: 'center',
         height: '40%',
+        overflow: 'hidden',
+    },
+    noPreviewContainer: {
+        backgroundColor: '#1A2633',
+        borderTopLeftRadius: '16rem',
+        borderTopRightRadius: '16rem',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '15%',
         overflow: 'hidden',
     },
     noPreview: {
@@ -369,6 +396,11 @@ const styles = EStyleSheet.create({
     textContent: {
         fontSize: '18rem',
         color: '#FFF',
+    },
+    noTextContent: {
+        fontSize: '18rem',
+        color: '#BBBBBB',
+        fontStyle: 'italic',
     },
     fileName: {
         color: '#FFF',
