@@ -1,8 +1,10 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import {
+    AnyAction,
     CombinedState,
     combineReducers,
     configureStore,
+    Reducer,
 } from '@reduxjs/toolkit';
 import {
     FLUSH,
@@ -25,7 +27,7 @@ import {
 } from 'simpleshare-common';
 import toasterReducer, { ToasterState } from './toasterSlice';
 
-const rootReducer = combineReducers({
+const combinedReducer = combineReducers({
     auth: reduxReducers.authReducer,
     user: reduxReducers.accountReducer,
     profiles: reduxReducers.profilesReducer,
@@ -33,6 +35,15 @@ const rootReducer = combineReducers({
     outbox: reduxReducers.outboxReducer,
     toaster: toasterReducer,
 });
+
+const rootReducer: Reducer = (state: RootState, action: AnyAction) => {
+    // Intercept sign out action and reset account state to recheck account completeness.
+    if (action.type === 'auth/signOut/fulfilled') {
+        state.user = {} as AccountInfoState;
+        state.auth = {} as AuthState;
+    }
+    return combinedReducer(state, action);
+};
 
 const persistConfig: PersistConfig<
     CombinedState<{
@@ -74,5 +85,5 @@ export const store = configureStore({
 
 export const persistor = persistStore(store);
 
-export type RootState = ReturnType<typeof store.getState>;
+export type RootState = ReturnType<typeof combinedReducer>;
 export type AppDispatch = typeof store.dispatch;

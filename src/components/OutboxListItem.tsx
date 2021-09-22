@@ -1,14 +1,67 @@
 import React, { useState } from 'react';
 import { Image, Text, View } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { constants, OutboxEntry } from 'simpleshare-common';
+import { download } from '../download-helper';
+import { pushToast } from '../redux/toasterSlice';
+import RNFS from 'react-native-fs';
+import { RNErrorCode, RNSimpleShareError } from '../RNSimpleShareError';
+import { useDispatch } from 'react-redux';
 
 export interface Props {
     entry: OutboxEntry;
 }
 
 export const OutboxListItem: React.FC<Props> = (props: Props) => {
+    const dispatch = useDispatch();
     const [fallback, setFallback] = useState<boolean>(false);
+
+    const handleDownload = async () => {
+        if (props.entry.share.fileURL) {
+            const fileName = decodeURIComponent(props.entry.share.fileURL)
+                .split('/')
+                .pop()
+                ?.split('#')[0]
+                .split('?')[0];
+            try {
+                await download(
+                    props.entry.share.fileURL,
+                    fileName || `${new Date().getUTCMilliseconds()}`
+                );
+                dispatch(
+                    pushToast({
+                        duration: 5,
+                        message: `File downloaded to: ${RNFS.DownloadDirectoryPath}/${fileName}`,
+                        type: 'info',
+                    })
+                );
+            } catch (e) {
+                if (
+                    e instanceof RNSimpleShareError &&
+                    e.code === RNErrorCode.PERMISSION_DENIED
+                ) {
+                    dispatch(
+                        pushToast({
+                            duration: 5,
+                            message: 'Permission to save file was denied.',
+                            type: 'warn',
+                        })
+                    );
+                } else {
+                    dispatch(
+                        pushToast({
+                            duration: 5,
+                            message:
+                                'An error occurred while downloading the file.',
+                            type: 'error',
+                        })
+                    );
+                    console.error(e);
+                }
+            }
+        }
+    };
 
     return (
         <View style={styles.item}>
@@ -40,11 +93,9 @@ export const OutboxListItem: React.FC<Props> = (props: Props) => {
                 <View style={styles.infoGroup}>
                     <Text style={styles.infoLabel}>File: </Text>
                     {props.entry.share.fileURL ? (
-                        <Text style={styles.infoValue}>
-                            {props.entry.share.fileURL.slice(
-                                props.entry.share.fileURL.length - 20
-                            )}
-                        </Text>
+                        <TouchableOpacity onPress={handleDownload}>
+                            <Text style={styles.downloadLink}>Download</Text>
+                        </TouchableOpacity>
                     ) : (
                         <Text style={styles.infoNoValue}>No File</Text>
                     )}
@@ -115,6 +166,12 @@ const styles = EStyleSheet.create({
         fontSize: '14rem',
         color: '#BBBBBB',
         textAlignVertical: 'center',
+    },
+    downloadLink: {
+        fontSize: '14rem',
+        color: '#54a3e4',
+        textAlignVertical: 'center',
+        fontStyle: 'italic',
     },
     infoNoValue: {
         fontSize: '14rem',

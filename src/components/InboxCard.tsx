@@ -4,8 +4,6 @@ import {
     Animated,
     Image,
     LayoutChangeEvent,
-    PermissionsAndroid,
-    Platform,
     Text,
     TouchableOpacity,
     View,
@@ -18,6 +16,8 @@ import { CardDropdown } from './CardDropdown';
 import { CircleButton } from './common/CircleButton';
 import RNFS from 'react-native-fs';
 import { pushToast } from '../redux/toasterSlice';
+import { download } from '../download-helper';
+import { RNErrorCode, RNSimpleShareError } from '../RNSimpleShareError';
 
 export interface Props {
     share: IShare;
@@ -143,51 +143,22 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
                 ?.split('#')[0]
                 .split('?')[0];
             try {
-                let permissionGranted = false;
-                if (Platform.OS === 'android') {
-                    const writeGranted = await PermissionsAndroid.request(
-                        'android.permission.WRITE_EXTERNAL_STORAGE',
-                        {
-                            title: 'Simple Share Permission',
-                            message:
-                                'Simple Share needs access to save files to your device.',
-                            buttonPositive: 'OK',
-                            buttonNegative: 'Cancel',
-                            buttonNeutral: 'Ask Me Later',
-                        }
-                    );
-                    const readGranted = await PermissionsAndroid.request(
-                        'android.permission.READ_EXTERNAL_STORAGE',
-                        {
-                            title: 'Simple Share Permission',
-                            message:
-                                'Simple Share needs access to save files to your device.',
-                            buttonPositive: 'OK',
-                            buttonNegative: 'Cancel',
-                            buttonNeutral: 'Ask Me Later',
-                        }
-                    );
-                    permissionGranted =
-                        (writeGranted === 'granted' ||
-                            writeGranted === 'never_ask_again') &&
-                        (readGranted === 'granted' ||
-                            readGranted === 'never_ask_again');
-                }
-                if (permissionGranted) {
-                    const fileDestination = `${RNFS.DownloadDirectoryPath}/${fileName}`;
-                    await RNFS.writeFile(fileDestination, '');
-                    await RNFS.downloadFile({
-                        fromUrl: props.share.fileURL,
-                        toFile: fileDestination,
-                    }).promise;
-                    dispatch(
-                        pushToast({
-                            duration: 5,
-                            message: `File downloaded to: ${RNFS.DownloadDirectoryPath}/${fileName}`,
-                            type: 'info',
-                        })
-                    );
-                } else {
+                await download(
+                    props.share.fileURL,
+                    fileName || `${new Date().getUTCMilliseconds()}`
+                );
+                dispatch(
+                    pushToast({
+                        duration: 5,
+                        message: `File downloaded to: ${RNFS.DownloadDirectoryPath}/${fileName}`,
+                        type: 'info',
+                    })
+                );
+            } catch (e) {
+                if (
+                    e instanceof RNSimpleShareError &&
+                    e.code === RNErrorCode.PERMISSION_DENIED
+                ) {
                     dispatch(
                         pushToast({
                             duration: 5,
@@ -195,17 +166,17 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
                             type: 'warn',
                         })
                     );
+                } else {
+                    dispatch(
+                        pushToast({
+                            duration: 5,
+                            message:
+                                'An error occurred while downloading the file.',
+                            type: 'error',
+                        })
+                    );
+                    console.error(e);
                 }
-            } catch (e) {
-                dispatch(
-                    pushToast({
-                        duration: 5,
-                        message:
-                            'An error occurred while downloading the file.',
-                        type: 'error',
-                    })
-                );
-                console.error(e);
             }
         } else {
             dispatch(

@@ -1,3 +1,4 @@
+import 'react-native-get-random-values';
 import { ComponentProvider } from 'react-native';
 import {
     Navigation,
@@ -51,6 +52,8 @@ import {
 } from 'simpleshare-common';
 import BaseScreenComponentType from './components/screens/BaseScreen';
 
+import NetInfo from '@react-native-community/netinfo';
+
 const entrypoint = (): void => {
     const initApp = async () => {
         const firebase: IFirebase = new OFFirebase();
@@ -62,9 +65,32 @@ const entrypoint = (): void => {
         const storage: IStorage = new OFStorage();
         initFirebase(firebase, firestore, auth, storage);
 
-        store.dispatch(startAuthStateListener());
-        const servicesUpToDate =
-            await serviceHandler.isServiceHandlerUpToDate();
+        const netInfoState = await NetInfo.fetch();
+        if (!netInfoState.isConnected) {
+            // TODO: Show connection error screen.
+            Navigation.setRoot({
+                root: {
+                    stack: {
+                        children: [
+                            {
+                                component: {
+                                    name: UpdateScreenComponentId,
+                                },
+                            },
+                        ],
+                    },
+                },
+            });
+            return;
+        }
+
+        let servicesUpToDate = false;
+        try {
+            servicesUpToDate = await serviceHandler.isServiceHandlerUpToDate();
+        } catch {
+            servicesUpToDate = false;
+        }
+
         if (!servicesUpToDate) {
             Navigation.setRoot({
                 root: {
@@ -79,7 +105,10 @@ const entrypoint = (): void => {
                     },
                 },
             });
+            return;
         }
+
+        store.dispatch(startAuthStateListener());
     };
 
     const registerScreens = () => {

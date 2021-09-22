@@ -149,6 +149,17 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = (
             return;
         }
 
+        if (displayName.length < constants.MIN_DISPLAY_NAME_LENGTH) {
+            dispatch(
+                pushToast({
+                    message: `Display names must be at least ${constants.MIN_DISPLAY_NAME_LENGTH} characters long.`,
+                    duration: 5,
+                    type: 'error',
+                })
+            );
+            return;
+        }
+
         if (phoneNumber.length < constants.MIN_PHONE_NUMBER_LENGTH) {
             dispatch(
                 pushToast({
@@ -157,52 +168,30 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = (
                     type: 'error',
                 })
             );
+            return;
         }
 
-        // Creates the account if it does not exist. Completes the account info. Adds a default profile.
-        console.log(
-            'Completing Account [1/3] Creating an account if one does not exist.'
+        dispatch(
+            updateAccount({
+                accountInfo: {
+                    phoneNumber: phoneNumber,
+                    isAccountComplete: true,
+                },
+                publicGeneralInfo: {
+                    displayName: displayName,
+                    isComplete: true,
+                },
+            })
         );
-        console.log('Completing Account [2/3] Setting account info.');
-        console.log(
-            'Completing Account [3/3] Creating a default profile or resetting the existing one.'
+        dispatch(
+            createProfile({
+                profile: {
+                    name: 'Default',
+                    id: 'default',
+                },
+            })
         );
 
-        if (accountInfo !== undefined) {
-            dispatch(
-                updateAccount({
-                    accountInfo: {
-                        phoneNumber: phoneNumber,
-                        isAccountComplete: true,
-                    },
-                    publicGeneralInfo: {
-                        displayName: displayName,
-                        isComplete: true,
-                    },
-                })
-            );
-        } else {
-            dispatch(
-                updateAccount({
-                    accountInfo: {
-                        phoneNumber: phoneNumber,
-                        isAccountComplete: true,
-                    },
-                    publicGeneralInfo: {
-                        displayName: displayName,
-                        isComplete: true,
-                    },
-                })
-            );
-            dispatch(
-                createProfile({
-                    profile: {
-                        name: 'Default',
-                        id: 'default',
-                    },
-                })
-            );
-        }
         setTriedUpdatingAccount(true);
     };
 

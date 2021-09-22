@@ -109,7 +109,6 @@ const AccountSettingsScreen: NavigationFunctionComponent<Props> = (
 
     const handleSave = async () => {
         if (!user) {
-            console.log('ERROR: Not signed in!');
             return;
         }
 

@@ -21,10 +21,6 @@ export const ProtectedScreen: React.FC<Props> = (props: Props) => {
         (state: RootState) => state.profiles.currentProfileId
     );
 
-    useEffect(() => {
-        console.log(user);
-    }, [user]);
-
     const render = () => {
         if (user) {
             if (props.requireProfile && currentProfile) {

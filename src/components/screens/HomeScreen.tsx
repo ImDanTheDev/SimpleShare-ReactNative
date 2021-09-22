@@ -101,12 +101,6 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
         }).start(() => setBlurVisibility(shouldShowBlur));
     }, [shouldShowBlur, blurOpacity]);
 
-    useEffect(() => {
-        if (!user) {
-            dispatch(signOut());
-        }
-    }, [dispatch, user]);
-
     const handleSignOut = async () => {
         setShouldShowBlur(false);
         dispatch(signOut());

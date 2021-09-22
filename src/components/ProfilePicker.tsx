@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, Text, View, ViewabilityConfig, ViewToken } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import { FlatList } from 'react-native-gesture-handler';
@@ -23,11 +23,12 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
     const [showRightIndicator, setShowRightIndicator] =
         useState<boolean>(false);
 
+    useEffect(() => {
+        setSelectedProfileId(props.initialProfile);
+    }, [props.initialProfile]);
+
     const handleSwitchProfileButton = (profile: IProfile) => {
         if (!profile.id || selectedProfileId === profile.id) {
-            console.log(
-                'Selected profile is invalid or same as current profile.'
-            );
             return;
         }
         setSelectedProfileId(profile.id);
@@ -148,7 +149,6 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
                 setSelectedProfileId((newSelectedProfileId) => {
                     const selectedViewToken: ViewToken | undefined =
                         changed.find((x) => x.key === newSelectedProfileId);
-
                     if (!selectedViewToken) {
                         return newSelectedProfileId;
                     }
@@ -172,7 +172,6 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
                         const leftOfCenterIndex = middleTokenIndex - 1;
                         const rightOfCenterIndex = middleTokenIndex + 1;
                         const selectedIndex = selectedViewToken.index;
-
                         if (selectedIndex <= leftOfCenterIndex) {
                             setShowRightIndicator(false);
                             setShowLeftIndicator(true);

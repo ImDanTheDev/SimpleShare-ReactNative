@@ -19,7 +19,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 import { CircleButton } from '../common/CircleButton';
 import { pushToast } from '../../redux/toasterSlice';
-import { constants, IProfile, IUser, sendShare } from 'simpleshare-common';
+import {
+    constants,
+    ErrorCode,
+    IProfile,
+    IUser,
+    sendShare,
+    signOut,
+} from 'simpleshare-common';
 import Spinner from '../common/Spinner';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import DocumentPicker from 'react-native-document-picker';
@@ -69,11 +76,33 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
             ) {
                 await Navigation.pop(props.componentId);
             } else if (!sendingShare && !sentShare && sendShareError) {
+                let errorMessage = '';
+                switch (sendShareError.code) {
+                    case ErrorCode.NOT_SIGNED_IN:
+                        errorMessage =
+                            'You are not signed in. Please sign out and sign in.';
+                        break;
+                    case ErrorCode.NO_PROFILE_SELECTED:
+                        errorMessage =
+                            'No profile selected. Please switch to the profile from which to send the share from.';
+                        break;
+                    case ErrorCode.USER_DOES_NOT_EXIST:
+                        errorMessage =
+                            'The provided user does not exist. Verify that the phone number is correct.';
+                        break;
+                    case ErrorCode.PROFILE_DOES_NOT_EXIST:
+                        errorMessage =
+                            'The provided profile does not exist. Verify that the profile name is correct. Profile names are case sensitive.';
+                        break;
+                    default:
+                        errorMessage =
+                            'An unexpected error occurred while sending. Try again later.';
+                        break;
+                }
                 dispatch(
                     pushToast({
                         duration: 5,
-                        message:
-                            'An error occurred while sending. Try again later.',
+                        message: errorMessage,
                         type: 'error',
                     })
                 );
@@ -95,7 +124,7 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
 
     const handleSendShare = async () => {
         if (!user || !currentProfile || !currentProfile.id) {
-            console.log('ERROR: Not signed in!');
+            dispatch(signOut());
             return;
         }
 
@@ -131,8 +160,19 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
             );
             return;
         }
-        console.log(fileUri);
-        console.log(fileType);
+
+        if (!fileUri && shareText.length === 0) {
+            dispatch(
+                pushToast({
+                    message:
+                        'You must send at least text or a file. Select a file or enter text.',
+                    duration: 5,
+                    type: 'error',
+                })
+            );
+            return;
+        }
+
         dispatch(
             sendShare({
                 share: {

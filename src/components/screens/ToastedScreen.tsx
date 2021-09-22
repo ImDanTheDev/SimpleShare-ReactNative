@@ -29,12 +29,9 @@ export const ToastedScreen: React.FC<Props> = (props: Props) => {
     useEffect(() => {
         toasts.forEach((toast) => {
             if (toast.id === undefined) {
-                console.log('Invalid toast, removing...');
                 if (toast.timer) {
                     clearInterval(toast.timer);
-                    console.log('Cleared timer interval.');
                 }
-                console.log('Dismissing toast.');
                 dispatch(dismissToast(toast));
                 return;
             }
@@ -51,12 +48,9 @@ export const ToastedScreen: React.FC<Props> = (props: Props) => {
                 if (toast.duration <= 0) {
                     // This toast has expired.
                     // Cancel timer and remove toast.
-                    console.log('Toast has expired, removing...');
                     if (toast.timer) {
                         clearInterval(toast.timer);
-                        console.log('Clearer timer interval.');
                     }
-                    console.log('Dismissing toast.');
                     dispatch(dismissToast(toast));
                 } else {
                     // This toast is still fresh.
@@ -111,12 +105,9 @@ export const ToastedScreen: React.FC<Props> = (props: Props) => {
     };
 
     const handleSwipableOpen = (toast: IToast) => {
-        console.log('Manually dismissing toast...');
         if (toast.timer) {
             clearInterval(toast.timer);
-            console.log('Cleared timer interval.');
         }
-        console.log('Dismissing toast.');
         dispatch(dismissToast(toast));
     };
 
