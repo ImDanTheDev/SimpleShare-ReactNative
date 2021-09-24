@@ -7,7 +7,7 @@ import {
     Text,
 } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
-import IShare from '../api/IShare';
+import { IShare } from 'simpleshare-common';
 import { InboxCard } from './InboxCard';
 
 export interface Props {

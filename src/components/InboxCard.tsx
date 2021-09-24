@@ -2,6 +2,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import React, { createRef, useEffect, useRef, useState } from 'react';
 import {
     Animated,
+    Image,
     LayoutChangeEvent,
     Text,
     TouchableOpacity,
@@ -9,15 +10,14 @@ import {
 } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { getPublicGeneralInfo } from '../api/AccountAPI';
-import IProfile from '../api/IProfile';
-import IPublicGeneralInfo from '../api/IPublicGeneralInfo';
-import IShare from '../api/IShare';
-import { getProfile } from '../api/ProfileAPI';
-import { deleteShare } from '../api/ShareAPI';
-import { MAX_DISPLAY_NAME_LENGTH, MAX_PROFILE_NAME_LENGTH } from '../constants';
+import { useDispatch } from 'react-redux';
+import { constants, deleteCloudShare, IShare } from 'simpleshare-common';
 import { CardDropdown } from './CardDropdown';
-import { CircleButton } from './CircleButton';
+import { CircleButton } from './common/CircleButton';
+import RNFS from 'react-native-fs';
+import { pushToast } from '../redux/toasterSlice';
+import { download } from '../download-helper';
+import { RNErrorCode, RNSimpleShareError } from '../RNSimpleShareError';
 
 export interface Props {
     share: IShare;
@@ -28,6 +28,8 @@ export interface Props {
 }
 
 export const InboxCard: React.FC<Props> = (props: Props) => {
+    const dispatch = useDispatch();
+
     const minCardScale = 0.8;
     const maxCardScale = 1.0;
     const minBorderWidth = 1;
@@ -47,9 +49,7 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
     const blurOpacity = useRef(new Animated.Value(0)).current;
     const [shouldShowBlur, setShouldShowBlur] = useState<boolean>(false);
     const [blueVisibility, setBlurVisibility] = useState<boolean>(false);
-
-    const [profileName, setProfileName] = useState<string>('');
-    const [displayName, setDisplayName] = useState<string>('');
+    const [fallback, setFallback] = useState<boolean>(false);
 
     const goingAway = useRef<boolean>(false);
 
@@ -59,39 +59,6 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
             goingAway.current = true;
         };
     }, []);
-
-    useEffect(() => {
-        const fetchDisplayName = async () => {
-            try {
-                const publicGeneralInfo: IPublicGeneralInfo | undefined =
-                    await getPublicGeneralInfo(props.share.fromUid);
-                if (goingAway.current) return;
-                setDisplayName(
-                    publicGeneralInfo?.displayName || 'Unknown User'
-                );
-            } catch {
-                if (goingAway.current) return;
-                setDisplayName('Unknown User');
-            }
-        };
-
-        const fetchProfileName = async () => {
-            try {
-                const profile: IProfile | undefined = await getProfile(
-                    props.share.fromUid,
-                    props.share.fromProfileId
-                );
-                if (goingAway.current) return;
-                setProfileName(profile?.name || 'Unknown Profile');
-            } catch {
-                if (goingAway.current) return;
-                setProfileName('Unknown Profile');
-            }
-        };
-
-        fetchDisplayName();
-        fetchProfileName();
-    }, [props.share]);
 
     useEffect(() => {
         if (shouldShowBlur) {
@@ -155,15 +122,70 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
     };
 
     const handleCopyCardText = () => {
-        Clipboard.setString(props.share.content);
+        Clipboard.setString(props.share.textContent || '');
         setShouldShowBlur(false);
         setDropdownVisibility(false);
     };
 
     const handleDeleteCard = async () => {
-        await deleteShare(props.share);
+        dispatch(deleteCloudShare(props.share));
         setShouldShowBlur(false);
         setDropdownVisibility(false);
+    };
+
+    const handleDownloadFile = async () => {
+        setShouldShowBlur(false);
+        setDropdownVisibility(false);
+        if (props.share.fileURL) {
+            const fileName = decodeURIComponent(props.share.fileURL)
+                .split('/')
+                .pop()
+                ?.split('#')[0]
+                .split('?')[0];
+            try {
+                await download(
+                    props.share.fileURL,
+                    fileName || `${new Date().getUTCMilliseconds()}`
+                );
+                dispatch(
+                    pushToast({
+                        duration: 5,
+                        message: `File downloaded to: ${RNFS.DownloadDirectoryPath}/${fileName}`,
+                        type: 'info',
+                    })
+                );
+            } catch (e) {
+                if (
+                    e instanceof RNSimpleShareError &&
+                    e.code === RNErrorCode.PERMISSION_DENIED
+                ) {
+                    dispatch(
+                        pushToast({
+                            duration: 5,
+                            message: 'Permission to save file was denied.',
+                            type: 'warn',
+                        })
+                    );
+                } else {
+                    dispatch(
+                        pushToast({
+                            duration: 5,
+                            message:
+                                'An error occurred while downloading the file.',
+                            type: 'error',
+                        })
+                    );
+                }
+            }
+        } else {
+            dispatch(
+                pushToast({
+                    duration: 5,
+                    message: 'This share does not have a file.',
+                    type: 'info',
+                })
+            );
+        }
     };
 
     return (
@@ -176,26 +198,59 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
                 elevation: elevation,
             }}
         >
-            <View style={styles.preview}>
-                {false ? (
-                    <Text style={styles.previewImage}>Preview</Text>
-                ) : (
-                    <View style={styles.noPreview}>
-                        <Text style={styles.noPreviewReasonText}>No File</Text>
-                        <Text style={styles.noPreviewText}>
-                            Preview Not Available
-                        </Text>
-                    </View>
-                )}
-            </View>
+            {props.share.fileURL && (
+                <View
+                    style={
+                        fallback
+                            ? styles.noPreviewContainer
+                            : styles.previewContainer
+                    }
+                >
+                    {!fallback ? (
+                        <Image
+                            style={styles.previewImage}
+                            source={{
+                                uri: props.share.fileURL,
+                            }}
+                            resizeMode='contain'
+                            onError={() => setFallback(true)}
+                        />
+                    ) : (
+                        <View style={styles.noPreview}>
+                            <Text style={styles.noPreviewText}>
+                                Preview Not Available
+                            </Text>
+                        </View>
+                    )}
+                </View>
+            )}
             <View style={styles.body}>
                 <Text style={styles.sender}>
-                    From: {displayName.slice(0, MAX_DISPLAY_NAME_LENGTH)} [
-                    {profileName.slice(0, MAX_PROFILE_NAME_LENGTH)}]
+                    From:{' '}
+                    {props.share.fromDisplayName
+                        ? props.share.fromDisplayName.slice(
+                              0,
+                              constants.MAX_DISPLAY_NAME_LENGTH
+                          )
+                        : 'Unknown User'}{' '}
+                    [
+                    {props.share.fromProfileName
+                        ? props.share.fromProfileName.slice(
+                              0,
+                              constants.MAX_PROFILE_NAME_LENGTH
+                          )
+                        : 'Unknown Profile'}
+                    ]
                 </Text>
-                <Text style={styles.textContent} numberOfLines={6}>
-                    {props.share.content}
-                </Text>
+                {props.share.textContent ? (
+                    <Text style={styles.textContent} numberOfLines={6}>
+                        {props.share.textContent}
+                    </Text>
+                ) : (
+                    <Text style={styles.noTextContent} numberOfLines={6}>
+                        No Text
+                    </Text>
+                )}
                 <View style={styles.flexSpacer} />
                 <View style={styles.actionBar}>
                     <View
@@ -234,8 +289,13 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
                 <CardDropdown
                     left={dropdownLeft}
                     bottom={dropdownBottom}
-                    onCopyText={handleCopyCardText}
+                    onCopyText={
+                        props.share.textContent ? handleCopyCardText : undefined
+                    }
                     onDelete={handleDeleteCard}
+                    onDownloadFile={
+                        props.share.fileURL ? handleDownloadFile : undefined
+                    }
                     onDismiss={() => {
                         setShouldShowBlur(false);
                         setDropdownVisibility(false);
@@ -260,21 +320,36 @@ const styles = EStyleSheet.create({
         shadowOpacity: 0.23,
         shadowRadius: 2.62,
     },
-    preview: {
+    previewContainer: {
         backgroundColor: '#1A2633',
-        height: '40%',
         borderTopLeftRadius: '16rem',
         borderTopRightRadius: '16rem',
         alignItems: 'center',
         justifyContent: 'center',
+        height: '40%',
+        overflow: 'hidden',
+    },
+    noPreviewContainer: {
+        backgroundColor: '#1A2633',
+        borderTopLeftRadius: '16rem',
+        borderTopRightRadius: '16rem',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '15%',
+        overflow: 'hidden',
     },
     noPreview: {
         alignItems: 'center',
+    },
+    previewImage: {
+        width: '100%',
+        height: '100%',
     },
     noPreviewText: {
         color: '#979797',
         fontWeight: 'bold',
         fontSize: '18rem',
+        padding: '8rem',
     },
     noPreviewReasonText: {
         color: '#AD7466',
@@ -291,6 +366,11 @@ const styles = EStyleSheet.create({
     textContent: {
         fontSize: '18rem',
         color: '#FFF',
+    },
+    noTextContent: {
+        fontSize: '18rem',
+        color: '#BBBBBB',
+        fontStyle: 'italic',
     },
     fileName: {
         color: '#FFF',

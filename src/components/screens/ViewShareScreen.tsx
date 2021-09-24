@@ -10,13 +10,9 @@ import {
     NavigationFunctionComponent,
 } from 'react-native-navigation';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { getPublicGeneralInfo } from '../api/AccountAPI';
-import IProfile from '../api/IProfile';
-import IPublicGeneralInfo from '../api/IPublicGeneralInfo';
-import IShare from '../api/IShare';
-import { getProfile } from '../api/ProfileAPI';
-import { deleteShare } from '../api/ShareAPI';
-import { CircleButton } from './CircleButton';
+import { useDispatch } from 'react-redux';
+import { deleteCloudShare, IShare } from 'simpleshare-common';
+import { CircleButton } from '../common/CircleButton';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -25,6 +21,8 @@ interface Props {
 }
 
 const ViewShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
+    const dispatch = useDispatch();
+
     const [showFromUserCopied, setShowFromUserCopied] =
         useState<boolean>(false);
     const [showFromUserCopiedTimingOut, setShowFromUserCopiedTimingOut] =
@@ -42,43 +40,12 @@ const ViewShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
 
     const cancelTimeout = useRef<boolean>(false);
 
-    const [profileName, setProfileName] = useState<string>('');
-    const [displayName, setDisplayName] = useState<string>('');
-
     useEffect(() => {
         cancelTimeout.current = false;
         return () => {
             cancelTimeout.current = true;
         };
     }, []);
-
-    useEffect(() => {
-        const fetchDisplayName = async () => {
-            try {
-                const publicGeneralInfo: IPublicGeneralInfo | undefined =
-                    await getPublicGeneralInfo(props.share.fromUid);
-                setDisplayName(
-                    publicGeneralInfo?.displayName || 'Unknown User'
-                );
-            } catch {
-                setDisplayName('Unknown User');
-            }
-        };
-
-        const fetchProfileName = async () => {
-            try {
-                const profile: IProfile | undefined = await getProfile(
-                    props.share.fromUid,
-                    props.share.fromProfileId
-                );
-                setProfileName(profile?.name || 'Unknown Profile');
-            } catch {
-                setProfileName('Unknown Profile');
-            }
-        };
-        fetchDisplayName();
-        fetchProfileName();
-    }, [props.share]);
 
     useEffect(() => {
         if (showFromUserCopied && !showFromUserCopiedTimingOut) {
@@ -120,20 +87,20 @@ const ViewShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
 
     const copyFromUser = () => {
         setShowFromUserCopied(true);
-        Clipboard.setString(displayName);
+        Clipboard.setString(props.share.fromDisplayName || '');
     };
     const copyFromProfile = () => {
         setShowFromProfileCopied(true);
-        Clipboard.setString(profileName);
+        Clipboard.setString(props.share.fromProfileName || '');
     };
 
     const copyTextContent = () => {
         setShowTextContentCopied(true);
-        Clipboard.setString(props.share.content);
+        Clipboard.setString(props.share.textContent || '');
     };
 
     const handleDeleteShare = async () => {
-        await deleteShare(props.share);
+        dispatch(deleteCloudShare(props.share));
         await Navigation.pop(props.componentId);
     };
 
@@ -189,7 +156,7 @@ const ViewShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                             style={styles.phoneNumberInput}
                             onPress={copyFromUser}
                         >
-                            {displayName}
+                            {props.share.fromDisplayName || 'Unknown User'}
                         </Text>
                         <View style={styles.inputLabelGroup}>
                             <Text style={styles.inputLabelText}>
@@ -207,7 +174,7 @@ const ViewShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                             style={styles.phoneNumberInput}
                             onPress={copyFromProfile}
                         >
-                            {profileName}
+                            {props.share.fromProfileName || 'Unknown Profile'}
                         </Text>
                         <View style={styles.inputLabelGroup}>
                             <Text style={styles.inputLabelText}>
@@ -225,7 +192,7 @@ const ViewShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                             style={styles.phoneNumberInput}
                             onPress={copyTextContent}
                         >
-                            {props.share.content}
+                            {props.share.textContent}
                         </Text>
                         <TouchableOpacity
                             style={styles.sendButton}

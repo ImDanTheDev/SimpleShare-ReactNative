@@ -1,9 +1,10 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import {
+    AnyAction,
     CombinedState,
     combineReducers,
     configureStore,
-    getDefaultMiddleware,
+    Reducer,
 } from '@reduxjs/toolkit';
 import {
     FLUSH,
@@ -14,30 +15,38 @@ import {
     REHYDRATE,
     PersistConfig,
     persistReducer,
+    persistStore,
 } from 'redux-persist';
-import counterReducer, { CounterState } from './counterSlice';
-import authReducer, { AuthState } from './authSlice';
-import userReducer, {
-    AccountInfoState as AccountInfoState,
-} from './accountSlice';
-import profilesReducer, { ProfilesState } from './profilesSlice';
-import sharesReducer, { SharesState } from './sharesSlice';
+import {
+    AccountInfoState,
+    AuthState,
+    OutboxState,
+    ProfilesState,
+    reduxReducers,
+    SharesState,
+} from 'simpleshare-common';
 import toasterReducer, { ToasterState } from './toasterSlice';
-import outboxReducer, { OutboxState } from './outboxSlice';
 
-const rootReducer = combineReducers({
-    counter: counterReducer,
-    auth: authReducer,
-    user: userReducer,
-    profiles: profilesReducer,
-    shares: sharesReducer,
+const combinedReducer = combineReducers({
+    auth: reduxReducers.authReducer,
+    user: reduxReducers.accountReducer,
+    profiles: reduxReducers.profilesReducer,
+    shares: reduxReducers.sharesReducer,
+    outbox: reduxReducers.outboxReducer,
     toaster: toasterReducer,
-    outbox: outboxReducer,
 });
+
+const rootReducer: Reducer = (state: RootState, action: AnyAction) => {
+    // Intercept sign out action and reset account state to recheck account completeness.
+    if (action.type === 'auth/signOut/fulfilled') {
+        state.user = {} as AccountInfoState;
+        state.auth = {} as AuthState;
+    }
+    return combinedReducer(state, action);
+};
 
 const persistConfig: PersistConfig<
     CombinedState<{
-        counter: CounterState;
         auth: AuthState;
         user: AccountInfoState;
         profiles: ProfilesState;
@@ -59,12 +68,22 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
     reducer: persistedReducer,
-    middleware: getDefaultMiddleware({
-        serializableCheck: {
-            ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-        },
-    }),
+    middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware({
+            serializableCheck: {
+                ignoredActions: [
+                    FLUSH,
+                    REHYDRATE,
+                    PAUSE,
+                    PERSIST,
+                    PURGE,
+                    REGISTER,
+                ],
+            },
+        }),
 });
 
-export type RootState = ReturnType<typeof store.getState>;
+export const persistor = persistStore(store);
+
+export type RootState = ReturnType<typeof combinedReducer>;
 export type AppDispatch = typeof store.dispatch;

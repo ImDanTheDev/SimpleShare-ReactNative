@@ -1,73 +1,111 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Image, Text, View } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
-import { getPublicGeneralInfo } from '../api/AccountAPI';
-import IProfile from '../api/IProfile';
-import IPublicGeneralInfo from '../api/IPublicGeneralInfo';
-import IShare from '../api/IShare';
-import { getProfile } from '../api/ProfileAPI';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import { constants, OutboxEntry } from 'simpleshare-common';
+import { download } from '../download-helper';
+import { pushToast } from '../redux/toasterSlice';
+import RNFS from 'react-native-fs';
+import { RNErrorCode, RNSimpleShareError } from '../RNSimpleShareError';
+import { useDispatch } from 'react-redux';
 
 export interface Props {
-    share: IShare;
+    entry: OutboxEntry;
 }
 
 export const OutboxListItem: React.FC<Props> = (props: Props) => {
-    const [profileName, setProfileName] = useState<string>('');
-    const [displayName, setDisplayName] = useState<string>('');
+    const dispatch = useDispatch();
+    const [fallback, setFallback] = useState<boolean>(false);
 
-    const goingAway = useRef<boolean>(false);
-
-    useEffect(() => {
-        goingAway.current = false;
-        return () => {
-            goingAway.current = true;
-        };
-    }, []);
-
-    useEffect(() => {
-        const fetchDisplayName = async () => {
+    const handleDownload = async () => {
+        if (props.entry.share.fileURL) {
+            const fileName = decodeURIComponent(props.entry.share.fileURL)
+                .split('/')
+                .pop()
+                ?.split('#')[0]
+                .split('?')[0];
             try {
-                const publicGeneralInfo: IPublicGeneralInfo | undefined =
-                    await getPublicGeneralInfo(props.share.toUid);
-                if (goingAway.current) return;
-                setDisplayName(
-                    publicGeneralInfo?.displayName || 'Unknown User'
+                await download(
+                    props.entry.share.fileURL,
+                    fileName || `${new Date().getUTCMilliseconds()}`
                 );
-            } catch {
-                if (goingAway.current) return;
-                setDisplayName('Unknown User');
-            }
-        };
-
-        const fetchProfileName = async () => {
-            try {
-                const profile: IProfile | undefined = await getProfile(
-                    props.share.toUid,
-                    props.share.toProfileId
+                dispatch(
+                    pushToast({
+                        duration: 5,
+                        message: `File downloaded to: ${RNFS.DownloadDirectoryPath}/${fileName}`,
+                        type: 'info',
+                    })
                 );
-                if (goingAway.current) return;
-                setProfileName(profile?.name || 'Unknown Profile');
-            } catch {
-                if (goingAway.current) return;
-                setProfileName('Unknown Profile');
+            } catch (e) {
+                if (
+                    e instanceof RNSimpleShareError &&
+                    e.code === RNErrorCode.PERMISSION_DENIED
+                ) {
+                    dispatch(
+                        pushToast({
+                            duration: 5,
+                            message: 'Permission to save file was denied.',
+                            type: 'warn',
+                        })
+                    );
+                } else {
+                    dispatch(
+                        pushToast({
+                            duration: 5,
+                            message:
+                                'An error occurred while downloading the file.',
+                            type: 'error',
+                        })
+                    );
+                }
             }
-        };
-
-        fetchDisplayName();
-        fetchProfileName();
-    }, [props.share]);
+        }
+    };
 
     return (
         <View style={styles.item}>
-            <View style={styles.picture}>
-                <Text style={styles.pictureText}>PFP</Text>
+            <View style={styles.pictureBox}>
+                {fallback || props.entry.pfpURL === constants.DEFAULT_PFP_ID ? (
+                    <Text style={styles.pictureText}>
+                        {props.entry.share.toProfileName &&
+                        props.entry.share.toProfileName.length > 2
+                            ? props.entry.share.toProfileName.slice(0, 2)
+                            : props.entry.share.toProfileName}
+                    </Text>
+                ) : (
+                    <Image
+                        style={styles.pfp}
+                        resizeMode='contain'
+                        source={{ uri: props.entry.pfpURL }}
+                        onError={() => setFallback(true)}
+                    />
+                )}
             </View>
             <View style={styles.body}>
-                <Text style={styles.recipient}>
-                    To: {displayName.slice(0, 15)} [{profileName.slice(0, 7)}]
-                </Text>
-                <Text style={styles.fileName}>File: No File</Text>
-                <Text style={styles.textContent}>{props.share.content}</Text>
+                <View style={styles.infoGroup}>
+                    <Text style={styles.infoLabel}>To: </Text>
+                    <Text style={styles.infoValue}>
+                        {props.entry.share.toDisplayName?.slice(0, 15)} [
+                        {props.entry.share.toProfileName?.slice(0, 7)}]
+                    </Text>
+                </View>
+                <View style={styles.infoGroup}>
+                    <Text style={styles.infoLabel}>File: </Text>
+                    {props.entry.share.fileURL ? (
+                        <TouchableOpacity onPress={handleDownload}>
+                            <Text style={styles.downloadLink}>Download</Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <Text style={styles.infoNoValue}>No File</Text>
+                    )}
+                </View>
+                {props.entry.share.textContent ? (
+                    <Text style={styles.textContent}>
+                        {props.entry.share.textContent}
+                    </Text>
+                ) : (
+                    <Text style={styles.noTextContent}>No Text</Text>
+                )}
             </View>
         </View>
     );
@@ -92,7 +130,7 @@ const styles = EStyleSheet.create({
         height: '100rem',
         marginBottom: '8rem',
     },
-    picture: {
+    pictureBox: {
         borderRadius: '16rem',
         height: '100%',
         aspectRatio: 1,
@@ -100,6 +138,13 @@ const styles = EStyleSheet.create({
         marginRight: '8rem',
         justifyContent: 'center',
         alignItems: 'center',
+        overflow: 'hidden',
+    },
+    pfp: {
+        flex: 1,
+        width: '100%',
+        height: '100%',
+        margin: '8rem',
     },
     pictureText: {
         color: '#FFF',
@@ -107,6 +152,31 @@ const styles = EStyleSheet.create({
     },
     body: {
         flexDirection: 'column',
+    },
+    infoGroup: {
+        flexDirection: 'row',
+    },
+    infoLabel: {
+        fontSize: '14rem',
+        color: '#BBBBBB',
+        textAlignVertical: 'center',
+    },
+    infoValue: {
+        fontSize: '14rem',
+        color: '#BBBBBB',
+        textAlignVertical: 'center',
+    },
+    downloadLink: {
+        fontSize: '14rem',
+        color: '#54a3e4',
+        textAlignVertical: 'center',
+        fontStyle: 'italic',
+    },
+    infoNoValue: {
+        fontSize: '14rem',
+        color: '#BBBBBB',
+        textAlignVertical: 'center',
+        fontStyle: 'italic',
     },
     recipient: {
         fontSize: '14rem',
@@ -122,5 +192,11 @@ const styles = EStyleSheet.create({
         flex: 1,
         fontSize: '18rem',
         color: '#FFF',
+    },
+    noTextContent: {
+        flex: 1,
+        fontSize: '18rem',
+        color: '#BBBBBB',
+        fontStyle: 'italic',
     },
 });

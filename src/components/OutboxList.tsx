@@ -2,11 +2,11 @@ import React, { ReactNode } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import IShare from '../api/IShare';
+import { OutboxEntry } from 'simpleshare-common';
 import { OutboxListItem } from './OutboxListItem';
 
 export interface Props {
-    outbox: IShare[];
+    outboxEntries: OutboxEntry[];
     onNewShare: () => void;
 }
 
@@ -30,10 +30,10 @@ export const OutboxList: React.FC<Props> = (props: Props) => {
             </TouchableOpacity>
         );
 
-        if (props.outbox.length > 0) {
+        if (props.outboxEntries.length > 0) {
             items.push(
-                props.outbox.map((share, i) => {
-                    return <OutboxListItem key={i} share={share} />;
+                props.outboxEntries.map((entry, i) => {
+                    return <OutboxListItem key={i} entry={entry} />;
                 })
             );
         } else {

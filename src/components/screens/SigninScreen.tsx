@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
     Linking,
     SafeAreaView,
@@ -12,17 +12,15 @@ import {
     NavigationFunctionComponent,
 } from 'react-native-navigation';
 import { useDispatch, useSelector } from 'react-redux';
-import { googleSignIn } from '../api/AccountAPI';
-import IUser from '../api/IUser';
-import { RootState } from '../redux/store';
-import { ComponentId as WelcomeScreenComponentId } from './WelcomeScreen';
+import { RootState } from '../../redux/store';
+import { ComponentId as HomeScreenComponentId } from './HomeScreen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
-import { pushToast } from '../redux/toasterSlice';
-import SimpleShareError, { ErrorCode } from '../SimpleShareError';
-import Spinner from './Spinner';
+import { pushToast } from '../../redux/toasterSlice';
+import Spinner from '../common/Spinner';
+import { ErrorCode, IUser, signInWithGoogle } from 'simpleshare-common';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -32,72 +30,101 @@ interface Props {
 const SigninScreen: NavigationFunctionComponent<Props> = () => {
     const dispatch = useDispatch();
 
+    const signingIn = useSelector((state: RootState) => state.auth.signingIn);
+    const signInError = useSelector(
+        (state: RootState) => state.auth.signInError
+    );
+
+    const fetchAccountError = useSelector(
+        (state: RootState) => state.user.fetchAccountError
+    );
+
     const user: IUser | undefined = useSelector(
         (state: RootState) => state.auth.user
     );
 
-    const [signingIn, setSigningIn] = useState<boolean>(false);
-
     useEffect(() => {
-        if (user) {
-            console.log('Already have a user.');
+        if (!signingIn && !user && signInError) {
+            // Failed to sign in.
+            let errorMessage = '';
+            switch (signInError.code) {
+                case ErrorCode.SIGN_IN_UNEXPECTED_ERROR:
+                    errorMessage =
+                        'An unexpected error occurred while signing in. Try again later or contact support.';
+                    break;
+                case ErrorCode.SIGN_IN_ACCOUNT_DISABLED:
+                    errorMessage =
+                        'Your account is disabled. Contact support if you believe this is a mistake.';
+                    break;
+                case ErrorCode.SIGN_IN_BLOCKED:
+                    errorMessage =
+                        'The sign in popup was blocked. Please restart Simple Share and try again.';
+                    break;
+                case ErrorCode.SIGN_IN_CANCELLED:
+                    errorMessage =
+                        'The sign in process was cancelled. Try again if this was a mistake.';
+                    break;
+                case ErrorCode.SIGN_IN_EMAIL_UNVERIFIED:
+                    errorMessage =
+                        'Your email is unverified. Verify your email and try again.';
+                    break;
+                case ErrorCode.SIGN_IN_EXPIRED_TOKEN:
+                    errorMessage = 'Sign in token expired. Try again.';
+                    break;
+                case ErrorCode.SIGN_IN_INVALID_CREDENTIALS:
+                    errorMessage =
+                        'The sign in provider returned invalid credentials. Try again.';
+                    break;
+                case ErrorCode.SIGN_IN_POPUP_ALREADY_OPENED:
+                    errorMessage =
+                        'The sign in popup is already open. Please close the current popup and try again.';
+                    break;
+                case ErrorCode.SIGN_IN_USER_NOT_FOUND:
+                    errorMessage =
+                        'Your user could not be found. Verify your credentials and contact support if this happens again.';
+                    break;
+                case ErrorCode.NO_NETWORK_CONNECTION:
+                    errorMessage =
+                        'Could not connect to network. Please check your internet connection.';
+                    break;
+            }
+
+            dispatch(
+                pushToast({
+                    message: errorMessage,
+                    type: 'error',
+                    duration: 15,
+                })
+            );
+        } else if (!signingIn && user && !signInError) {
+            // Signed in.
             Navigation.setRoot({
                 root: {
                     stack: {
                         children: [
                             {
                                 component: {
-                                    name: WelcomeScreenComponentId,
+                                    name: HomeScreenComponentId,
                                 },
                             },
                         ],
                     },
                 },
             });
+        } else if (fetchAccountError) {
+            dispatch(
+                pushToast({
+                    message:
+                        'Could not connect to account services. Try again later.',
+                    type: 'error',
+                    duration: 15,
+                })
+            );
         }
-    }, [user]);
-
-    const getSignInErrorMessage = (
-        errorCode: SimpleShareError
-    ): string | undefined => {
-        switch (errorCode.code) {
-            case ErrorCode.ACCOUNT_DISABLED:
-                return 'Account disabled.';
-            case ErrorCode.SIGN_IN_INVALID_CREDENTIALS:
-                return 'Invalid credentials, try again.';
-            case ErrorCode.UNEXPECTED_SIGN_IN_ERROR:
-                return 'Unable to sign in. Please try again later.';
-        }
-        return undefined;
-    };
+    }, [signingIn, user, signInError, dispatch, fetchAccountError]);
 
     const handleGoogleSignInButton = async () => {
-        if (signingIn) return;
-
-        try {
-            setSigningIn(true);
-            await googleSignIn();
-        } catch (e) {
-            setSigningIn(false);
-
-            let errorMessage: string | undefined;
-
-            if (e instanceof SimpleShareError) {
-                errorMessage = getSignInErrorMessage(e);
-            } else {
-                errorMessage = 'Unable to sign in. Try again later.';
-            }
-
-            if (errorMessage) {
-                dispatch(
-                    pushToast({
-                        message: errorMessage,
-                        type: 'error',
-                        duration: 5,
-                    })
-                );
-            }
-        }
+        dispatch(signInWithGoogle());
     };
 
     const handlePrivacyPolicyPress = async () => {
@@ -145,6 +172,7 @@ const SigninScreen: NavigationFunctionComponent<Props> = () => {
                     <TouchableOpacity
                         style={styles.signInMethodButton}
                         onPress={handleGoogleSignInButton}
+                        disabled={signingIn}
                     >
                         <Ionicons
                             style={styles.signInMethodLogo}

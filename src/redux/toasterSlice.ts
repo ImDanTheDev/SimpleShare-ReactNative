@@ -32,7 +32,6 @@ export const toasterSlice = createSlice({
         ) => {
             const toast = state.toasts.find((t) => t.id === action.payload.id);
             if (!toast) {
-                console.log('Could not find a toast to set a timer for.');
                 return;
             }
 
@@ -41,7 +40,6 @@ export const toasterSlice = createSlice({
         ageToast: (state, action: PayloadAction<IToast>) => {
             const toast = state.toasts.find((t) => t.id === action.payload.id);
             if (!toast) {
-                console.log('Could not find toast to update');
                 return;
             }
             toast.duration--;

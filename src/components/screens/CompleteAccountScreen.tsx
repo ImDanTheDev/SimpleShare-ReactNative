@@ -13,40 +13,36 @@ import {
     OptionsModalPresentationStyle,
 } from 'react-native-navigation';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-    doesAccountExist,
-    initializeAccount,
-    setPublicGeneralInfo,
-    signOut,
-    updateAccountInfo,
-} from '../api/AccountAPI';
-import IUser from '../api/IUser';
-import IAccountInfo, { isAccountComplete } from '../api/IAccountInfo';
-import { RootState } from '../redux/store';
-import { ComponentId as WelcomeScreenComponentId } from './WelcomeScreen';
-import { CircleButton } from './CircleButton';
+import { RootState } from '../../redux/store';
+import { CircleButton } from '../common/CircleButton';
 import LinearGradient from 'react-native-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import EStyleSheet from 'react-native-extended-stylesheet';
-import { ComponentId as HelpInfoSheetComponentId } from './HelpInfoSheet';
+import { ComponentId as HelpInfoSheetComponentId } from '../sheets/HelpInfoSheet';
+import { ComponentId as HomeScreenComponentId } from './HomeScreen';
+import { pushToast } from '../../redux/toasterSlice';
 import {
-    MAX_DISPLAY_NAME_LENGTH,
-    MAX_PHONE_NUMBER_LENGTH,
-    MIN_PHONE_NUMBER_LENGTH,
-} from '../constants';
-import { pushToast } from '../redux/toasterSlice';
-import IPublicGeneralInfo, {
-    isPublicGeneralInfoComplete,
-} from '../api/IPublicGeneralInfo';
+    constants,
+    createProfile,
+    IAccountInfo,
+    IPublicGeneralInfo,
+    IUser,
+    signOut,
+    updateAccount,
+} from 'simpleshare-common';
+import Spinner from '../common/Spinner';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface Props {
     /** react-native-navigation component id. */
     componentId: string;
 }
 
-const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
+const CompleteAccountScreen: NavigationFunctionComponent<Props> = (
+    props: Props
+) => {
     const dispatch = useDispatch();
     const user: IUser | undefined = useSelector(
         (state: RootState) => state.auth.user
@@ -60,6 +56,18 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
         (state: RootState) => state.user.publicGeneralInfo
     );
 
+    const updatingAccount = useSelector(
+        (state: RootState) => state.user.updatingAccount
+    );
+    const updatedAccount = useSelector(
+        (state: RootState) => state.user.updatedAccount
+    );
+    const updateAccountError = useSelector(
+        (state: RootState) => state.user.updateAccountError
+    );
+
+    const [triedUpdatingAccount, setTriedUpdatingAccount] =
+        useState<boolean>(false);
     const [phoneNumber, setPhoneNumber] = useState<string>(
         accountInfo?.phoneNumber || ''
     );
@@ -72,48 +80,6 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
     const [shouldShowBlur, setShouldShowBlur] = useState<boolean>(false);
 
     useEffect(() => {
-        if (!user) {
-            console.log(
-                'Error: User is undefined. Cannot continue account completion without a user.'
-            );
-            return; // TODO: We need a user for this page. Handle this error.
-        }
-
-        const continueAuthFlow = async () => {
-            if (accountInfo && publicGeneralInfo) {
-                console.log(
-                    'Does Account Doc and Public General Info Doc Exist? Yes'
-                );
-                if (
-                    isAccountComplete(accountInfo) &&
-                    isPublicGeneralInfoComplete(publicGeneralInfo)
-                ) {
-                    console.log(
-                        'Is Account Doc and Public General Info Doc Complete? Yes'
-                    );
-                    setRootScreen(WelcomeScreenComponentId);
-                } else {
-                    console.log(
-                        'Is Account Doc and Public General Info Doc Complete? No'
-                    );
-                    console.log(
-                        'Waiting for user to complete account. This will complete the account and create a default profile.'
-                    );
-                }
-            } else {
-                console.log(
-                    'Does Account Doc and Public General Info Doc Exist? No'
-                );
-                console.log(
-                    'Waiting for user to complete account. This will create the account, complete it, and create a default profile.'
-                );
-            }
-        };
-
-        continueAuthFlow();
-    }, [accountInfo, publicGeneralInfo, user]);
-
-    useEffect(() => {
         if (shouldShowBlur) {
             setBlurVisibility(true);
         }
@@ -124,21 +90,52 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
         }).start(() => setBlurVisibility(shouldShowBlur));
     }, [shouldShowBlur, blurOpacity]);
 
-    const setRootScreen = async (screenId: string) => {
-        await Navigation.setRoot({
-            root: {
-                stack: {
-                    children: [
-                        {
-                            component: {
-                                name: screenId,
-                            },
+    useEffect(() => {
+        const checkForUpdate = async () => {
+            if (
+                triedUpdatingAccount &&
+                !updatingAccount &&
+                updatedAccount &&
+                !updateAccountError
+            ) {
+                await Navigation.setRoot({
+                    root: {
+                        stack: {
+                            children: [
+                                {
+                                    component: {
+                                        name: HomeScreenComponentId,
+                                    },
+                                },
+                            ],
                         },
-                    ],
-                },
-            },
-        });
-    };
+                    },
+                });
+            } else if (
+                !updatingAccount &&
+                !updatedAccount &&
+                updateAccountError
+            ) {
+                dispatch(
+                    pushToast({
+                        duration: 5,
+                        message:
+                            'An error occurred while completing your account. Try again later.',
+                        type: 'error',
+                    })
+                );
+            }
+        };
+
+        checkForUpdate();
+    }, [
+        dispatch,
+        props.componentId,
+        triedUpdatingAccount,
+        updateAccountError,
+        updatedAccount,
+        updatingAccount,
+    ]);
 
     const handleCompleteAccountButton = async () => {
         if (!user) {
@@ -152,7 +149,18 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
             return;
         }
 
-        if (phoneNumber.length < MIN_PHONE_NUMBER_LENGTH) {
+        if (displayName.length < constants.MIN_DISPLAY_NAME_LENGTH) {
+            dispatch(
+                pushToast({
+                    message: `Display names must be at least ${constants.MIN_DISPLAY_NAME_LENGTH} characters long.`,
+                    duration: 5,
+                    type: 'error',
+                })
+            );
+            return;
+        }
+
+        if (phoneNumber.length < constants.MIN_PHONE_NUMBER_LENGTH) {
             dispatch(
                 pushToast({
                     message: `'${phoneNumber}' is not a valid phone number.`,
@@ -160,64 +168,35 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
                     type: 'error',
                 })
             );
+            return;
         }
 
-        // Creates the account if it does not exist. Completes the account info. Adds a default profile.
-        console.log(
-            'Completing Account [1/3] Creating an account if one does not exist.'
-        );
-        console.log('Completing Account [2/3] Setting account info.');
-        console.log(
-            'Completing Account [3/3] Creating a default profile or resetting the existing one.'
-        );
-
-        const accountExists = await doesAccountExist(user.uid);
-        if (accountExists) {
-            const success = await updateAccountInfo(user.uid, {
-                phoneNumber: phoneNumber,
-                isAccountComplete: true,
-            });
-
-            if (success) {
-                console.log('Saved completed account info to database.');
-            } else {
-                console.log('Failed to complete the account.');
-                return;
-            }
-
-            try {
-                await setPublicGeneralInfo(user.uid, {
-                    displayName: displayName,
-                    isComplete: true,
-                });
-                console.log('Saved completed public general info to database.');
-            } catch {
-                console.log('Failed to complete the account.');
-            }
-        } else {
-            const success = await initializeAccount(
-                user.uid,
-                {
+        dispatch(
+            updateAccount({
+                accountInfo: {
                     phoneNumber: phoneNumber,
                     isAccountComplete: true,
                 },
-                {
+                publicGeneralInfo: {
                     displayName: displayName,
                     isComplete: true,
-                }
-            );
-            if (success) {
-                console.log(
-                    'Saved completed account and public general info to database.'
-                );
-            } else {
-                console.log('Failed to complete the account.');
-            }
-        }
+                },
+            })
+        );
+        dispatch(
+            createProfile({
+                profile: {
+                    name: 'Default',
+                    id: 'default',
+                },
+            })
+        );
+
+        setTriedUpdatingAccount(true);
     };
 
     const handleBack = async () => {
-        await signOut();
+        dispatch(signOut());
     };
 
     const showPhoneNumberHelp = async () => {
@@ -286,7 +265,7 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
                         </View>
                         <TextInput
                             style={styles.phoneNumberInput}
-                            maxLength={MAX_DISPLAY_NAME_LENGTH}
+                            maxLength={constants.MAX_DISPLAY_NAME_LENGTH}
                             onChangeText={setDisplayName}
                             defaultValue={publicGeneralInfo?.displayName || ''}
                             placeholder='John Smith'
@@ -306,7 +285,7 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
                         </View>
                         <TextInput
                             style={styles.phoneNumberInput}
-                            maxLength={MAX_PHONE_NUMBER_LENGTH}
+                            maxLength={constants.MAX_PHONE_NUMBER_LENGTH}
                             keyboardType='phone-pad'
                             onChangeText={setPhoneNumber}
                             contextMenuHidden={true}
@@ -318,15 +297,28 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = () => {
                             style={styles.signInMethodButton}
                             onPress={handleCompleteAccountButton}
                         >
-                            <Text style={styles.signInMethodLabel}>
-                                Save Account
-                            </Text>
-                            <MaterialIcons
-                                style={styles.signInLogo}
-                                name='navigate-next'
-                                color='#FFF'
-                                size={EStyleSheet.value('32rem')}
-                            />
+                            {updatingAccount ? (
+                                <Spinner>
+                                    <MaterialCommunityIcons
+                                        style={styles.loadingIcon}
+                                        name='loading'
+                                        color='#FFF'
+                                        size={EStyleSheet.value('32rem')}
+                                    />
+                                </Spinner>
+                            ) : (
+                                <>
+                                    <Text style={styles.signInMethodLabel}>
+                                        Save Account
+                                    </Text>
+                                    <MaterialIcons
+                                        style={styles.signInLogo}
+                                        name='navigate-next'
+                                        color='#FFF'
+                                        size={EStyleSheet.value('32rem')}
+                                    />
+                                </>
+                            )}
                         </TouchableOpacity>
                     </KeyboardAwareScrollView>
                 </MaskedView>

@@ -4,13 +4,13 @@ import EStyleSheet from 'react-native-extended-stylesheet';
 import { Swipeable } from 'react-native-gesture-handler';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../redux/store';
+import { RootState } from '../../redux/store';
 import {
     ageToast,
     dismissToast,
     IToast,
     setTimer,
-} from '../redux/toasterSlice';
+} from '../../redux/toasterSlice';
 export type ToastType = 'info' | 'warn' | 'error';
 
 interface Props {
@@ -29,12 +29,9 @@ export const ToastedScreen: React.FC<Props> = (props: Props) => {
     useEffect(() => {
         toasts.forEach((toast) => {
             if (toast.id === undefined) {
-                console.log('Invalid toast, removing...');
                 if (toast.timer) {
                     clearInterval(toast.timer);
-                    console.log('Cleared timer interval.');
                 }
-                console.log('Dismissing toast.');
                 dispatch(dismissToast(toast));
                 return;
             }
@@ -42,7 +39,6 @@ export const ToastedScreen: React.FC<Props> = (props: Props) => {
                 // This is a new toast without a timer.
                 // Create the timer.
                 const timer: NodeJS.Timer = setInterval(() => {
-                    console.log('tick');
                     dispatch(ageToast(toast));
                 }, 1000);
 
@@ -52,12 +48,9 @@ export const ToastedScreen: React.FC<Props> = (props: Props) => {
                 if (toast.duration <= 0) {
                     // This toast has expired.
                     // Cancel timer and remove toast.
-                    console.log('Toast has expired, removing...');
                     if (toast.timer) {
                         clearInterval(toast.timer);
-                        console.log('Clearer timer interval.');
                     }
-                    console.log('Dismissing toast.');
                     dispatch(dismissToast(toast));
                 } else {
                     // This toast is still fresh.
@@ -112,12 +105,9 @@ export const ToastedScreen: React.FC<Props> = (props: Props) => {
     };
 
     const handleSwipableOpen = (toast: IToast) => {
-        console.log('Manually dismissing toast...');
         if (toast.timer) {
             clearInterval(toast.timer);
-            console.log('Cleared timer interval.');
         }
-        console.log('Dismissing toast.');
         dispatch(dismissToast(toast));
     };
 

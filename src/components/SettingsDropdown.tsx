@@ -6,7 +6,8 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 export interface Props {
     onSignOut: () => void;
     onOpenAccountSettings: () => void;
-    onDeleteCurrentProfile: () => void;
+    onToggleEditMode: () => void;
+    editingProfiles: boolean;
     onDismiss: () => void;
     right: number;
     top: number;
@@ -28,14 +29,17 @@ export const SettingsDropdown: React.FC<Props> = (props: Props) => {
             >
                 <TouchableOpacity
                     style={styles.item}
-                    onPress={props.onDeleteCurrentProfile}
+                    onPress={props.onToggleEditMode}
                 >
                     <MaterialIcons
-                        name='delete-forever'
-                        color='#E76F51'
+                        name='edit'
+                        color='#FFF'
                         size={EStyleSheet.value('42rem')}
                     />
-                    <Text style={styles.itemLabel}>Delete Profile</Text>
+                    <Text style={styles.itemLabel}>
+                        {props.editingProfiles ? 'Stop' : 'Start'} Editing
+                        Profiles
+                    </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.item}
@@ -74,7 +78,7 @@ const styles = EStyleSheet.create({
         height: '100%',
     },
     dropdown: {
-        width: '55%',
+        width: '65%',
         position: 'absolute',
         elevation: 8,
         backgroundColor: '#0D161F',
