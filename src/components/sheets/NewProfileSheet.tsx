@@ -12,6 +12,7 @@ import { TextInput } from 'react-native-gesture-handler';
 import {
     Navigation,
     NavigationFunctionComponent,
+    OptionsModalPresentationStyle,
 } from 'react-native-navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
@@ -19,7 +20,15 @@ import { pushToast } from '../../redux/toasterSlice';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import DocumentPicker from 'react-native-document-picker';
 import Spinner from '../common/Spinner';
-import { constants, createProfile, IUser } from 'simpleshare-common';
+import { ComponentId as HelpInfoSheetComponentId } from '../sheets/HelpInfoSheet';
+import {
+    constants,
+    createProfile,
+    deleteCloudProfile,
+    IUser,
+    selectProfileForEditing,
+    updateCloudProfile,
+} from 'simpleshare-common';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -45,12 +54,32 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
         (state: RootState) => state.profiles.createProfileError
     );
 
+    const updatingProfile = useSelector(
+        (state: RootState) => state.profiles.updatingProfile
+    );
+    const updateProfileError = useSelector(
+        (state: RootState) => state.profiles.updateProfileError
+    );
+    const updatedProfile = useSelector(
+        (state: RootState) => state.profiles.updatedProfile
+    );
+
+    const profileSelectedForEdit = useSelector(
+        (state: RootState) => state.profiles.profileSelectedForEdit
+    );
+
     const [triedCreatingProfile, setTriedCreatingProfile] =
         useState<boolean>(false);
-    const [profileName, setProfileName] = useState<string>();
+    const [triedUpdatingProfile, setTriedUpdatingProfile] =
+        useState<boolean>(false);
+    const [profileName, setProfileName] = useState<string>(
+        profileSelectedForEdit?.name || ''
+    );
     const goingAway = useRef<boolean>(false);
 
-    const [pfpURI, setPFPURI] = useState<string | undefined>(undefined);
+    const [pfpURI, setPFPURI] = useState<string | undefined>(
+        profileSelectedForEdit?.pfp || undefined
+    );
     const [pfpType, setPFPType] = useState<string | undefined>(undefined);
 
     useEffect(() => {
@@ -68,13 +97,37 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
                 createdProfile &&
                 !createProfileError
             ) {
-                props.onDismiss();
+                dispatch(selectProfileForEditing(undefined));
+                props.onDismiss?.();
                 await Navigation.dismissModal(props.componentId);
             } else if (
                 triedCreatingProfile &&
                 !creatingProfile &&
                 !createdProfile &&
                 createProfileError
+            ) {
+                dispatch(
+                    pushToast({
+                        duration: 5,
+                        message:
+                            'An error occurred while creating the profile. Try again later.',
+                        type: 'error',
+                    })
+                );
+            } else if (
+                triedUpdatingProfile &&
+                !updatingProfile &&
+                updatedProfile &&
+                !updateProfileError
+            ) {
+                dispatch(selectProfileForEditing(undefined));
+                props.onDismiss?.();
+                await Navigation.dismissModal(props.componentId);
+            } else if (
+                triedUpdatingProfile &&
+                !updatingProfile &&
+                !updatedProfile &&
+                updateProfileError
             ) {
                 dispatch(
                     pushToast({
@@ -94,17 +147,47 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
         dispatch,
         props,
         triedCreatingProfile,
+        triedUpdatingProfile,
+        updateProfileError,
+        updatedProfile,
+        updatingProfile,
     ]);
 
     const handleDismiss = async () => {
-        props.onDismiss();
-        try {
-            await Navigation.dismissModal(props.componentId);
-        } catch {}
+        dispatch(selectProfileForEditing(undefined));
+        props.onDismiss?.();
+        await Navigation.dismissModal(props.componentId);
+    };
+
+    const handleDelete = async () => {
+        if (!profileSelectedForEdit) return;
+        await Navigation.showModal({
+            component: {
+                name: HelpInfoSheetComponentId,
+                options: {
+                    modalPresentationStyle:
+                        OptionsModalPresentationStyle.overCurrentContext,
+                },
+                passProps: {
+                    header: `Deleting Profile: ${profileSelectedForEdit.name}`,
+                    info: 'Are you sure you want to delete this profile? You will permanently lose access to shares sent to this profile.',
+                    confirmable: true,
+                    confirmText: 'Delete',
+                    onConfirm: async () => {
+                        dispatch(deleteCloudProfile(profileSelectedForEdit));
+                        props.onDismiss?.();
+                        await Navigation.dismissModal(props.componentId);
+                    },
+                    dismissable: true,
+                    dismissText: 'Cancel',
+                },
+            },
+        });
     };
 
     const handleSaveProfile = async () => {
-        if (creatingProfile) return;
+        if (creatingProfile || updatingProfile) return;
+
         if (!user) {
             dispatch(
                 pushToast({
@@ -154,17 +237,35 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
             }
 
             if (permissionGranted) {
-                dispatch(
-                    createProfile({
-                        profile: {
-                            name: profileName,
-                        },
-                        pfpSrc: {
-                            filePath: pfpURI,
-                            fileType: pfpType,
-                        },
-                    })
-                );
+                if (profileSelectedForEdit) {
+                    setTriedUpdatingProfile(true);
+                    dispatch(
+                        updateCloudProfile({
+                            profile: {
+                                ...profileSelectedForEdit,
+                                name: profileName,
+                                pfp: pfpURI ? '' : undefined,
+                            },
+                            pfpSrc: {
+                                filePath: pfpURI,
+                                fileType: pfpType,
+                            },
+                        })
+                    );
+                } else {
+                    setTriedCreatingProfile(true);
+                    dispatch(
+                        createProfile({
+                            profile: {
+                                name: profileName,
+                            },
+                            pfpSrc: {
+                                filePath: pfpURI,
+                                fileType: pfpType,
+                            },
+                        })
+                    );
+                }
             } else {
                 dispatch(
                     pushToast({
@@ -176,18 +277,39 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
                 );
             }
         } else {
-            dispatch(
-                createProfile({
-                    profile: {
-                        name: profileName,
-                    },
-                })
-            );
+            if (profileSelectedForEdit) {
+                setTriedUpdatingProfile(true);
+                dispatch(
+                    updateCloudProfile({
+                        profile: {
+                            ...profileSelectedForEdit,
+                            name: profileName,
+                            pfp:
+                                pfpURI === undefined
+                                    ? undefined
+                                    : profileSelectedForEdit.pfp,
+                        },
+                    })
+                );
+            } else {
+                setTriedCreatingProfile(true);
+                dispatch(
+                    createProfile({
+                        profile: {
+                            name: profileName,
+                        },
+                    })
+                );
+            }
         }
-        setTriedCreatingProfile(true);
     };
 
     const handlePFPPress = async () => {
+        if (pfpURI && pfpURI !== 'default') {
+            setPFPURI(undefined);
+            setPFPType(undefined);
+            return;
+        }
         try {
             const pickerResponse = await DocumentPicker.pickSingle({
                 allowMultiSelection: false,
@@ -227,7 +349,7 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
                         style={styles.profilePicture}
                         onPress={handlePFPPress}
                     >
-                        {pfpURI ? (
+                        {pfpURI && pfpURI !== constants.DEFAULT_PFP_ID ? (
                             <Image
                                 style={styles.pfp}
                                 source={{ uri: pfpURI }}
@@ -245,6 +367,7 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
                             style={styles.profileName}
                             maxLength={constants.MAX_PROFILE_NAME_LENGTH}
                             placeholder='Phone'
+                            defaultValue={profileName}
                             onChangeText={setProfileName}
                         />
                     </View>
@@ -256,14 +379,21 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
                     >
                         <Text style={styles.cancelButtonLabel}>Cancel</Text>
                     </TouchableOpacity>
+                    {profileSelectedForEdit && (
+                        <TouchableOpacity
+                            style={styles.cancelButton}
+                            onPress={handleDelete}
+                        >
+                            <Text style={styles.cancelButtonLabel}>Delete</Text>
+                        </TouchableOpacity>
+                    )}
                     <TouchableOpacity
                         style={styles.saveButton}
                         onPress={handleSaveProfile}
                     >
-                        {creatingProfile ? (
+                        {creatingProfile || updatingProfile ? (
                             <Spinner>
                                 <MaterialCommunityIcons
-                                    style={{}}
                                     name='loading'
                                     color='#FFF'
                                     size={EStyleSheet.value('32rem')}

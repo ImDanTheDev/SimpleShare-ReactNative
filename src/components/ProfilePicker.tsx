@@ -1,19 +1,27 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, Text, View, ViewabilityConfig, ViewToken } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
-import { FlatList } from 'react-native-gesture-handler';
+import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { constants, IProfile } from 'simpleshare-common';
+import { useDispatch } from 'react-redux';
+import {
+    constants,
+    IProfile,
+    selectProfileForEditing,
+} from 'simpleshare-common';
 import { CircleButton } from './common/CircleButton';
 
 export interface Props {
     profiles: IProfile[];
     initialProfile?: string;
+    editingProfiles: boolean;
     onSwitchProfile: (profile: IProfile) => void;
+    onEditProfile: () => void;
     onCreateProfile: () => void;
 }
 
 export const ProfilePicker: React.FC<Props> = (props: Props) => {
+    const dispatch = useDispatch();
     const [selectedProfileId, setSelectedProfileId] = useState<
         string | undefined
     >(props.initialProfile);
@@ -28,7 +36,11 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
     }, [props.initialProfile]);
 
     const handleSwitchProfileButton = (profile: IProfile) => {
-        if (!profile.id || selectedProfileId === profile.id) {
+        if (
+            props.editingProfiles ||
+            !profile.id ||
+            selectedProfileId === profile.id
+        ) {
             return;
         }
         setSelectedProfileId(profile.id);
@@ -78,6 +90,29 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
         }
     };
 
+    const handleEditProfile = (profile: IProfile) => {
+        dispatch(selectProfileForEditing(profile));
+        props.onEditProfile();
+    };
+
+    const renderEditButton = (profile: IProfile) => {
+        if (!props.editingProfiles || profile.id === 'default') return <></>;
+
+        return (
+            <View style={styles.deleteProfileButtonContainer}>
+                <TouchableOpacity onPress={() => handleEditProfile(profile)}>
+                    <View style={styles.deleteProfileButton}>
+                        <MaterialIcons
+                            name='edit'
+                            style={styles.deleteProfileButtonIcon}
+                            size={28}
+                        />
+                    </View>
+                </TouchableOpacity>
+            </View>
+        );
+    };
+
     const renderProfile = (profile: IProfile) => {
         if (selectedProfileId === profile.id) {
             return (
@@ -104,6 +139,7 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
                             onError={() => setFallback(true)}
                         />
                     )}
+                    {renderEditButton(profile)}
                 </CircleButton>
             );
         } else {
@@ -131,6 +167,7 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
                             onError={() => setFallback(true)}
                         />
                     )}
+                    {renderEditButton(profile)}
                 </CircleButton>
             );
         }
@@ -228,6 +265,7 @@ const styles = EStyleSheet.create({
         borderColor: '#F4A2617F',
         borderWidth: '1rem',
         overflow: 'hidden',
+        position: 'relative',
     },
     pfp: {
         flex: 1,
@@ -260,5 +298,25 @@ const styles = EStyleSheet.create({
         right: -16,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    deleteProfileButtonContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: '#00000080',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    deleteProfileButton: {
+        padding: '4rem',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#c24242',
+        borderRadius: '32rem',
+    },
+    deleteProfileButtonIcon: {
+        color: '#bdbdbd',
     },
 });

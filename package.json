@@ -39,7 +39,7 @@
         "react-native-vector-icons": "^8.1.0",
         "react-redux": "^7.2.4",
         "redux-persist": "^6.0.0",
-        "simpleshare-common": "^1.2.13"
+        "simpleshare-common": "^1.2.14"
     },
     "devDependencies": {
         "@babel/core": "^7.12.9",

@@ -57,7 +57,6 @@ export const OutboxListItem: React.FC<Props> = (props: Props) => {
                             type: 'error',
                         })
                     );
-                    console.error(e);
                 }
             }
         }

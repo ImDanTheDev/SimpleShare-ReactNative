@@ -28,16 +28,13 @@ import { ProfilePicker } from '../ProfilePicker';
 import { InboxGallery } from '../InboxGallery';
 import { OutboxList } from '../OutboxList';
 import { SettingsDropdown } from '../SettingsDropdown';
-import { ComponentId as HelpInfoSheetComponentId } from '../sheets/HelpInfoSheet';
 import { pushToast } from '../../redux/toasterSlice';
 import {
     clearOutbox,
     constants,
-    deleteCloudProfile,
     IProfile,
     IPublicGeneralInfo,
     IShare,
-    IUser,
     OutboxEntry,
     signOut,
     switchProfile,
@@ -52,10 +49,6 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
     const MAX_PROFILES = 5;
 
     const dispatch = useDispatch();
-
-    const user: IUser | undefined = useSelector(
-        (state: RootState) => state.auth.user
-    );
 
     const publicGeneralInfo: IPublicGeneralInfo | undefined = useSelector(
         (state: RootState) => state.user.publicGeneralInfo
@@ -82,13 +75,15 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
 
     const settingsButtonContainer = createRef<View>();
     const blurOpacity = useRef(new Animated.Value(0)).current;
+    const blurRequests = useRef<number>(0);
     const [shouldShowBlur, setShouldShowBlur] = useState<boolean>(false);
-    const [blueVisibility, setBlurVisibility] = useState<boolean>(false);
+    const [blurVisibility, setBlurVisibility] = useState<boolean>(false);
     const [settingsDropdownVisibility, setSettingsDropdownVisibility] =
         useState<boolean>(false);
     const [settingsDropdownTop, setSettingsDropdownTop] = useState<number>(0);
     const [settingsDropdownRight, setSettingsDropdownRight] =
         useState<number>(0);
+    const [editingProfiles, setEditingProfiles] = useState<boolean>(false);
 
     useEffect(() => {
         if (shouldShowBlur) {
@@ -99,10 +94,25 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
             duration: 150,
             useNativeDriver: false,
         }).start(() => setBlurVisibility(shouldShowBlur));
-    }, [shouldShowBlur, blurOpacity]);
+    }, [blurOpacity, shouldShowBlur]);
+
+    const requestBlur = () => {
+        blurRequests.current = blurRequests.current + 1;
+        if (blurRequests.current > 0) {
+            setShouldShowBlur(true);
+        }
+    };
+
+    const dismissBlur = (force?: boolean) => {
+        blurRequests.current = blurRequests.current - 1;
+        if (blurRequests.current <= 0 || force) {
+            setShouldShowBlur(false);
+            blurRequests.current = 0;
+        }
+    };
 
     const handleSignOut = async () => {
-        setShouldShowBlur(false);
+        dismissBlur(true);
         dispatch(signOut());
     };
 
@@ -118,7 +128,7 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
             return;
         }
 
-        setShouldShowBlur(true);
+        requestBlur();
 
         await Navigation.showModal({
             component: {
@@ -129,7 +139,7 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                 },
                 passProps: {
                     onDismiss: () => {
-                        setShouldShowBlur(false);
+                        dismissBlur();
                     },
                 },
             },
@@ -149,12 +159,12 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
     };
 
     const handleSettingsButton = () => {
-        setShouldShowBlur(!shouldShowBlur);
+        requestBlur();
         setSettingsDropdownVisibility(!settingsDropdownVisibility);
     };
 
     const handleOpenAccountSettings = async () => {
-        setShouldShowBlur(false);
+        dismissBlur();
         setSettingsDropdownVisibility(false);
         await Navigation.push(props.componentId, {
             component: {
@@ -198,42 +208,24 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
         });
     };
 
-    const handleDeleteCurrentProfile = async () => {
+    const handleToggleEditMode = async () => {
         setSettingsDropdownVisibility(false);
+        dismissBlur();
+        setEditingProfiles(!editingProfiles);
+    };
 
-        if (!user || !currentProfile?.id || currentProfile.id === 'default') {
-            // Cannot delete the default profile.
-            setShouldShowBlur(false);
-            dispatch(
-                pushToast({
-                    message: 'The default profile cannot be deleted.',
-                    type: 'info',
-                    duration: 5,
-                })
-            );
-            return;
-        }
-
+    const handleEditProfile = async () => {
+        requestBlur();
         await Navigation.showModal({
             component: {
-                name: HelpInfoSheetComponentId,
+                name: NewProfileSheetComponentId,
                 options: {
                     modalPresentationStyle:
                         OptionsModalPresentationStyle.overCurrentContext,
                 },
                 passProps: {
-                    header: `Deleting Profile: ${currentProfile.name}`,
-                    info: 'Are you sure you want to delete this profile? You will permanently lose access to shares sent to this profile.',
-                    confirmable: true,
-                    confirmText: 'Delete',
-                    onConfirm: async () => {
-                        setShouldShowBlur(false);
-                        dispatch(deleteCloudProfile(currentProfile));
-                    },
-                    dismissable: true,
-                    dismissText: 'Cancel',
-                    onDismiss: async () => {
-                        setShouldShowBlur(false);
+                    onDismiss: () => {
+                        dismissBlur();
                     },
                 },
             },
@@ -288,6 +280,8 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                     <ProfilePicker
                         profiles={profiles}
                         initialProfile={currentProfile?.id}
+                        editingProfiles={editingProfiles}
+                        onEditProfile={handleEditProfile}
                         onSwitchProfile={handleSwitchProfile}
                         onCreateProfile={handleCreateProfileButton}
                     />
@@ -338,7 +332,7 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                     </ScrollView>
                 </MaskedView>
             </LinearGradient>
-            {blueVisibility ? (
+            {blurVisibility ? (
                 <Animated.View
                     style={{ ...styles.blurOverlay, opacity: blurOpacity }}
                 />
@@ -350,10 +344,11 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                     right={settingsDropdownRight}
                     top={settingsDropdownTop}
                     onOpenAccountSettings={handleOpenAccountSettings}
-                    onDeleteCurrentProfile={handleDeleteCurrentProfile}
+                    onToggleEditMode={handleToggleEditMode}
+                    editingProfiles={editingProfiles}
                     onSignOut={handleSignOut}
                     onDismiss={() => {
-                        setShouldShowBlur(false);
+                        dismissBlur();
                         setSettingsDropdownVisibility(false);
                     }}
                 />

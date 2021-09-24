@@ -175,7 +175,6 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
                             type: 'error',
                         })
                     );
-                    console.error(e);
                 }
             }
         } else {
