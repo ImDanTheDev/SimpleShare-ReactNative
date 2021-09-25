@@ -3,7 +3,10 @@
     "version": "1.0.5",
     "private": true,
     "scripts": {
-        "android": "react-native run-android",
+        "android:devDebug": "react-native run-android --variant=devDebug --appIdSuffix dev",
+        "android:devRelease": "react-native run-android --variant=devRelease --appIdSuffix dev",
+        "android:prodDebug": "react-native run-android --variant=prodDebug",
+        "android:prodRelease": "react-native run-android --variant=prodRelease",
         "ios": "react-native run-ios",
         "start": "react-native start",
         "test": "jest",

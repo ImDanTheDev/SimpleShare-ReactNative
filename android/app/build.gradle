@@ -180,7 +180,7 @@ android {
     productFlavors {
         dev {
             minSdkVersion rootProject.ext.minSdkVersion
-            applicationId 'com.dev.simpleshare'
+            applicationId 'com.simpleshare.dev'
             targetSdkVersion rootProject.ext.targetSdkVersion
             resValue "string", "build_config_package", "com.simpleshare"
         }
