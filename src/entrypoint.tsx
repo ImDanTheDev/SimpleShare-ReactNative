@@ -53,14 +53,13 @@ import {
 import BaseScreenComponentType from './components/screens/BaseScreen';
 
 import NetInfo from '@react-native-community/netinfo';
+import keys from '../keys';
 
 const entrypoint = (): void => {
     const initApp = async () => {
         const firebase: IFirebase = new OFFirebase();
         const auth: IAuth = new OFAuth();
-        auth.configureGoogle(
-            '555940005658-jv7ungr9jbepa8ttcnu0e2rmub7siteo.apps.googleusercontent.com'
-        );
+        auth.configureGoogle(keys.firebase.webClientId);
         const firestore: IFirestore = new OFFirestore();
         const storage: IStorage = new OFStorage();
         initFirebase(firebase, firestore, auth, storage);
