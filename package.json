@@ -1,6 +1,6 @@
 {
     "name": "simpleshare",
-    "version": "1.1.1",
+    "version": "1.2.0",
     "private": true,
     "scripts": {
         "android:devDebug": "react-native run-android --variant=devDebug --appIdSuffix dev",
@@ -27,6 +27,7 @@
         "@react-native-firebase/storage": "^12.8.0",
         "@react-native-google-signin/google-signin": "^7.0.0-alpha.1",
         "@react-native-masked-view/masked-view": "^0.2.6",
+        "@react-native-picker/picker": "^2.1.0",
         "@reduxjs/toolkit": "^1.6.1",
         "eslint": "^7.30.0",
         "react": "17.0.1",
@@ -42,7 +43,7 @@
         "react-native-vector-icons": "^8.1.0",
         "react-redux": "^7.2.4",
         "redux-persist": "^6.0.0",
-        "simpleshare-common": "^1.2.14"
+        "simpleshare-common": "^1.2.15"
     },
     "devDependencies": {
         "@babel/core": "^7.12.9",

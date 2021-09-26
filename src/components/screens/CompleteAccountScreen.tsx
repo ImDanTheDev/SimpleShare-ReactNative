@@ -172,6 +172,14 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = (
         }
 
         dispatch(
+            createProfile({
+                profile: {
+                    name: 'Default',
+                    id: 'default', // TODO: Let firebase autogenerate the user's starter profile.
+                },
+            })
+        );
+        dispatch(
             updateAccount({
                 accountInfo: {
                     phoneNumber: phoneNumber,
@@ -180,14 +188,7 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = (
                 publicGeneralInfo: {
                     displayName: displayName,
                     isComplete: true,
-                },
-            })
-        );
-        dispatch(
-            createProfile({
-                profile: {
-                    name: 'Default',
-                    id: 'default',
+                    defaultProfileId: 'default',
                 },
             })
         );

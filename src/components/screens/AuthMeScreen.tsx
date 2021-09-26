@@ -6,6 +6,7 @@ import {
     getAllAccountInfo,
     signOut,
     startProfileListener,
+    startPublicGeneralInfoListener,
 } from 'simpleshare-common';
 import { RootState } from '../../redux/store';
 import { ComponentId as SigninScreenComponentId } from './SigninScreen';
@@ -82,9 +83,12 @@ export const AuthMeScreen: React.FC<Props> = (props: Props) => {
                                 },
                             });
                         } else {
-                            dispatch(startProfileListener());
-                            // Account is complete, show requested screen.
-                            setAuthorizing(false);
+                            if (authorizing) {
+                                dispatch(startProfileListener());
+                                dispatch(startPublicGeneralInfoListener());
+                                // Account is complete, show requested screen.
+                                setAuthorizing(false);
+                            }
                         }
                     } else {
                         // Account info has not been fetched, fetch it and wait.
@@ -100,6 +104,7 @@ export const AuthMeScreen: React.FC<Props> = (props: Props) => {
         }
     }, [
         accountInfo,
+        authorizing,
         dispatch,
         fetchedAccount,
         props.requireCompleteAccount,

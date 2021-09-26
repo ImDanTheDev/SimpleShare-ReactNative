@@ -3,12 +3,13 @@ import { Image, Text, View, ViewabilityConfig, ViewToken } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
     constants,
     IProfile,
     selectProfileForEditing,
 } from 'simpleshare-common';
+import { RootState } from '../redux/store';
 import { CircleButton } from './common/CircleButton';
 
 export interface Props {
@@ -22,6 +23,11 @@ export interface Props {
 
 export const ProfilePicker: React.FC<Props> = (props: Props) => {
     const dispatch = useDispatch();
+
+    const publicGeneralInfo = useSelector(
+        (state: RootState) => state.user.publicGeneralInfo
+    );
+
     const [selectedProfileId, setSelectedProfileId] = useState<
         string | undefined
     >(props.initialProfile);
@@ -96,7 +102,7 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
     };
 
     const renderEditButton = (profile: IProfile) => {
-        if (!props.editingProfiles || profile.id === 'default') return <></>;
+        if (!props.editingProfiles) return <></>;
 
         return (
             <View style={styles.deleteProfileButtonContainer}>
@@ -119,7 +125,11 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
                 <CircleButton
                     key={profile.id}
                     size={64}
-                    style={styles.profileButton}
+                    style={
+                        publicGeneralInfo?.defaultProfileId === profile.id
+                            ? styles.defaultProfileButton
+                            : styles.profileButton
+                    }
                     invertAnimation={true}
                     onPress={() => handleSwitchProfileButton(profile)}
                 >
@@ -147,7 +157,11 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
                 <CircleButton
                     key={profile.id}
                     size={64}
-                    style={styles.profileButton}
+                    style={
+                        publicGeneralInfo?.defaultProfileId === profile.id
+                            ? styles.defaultProfileButton
+                            : styles.profileButton
+                    }
                     invertAnimation={selectedProfileId === profile.id}
                     onPress={() => handleSwitchProfileButton(profile)}
                 >
@@ -264,6 +278,14 @@ const styles = EStyleSheet.create({
         backgroundColor: '#E9C46A19',
         borderColor: '#F4A2617F',
         borderWidth: '1rem',
+        overflow: 'hidden',
+        position: 'relative',
+    },
+    defaultProfileButton: {
+        marginHorizontal: '8rem',
+        backgroundColor: '#E9C46A19',
+        borderColor: '#ee7b1ca1',
+        borderWidth: '2rem',
         overflow: 'hidden',
         position: 'relative',
     },
