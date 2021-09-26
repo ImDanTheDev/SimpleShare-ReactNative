@@ -396,6 +396,7 @@ const styles = EStyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: '16rem',
         marginBottom: '16rem',
+        color: '#FFF',
     },
     profileInput: {
         backgroundColor: '#1A2633',
@@ -406,6 +407,7 @@ const styles = EStyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: '16rem',
         marginBottom: '16rem',
+        color: '#FFF',
     },
     shareTextInput: {
         backgroundColor: '#1A2633',
@@ -416,6 +418,7 @@ const styles = EStyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: '16rem',
         marginBottom: '16rem',
+        color: '#FFF',
     },
     selectedFileButtonGroup: {
         backgroundColor: '#0D161F',

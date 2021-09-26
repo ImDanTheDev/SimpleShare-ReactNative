@@ -377,6 +377,7 @@ const styles = EStyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: '16rem',
         marginBottom: '16rem',
+        color: '#FFF',
     },
     moreInfoButton: {
         backgroundColor: '#E9C46A19',

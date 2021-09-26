@@ -487,6 +487,7 @@ const styles = EStyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: '16rem',
+        color: '#FFF',
     },
     actionGroup: {
         flexDirection: 'row',
