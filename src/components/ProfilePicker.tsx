@@ -18,7 +18,6 @@ import { RootState } from '../redux/store';
 import { CircleButton } from './common/CircleButton';
 
 export interface Props {
-    profiles: IProfile[];
     initialProfile?: string;
     editingProfiles: boolean;
     onSwitchProfile: (profile: IProfile) => void;
@@ -46,7 +45,7 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
     const [showRightIndicator, setShowRightIndicator] =
         useState<boolean>(false);
 
-    const [tmpProfiles, setTmpProfiles] = useState<IProfile[]>(profiles);
+    const [tmpProfiles, setTmpProfiles] = useState<IProfile[]>([]);
 
     const viewabilityConfig = useRef({
         itemVisiblePercentThreshold: 50,

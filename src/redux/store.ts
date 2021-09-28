@@ -20,6 +20,7 @@ import {
 import {
     AccountInfoState,
     AuthState,
+    LocalPersistState,
     OutboxState,
     ProfilesState,
     reduxReducers,
@@ -33,11 +34,13 @@ const combinedReducer = combineReducers({
     profiles: reduxReducers.profilesReducer,
     shares: reduxReducers.sharesReducer,
     outbox: reduxReducers.outboxReducer,
+    localPersist: reduxReducers.localPersistReducer,
     toaster: toasterReducer,
 });
 
 const rootReducer: Reducer = (state: RootState, action: AnyAction) => {
     // Intercept sign out action and reset account state to recheck account completeness.
+    console.log(`Action: ${action.type}`);
     if (action.type === 'auth/signOut/fulfilled') {
         state.user = {} as AccountInfoState;
         state.auth = {} as AuthState;
@@ -52,6 +55,7 @@ const persistConfig: PersistConfig<
         profiles: ProfilesState;
         shares: SharesState;
         toaster: ToasterState;
+        localPersist: LocalPersistState;
         outbox: OutboxState;
     }>
 > = {

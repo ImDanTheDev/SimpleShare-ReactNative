@@ -278,7 +278,6 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
 
                 <View style={styles.profileSection}>
                     <ProfilePicker
-                        profiles={profiles}
                         initialProfile={currentProfile?.id}
                         editingProfiles={editingProfiles}
                         onEditProfile={handleEditProfile}
