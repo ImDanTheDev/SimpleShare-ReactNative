@@ -55,6 +55,12 @@ import BaseScreenComponentType from './components/screens/BaseScreen';
 import NetInfo from '@react-native-community/netinfo';
 import keys from '../keys';
 
+import { LogBox } from 'react-native';
+
+LogBox.ignoreLogs([
+    'ReactNativeFiberHostComponent: Calling getNode() on the ref of an Animated component is no longer necessary. You can now directly use the ref instead. This method will be removed in a future release.',
+]);
+
 const entrypoint = (): void => {
     const initApp = async () => {
         const firebase: IFirebase = new OFFirebase();

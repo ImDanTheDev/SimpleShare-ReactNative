@@ -5,5 +5,3 @@
 *.bat text eol=crlf
 
 *.{png,jpg,jpeg,gif,webp,woff,woff2} binary
-
-keys.js filter=updateKeyPlaceholders

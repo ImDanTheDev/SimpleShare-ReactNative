@@ -17,6 +17,7 @@ export interface Props {
     style?: ViewStyle | TextStyle | ImageStyle;
     children?: React.ReactNode;
     onPress?: () => void;
+    onLongPress?: () => void;
     onLayout?: (e: LayoutChangeEvent) => void;
 }
 
@@ -80,10 +81,6 @@ export const CircleButton: React.FC<Props> = (props: Props) => {
         }).start();
     };
 
-    const handlePress = () => {
-        props.onPress?.();
-    };
-
     const styles = EStyleSheet.create({
         button: {
             ...props.style,
@@ -99,7 +96,8 @@ export const CircleButton: React.FC<Props> = (props: Props) => {
             <TouchableOpacity
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
-                onPress={handlePress}
+                onPress={props.onPress}
+                onLongPress={props.onLongPress}
                 style={{
                     ...styles.button,
                     borderRadius: borderRadius,

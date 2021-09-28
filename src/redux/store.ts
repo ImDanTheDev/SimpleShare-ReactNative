@@ -68,8 +68,8 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
     reducer: persistedReducer,
-    middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware({
+    middleware: (getDefaultMiddleware) => {
+        const mw = getDefaultMiddleware({
             serializableCheck: {
                 ignoredActions: [
                     FLUSH,
@@ -80,7 +80,13 @@ export const store = configureStore({
                     REGISTER,
                 ],
             },
-        }),
+        });
+        if (__DEV__) {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            mw.push(require('redux-flipper').default());
+        }
+        return mw;
+    },
 });
 
 export const persistor = persistStore(store);

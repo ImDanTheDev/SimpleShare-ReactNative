@@ -149,6 +149,9 @@ const AccountSettingsScreen: NavigationFunctionComponent<Props> = (
                     displayName: displayName,
                     isComplete: true,
                     defaultProfileId: defaultProfileId,
+                    profilePositions:
+                        publicGeneralInfo?.profilePositions ||
+                        profiles.profiles.map((p) => p.id || ''),
                 },
             })
         );
