@@ -47,7 +47,7 @@ export const OutboxList: React.FC<Props> = (props: Props) => {
         return items;
     };
 
-    return <View>{renderShares()}</View>;
+    return <View style={styles.outboxList}>{renderShares()}</View>;
 };
 
 const styles = EStyleSheet.create({
@@ -98,5 +98,8 @@ const styles = EStyleSheet.create({
         fontSize: '18rem',
         paddingTop: '16rem',
         alignSelf: 'center',
+    },
+    outboxList: {
+        paddingBottom: 16,
     },
 });

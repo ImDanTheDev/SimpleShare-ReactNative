@@ -40,7 +40,6 @@ const combinedReducer = combineReducers({
 
 const rootReducer: Reducer = (state: RootState, action: AnyAction) => {
     // Intercept sign out action and reset account state to recheck account completeness.
-    console.log(`Action: ${action.type}`);
     if (action.type === 'auth/signOut/fulfilled') {
         state.user = {} as AccountInfoState;
         state.auth = {} as AuthState;
