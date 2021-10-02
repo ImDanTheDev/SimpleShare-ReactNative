@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { createRef, useEffect, useState } from 'react';
 import {
     SafeAreaView,
     Text,
@@ -30,6 +30,10 @@ import {
 import Spinner from '../common/Spinner';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import DocumentPicker from 'react-native-document-picker';
+import {
+    MIN_PHONE_NUMBER_LENGTH,
+    MIN_PROFILE_NAME_LENGTH,
+} from 'simpleshare-common/dist/constants';
 
 interface Props {
     /** react-native-navigation component id. */
@@ -65,6 +69,16 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
     const [fileUri, setFileUri] = useState<string | undefined>(undefined);
     const [fileType, setFileType] = useState<string | undefined>(undefined);
     const [fileName, setFileName] = useState<string | undefined>(undefined);
+
+    const phoneNumberInput = createRef<TextInput>();
+    const profileNameInput = createRef<TextInput>();
+
+    const [recipients, setRecipients] = useState<
+        {
+            phoneNumber: string;
+            profileName: string;
+        }[]
+    >([]);
 
     useEffect(() => {
         const checkForSent = async () => {
@@ -128,28 +142,6 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
             return;
         }
 
-        if (phoneNumber.length < constants.MIN_PHONE_NUMBER_LENGTH) {
-            dispatch(
-                pushToast({
-                    message: `'${phoneNumber}' is not a valid phone number.`,
-                    duration: 5,
-                    type: 'error',
-                })
-            );
-            return;
-        }
-
-        if (profileName.length < constants.MIN_PROFILE_NAME_LENGTH) {
-            dispatch(
-                pushToast({
-                    message: `'${profileName}' is not a valid profile name.`,
-                    duration: 5,
-                    type: 'error',
-                })
-            );
-            return;
-        }
-
         if (shareText.length > constants.MAX_SHARE_TEXT_LENGTH) {
             dispatch(
                 pushToast({
@@ -173,22 +165,36 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
             return;
         }
 
-        dispatch(
-            sendShare({
-                share: {
-                    textContent: shareText,
-                    fileSrc:
-                        fileUri && fileType
-                            ? {
-                                  filePath: fileUri,
-                                  fileType: fileType,
-                              }
-                            : undefined,
-                },
-                toPhoneNumber: phoneNumber,
-                toProfileName: profileName,
-            })
-        );
+        if (recipients.length === 0) {
+            dispatch(
+                pushToast({
+                    message: 'You must add at least one recipient.',
+                    duration: 5,
+                    type: 'error',
+                })
+            );
+            return;
+        }
+
+        recipients.forEach((recipient) => {
+            dispatch(
+                sendShare({
+                    toPhoneNumber: recipient.phoneNumber,
+                    toProfileName: recipient.profileName,
+                    share: {
+                        textContent: shareText,
+                        fileSrc:
+                            fileUri && fileType
+                                ? {
+                                      filePath: fileUri,
+                                      fileType: fileType,
+                                  }
+                                : undefined,
+                    },
+                })
+            );
+        });
+
         setTriedSendingShare(true);
     };
 
@@ -223,6 +229,145 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
         setFileName(undefined);
         setFileType(undefined);
         setFileUri(undefined);
+    };
+
+    const handleAddRecipient = () => {
+        if (phoneNumber.length < MIN_PHONE_NUMBER_LENGTH) {
+            dispatch(
+                pushToast({
+                    message: `The phone number must be at least ${MIN_PHONE_NUMBER_LENGTH} characters long.`,
+                    duration: 5,
+                    type: 'error',
+                })
+            );
+            return;
+        }
+
+        if (profileName.length < MIN_PROFILE_NAME_LENGTH) {
+            dispatch(
+                pushToast({
+                    message: `The profile name must be at least ${MIN_PROFILE_NAME_LENGTH} characters long.`,
+                    duration: 5,
+                    type: 'error',
+                })
+            );
+            return;
+        }
+
+        if (
+            recipients.findIndex(
+                (x) =>
+                    x.phoneNumber === phoneNumber &&
+                    x.profileName === profileName
+            ) !== -1
+        ) {
+            dispatch(
+                pushToast({
+                    message: `You already added this recipient.`,
+                    duration: 5,
+                    type: 'error',
+                })
+            );
+            return;
+        }
+
+        setRecipients([
+            ...recipients,
+            {
+                phoneNumber: phoneNumber,
+                profileName: profileName,
+            },
+        ]);
+
+        phoneNumberInput.current?.clear();
+        profileNameInput.current?.clear();
+    };
+
+    const handleRemoveProfile = (phoneNumber: string, profileName: string) => {
+        setRecipients(
+            recipients.filter((x) => {
+                return !(
+                    x.phoneNumber === phoneNumber &&
+                    x.profileName === profileName
+                );
+            })
+        );
+    };
+
+    const handleRemoveUser = (phoneNumber: string) => {
+        setRecipients(
+            recipients.filter((x) => {
+                return x.phoneNumber !== phoneNumber;
+            })
+        );
+    };
+
+    const renderRecipients = () => {
+        const recipientEntries: {
+            [index: string]: { profiles: string[] };
+        } = {};
+
+        recipients.forEach((recipient) => {
+            if (recipientEntries[recipient.phoneNumber]) {
+                recipientEntries[recipient.phoneNumber].profiles.push(
+                    recipient.profileName
+                );
+            } else {
+                recipientEntries[recipient.phoneNumber] = {
+                    profiles: [recipient.profileName],
+                };
+            }
+        });
+
+        return Object.entries(recipientEntries).map((entry) => {
+            return (
+                <View key={entry[0]} style={styles.userGroup}>
+                    <View style={styles.user}>
+                        <View style={styles.userDisplayName}>
+                            <Text style={styles.userDisplayNameText}>
+                                {entry[0]}
+                            </Text>
+                        </View>
+                        <TouchableOpacity
+                            onPress={() => handleRemoveUser(entry[0])}
+                        >
+                            <MaterialCommunityIcons
+                                name='close'
+                                size={30}
+                                color='#FFF'
+                            />
+                        </TouchableOpacity>
+                    </View>
+                    <View style={styles.profilesGroup}>
+                        {entry[1].profiles.map((profile) => {
+                            return (
+                                <View key={profile} style={styles.profile}>
+                                    <View style={styles.profileName}>
+                                        <Text style={styles.profileNameText}>
+                                            {profile}
+                                        </Text>
+                                    </View>
+                                    <TouchableOpacity
+                                        onPress={() =>
+                                            handleRemoveProfile(
+                                                entry[0],
+                                                profile
+                                            )
+                                        }
+                                    >
+                                        <MaterialCommunityIcons
+                                            name='close'
+                                            size={30}
+                                            color='#FFF'
+                                        />
+                                    </TouchableOpacity>
+                                </View>
+                            );
+                        })}
+                    </View>
+                </View>
+            );
+        });
     };
 
     return (
@@ -263,6 +408,7 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                     >
                         <Text style={styles.fieldLabel}>Phone Number:</Text>
                         <TextInput
+                            ref={phoneNumberInput}
                             style={styles.phoneNumberInput}
                             maxLength={constants.MAX_PHONE_NUMBER_LENGTH}
                             onChangeText={setPhoneNumber}
@@ -273,11 +419,21 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                         />
                         <Text style={styles.fieldLabel}>Profile Name:</Text>
                         <TextInput
+                            ref={profileNameInput}
                             style={styles.profileInput}
                             maxLength={constants.MAX_PROFILE_NAME_LENGTH}
                             onChangeText={setProfileName}
                             placeholder='Laptop'
                         />
+                        <TouchableOpacity
+                            style={styles.addRecipientButton}
+                            onPress={handleAddRecipient}
+                        >
+                            <Text style={styles.addRecipientButtonLabel}>
+                                Add Recipient
+                            </Text>
+                        </TouchableOpacity>
+                        <View style={styles.divider} />
                         <Text style={styles.fieldLabel}>Text:</Text>
                         <TextInput
                             style={styles.shareTextInput}
@@ -338,6 +494,18 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                                 <Text style={styles.sendButtonLabel}>Send</Text>
                             )}
                         </TouchableOpacity>
+                        <View style={styles.recipientsRow}>
+                            <Text style={styles.fieldLabel}>Recipients:</Text>
+                            <View style={styles.recipientsList}>
+                                {recipients.length === 0 ? (
+                                    <Text style={styles.noRecipients}>
+                                        No Recipients
+                                    </Text>
+                                ) : (
+                                    renderRecipients()
+                                )}
+                            </View>
+                        </View>
                     </KeyboardAwareScrollView>
                 </MaskedView>
             </LinearGradient>
@@ -408,6 +576,28 @@ const styles = EStyleSheet.create({
         paddingHorizontal: '16rem',
         marginBottom: '16rem',
         color: '#FFF',
+    },
+    addRecipientButton: {
+        backgroundColor: '#0D161F',
+        width: '50%',
+        borderRadius: '16rem',
+        borderColor: '#F4A2617F',
+        borderWidth: '1rem',
+        justifyContent: 'center',
+        alignItems: 'center',
+        alignSelf: 'flex-end',
+        height: '50rem',
+    },
+    addRecipientButtonLabel: {
+        fontSize: '20rem',
+        color: '#FFF',
+        textAlignVertical: 'center',
+        paddingVertical: '8rem',
+    },
+    divider: {
+        backgroundColor: '#363636',
+        height: '2rem',
+        marginVertical: '8rem',
     },
     shareTextInput: {
         backgroundColor: '#1A2633',
@@ -487,6 +677,67 @@ const styles = EStyleSheet.create({
         aspectRatio: 1,
         textAlignVertical: 'center',
         textAlign: 'center',
+    },
+    recipientsRow: {},
+    recipientsList: {
+        backgroundColor: '#0d161f',
+        borderRadius: '16rem',
+        borderWidth: '1rem',
+        borderStyle: 'solid',
+        borderColor: '#f4a2617f',
+        padding: '8rem',
+    },
+    noRecipients: {
+        alignSelf: 'center',
+        color: '#ababab',
+    },
+    userGroup: {
+        paddingBottom: '8rem',
+    },
+    user: {
+        flexDirection: 'row',
+        backgroundColor: '#0d161f',
+        borderRadius: '16rem',
+        borderWidth: '1rem',
+        borderStyle: 'solid',
+        borderColor: '#f4a2617f',
+        padding: '4rem',
+        justifyContent: 'space-between',
+    },
+    userDisplayName: {
+        padding: '4rem',
+    },
+    userDisplayNameText: {
+        color: '#fff',
+        fontSize: '16rem',
+    },
+    profilesGroup: {
+        paddingLeft: '24rem',
+        borderStyle: 'solid',
+        borderLeftWidth: '2rem',
+        borderLeftColor: '#5a5a5a',
+        borderBottomWidth: '2rem',
+        borderBottomColor: '#5a5a5a',
+        paddingTop: '4rem',
+    },
+    profile: {
+        display: 'flex',
+        flexDirection: 'row',
+        backgroundColor: '#0d161f',
+        borderRadius: '16rem',
+        borderWidth: '1rem',
+        borderStyle: 'solid',
+        borderColor: '#f4a2617f',
+        padding: '4prem',
+        justifyContent: 'space-between',
+        marginBottom: '4rem',
+    },
+    profileName: {
+        padding: '4rem',
+    },
+    profileNameText: {
+        color: '#fff',
+        fontSize: '16rem',
     },
     /* Mask */
     mask: {
