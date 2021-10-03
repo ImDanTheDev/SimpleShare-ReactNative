@@ -51,6 +51,7 @@ import { IAuth, IFirebase, IFirestore, IStorage } from '@omnifire/api';
 import { OFAuth, OFFirebase, OFFirestore, OFStorage } from '@omnifire/rn';
 import {
     initFirebase,
+    IShare,
     serviceHandler,
     startAuthStateListener,
 } from 'simpleshare-common';
@@ -60,6 +61,7 @@ import NetInfo from '@react-native-community/netinfo';
 import keys from '../keys';
 
 import { LogBox } from 'react-native';
+import PushNotification from 'react-native-push-notification';
 
 LogBox.ignoreLogs([
     'ReactNativeFiberHostComponent: Calling getNode() on the ref of an Animated component is no longer necessary. You can now directly use the ref instead. This method will be removed in a future release.',
@@ -67,6 +69,46 @@ LogBox.ignoreLogs([
 
 const entrypoint = (): void => {
     const initApp = async () => {
+        PushNotification.configure({
+            onNotification: (noti) => {
+                noti.finish('');
+                Navigation.setRoot({
+                    root: {
+                        stack: {
+                            children: [
+                                {
+                                    component: {
+                                        name: HomeScreenComponentId,
+                                    },
+                                },
+                                {
+                                    component: {
+                                        name: ViewShareScreenComponentId,
+                                        passProps: {
+                                            share: noti.data as IShare,
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                });
+            },
+            requestPermissions: true,
+        });
+
+        PushNotification.createChannel(
+            {
+                channelId: 'shares',
+                channelName: 'Shares',
+                channelDescription:
+                    'A channel for received share notifications',
+            },
+            (_) => {
+                // Ignore the result of attempting to create a channel.
+            }
+        );
+
         const firebase: IFirebase = new OFFirebase();
         const auth: IAuth = new OFAuth();
         auth.configureGoogle(keys.firebase.webClientId);

@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
     getAllAccountInfo,
     signOut,
+    startNotificationListener,
     startProfileListener,
     startPublicGeneralInfoListener,
 } from 'simpleshare-common';
@@ -86,6 +87,7 @@ export const AuthMeScreen: React.FC<Props> = (props: Props) => {
                             if (authorizing) {
                                 dispatch(startProfileListener());
                                 dispatch(startPublicGeneralInfoListener());
+                                dispatch(startNotificationListener());
                                 // Account is complete, show requested screen.
                                 setAuthorizing(false);
                             }

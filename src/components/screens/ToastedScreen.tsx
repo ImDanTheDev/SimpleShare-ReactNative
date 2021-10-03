@@ -2,8 +2,10 @@ import React, { ReactNode, useEffect } from 'react';
 import { Dimensions, Text, View } from 'react-native';
 import EStyleSheet from 'react-native-extended-stylesheet';
 import { Swipeable } from 'react-native-gesture-handler';
+import PushNotification from 'react-native-push-notification';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
+import { clearNotifications } from 'simpleshare-common';
 import { RootState } from '../../redux/store';
 import {
     ageToast,
@@ -20,10 +22,15 @@ interface Props {
 const entireScreenWidth = Dimensions.get('window').width;
 EStyleSheet.build({ $rem: entireScreenWidth / 380 });
 
+// Handles in-app toasts and device push notifications.
 export const ToastedScreen: React.FC<Props> = (props: Props) => {
     const dispatch = useDispatch();
     const toasts: IToast[] = useSelector(
         (state: RootState) => state.toaster.toasts
+    );
+
+    const notifications = useSelector(
+        (state: RootState) => state.notifications.notifications
     );
 
     useEffect(() => {
@@ -58,6 +65,19 @@ export const ToastedScreen: React.FC<Props> = (props: Props) => {
             }
         });
     }, [dispatch, toasts]);
+
+    useEffect(() => {
+        if (notifications.length > 0) {
+            notifications.forEach((noti) => {
+                PushNotification.localNotification({
+                    message: `${noti.share?.fromDisplayName}(${noti.share?.fromProfileName}) sent you a share!`,
+                    channelId: 'shares',
+                    userInfo: noti.share,
+                });
+            });
+            dispatch(clearNotifications());
+        }
+    }, [dispatch, notifications]);
 
     const getToastIcon = (toast: IToast) => {
         switch (toast.type) {

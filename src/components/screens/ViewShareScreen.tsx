@@ -11,7 +11,11 @@ import {
 } from 'react-native-navigation';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch } from 'react-redux';
-import { deleteCloudShare, IShare } from 'simpleshare-common';
+import {
+    deleteCloudShare,
+    IShare,
+    removeNotificationForShare,
+} from 'simpleshare-common';
 import { CircleButton } from '../common/CircleButton';
 
 interface Props {
@@ -101,6 +105,9 @@ const ViewShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
 
     const handleDeleteShare = async () => {
         dispatch(deleteCloudShare(props.share));
+        if (props.share.id) {
+            dispatch(removeNotificationForShare(props.share.id));
+        }
         await Navigation.pop(props.componentId);
     };
 
