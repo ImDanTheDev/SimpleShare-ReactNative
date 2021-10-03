@@ -24,6 +24,7 @@ import {
     OutboxState,
     ProfilesState,
     reduxReducers,
+    SearchState,
     SharesState,
 } from 'simpleshare-common';
 import toasterReducer, { ToasterState } from './toasterSlice';
@@ -35,6 +36,7 @@ const combinedReducer = combineReducers({
     shares: reduxReducers.sharesReducer,
     outbox: reduxReducers.outboxReducer,
     localPersist: reduxReducers.localPersistReducer,
+    search: reduxReducers.searchReducer,
     toaster: toasterReducer,
 });
 
@@ -56,15 +58,12 @@ const persistConfig: PersistConfig<
         toaster: ToasterState;
         localPersist: LocalPersistState;
         outbox: OutboxState;
+        search: SearchState;
     }>
 > = {
     key: 'root',
     storage: AsyncStorage,
-    blacklist: ['user', 'auth', 'profiles', 'shares', 'toaster'], // TODO: 'profiles' includes 'currentProfile.'
-    // It would be nice to persist which profile the user last selected. Right now, that
-    // means splitting the profilesReducer in two. Consider moving everything into two
-    // top-level reducers. A 'persistant' and 'nonpersistant' reducer. These top-level
-    // reducers can contain more specific reducers with combineReducers.
+    blacklist: ['user', 'auth', 'profiles', 'shares', 'toaster', 'search'],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

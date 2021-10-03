@@ -30,6 +30,7 @@ import {
 import Spinner from '../common/Spinner';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import DocumentPicker from 'react-native-document-picker';
+import { ComponentId as SearchProfilesScreenComponentId } from './SearchProfilesScreen';
 import {
     MIN_PHONE_NUMBER_LENGTH,
     MIN_PROFILE_NAME_LENGTH,
@@ -370,6 +371,20 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
         });
     };
 
+    const handleSearchButtonPress = async () => {
+        await Navigation.push(props.componentId, {
+            component: {
+                name: SearchProfilesScreenComponentId,
+                passProps: {
+                    phoneNumber: phoneNumber,
+                    onContinue: (profileName: string) => {
+                        setProfileName(profileName);
+                    },
+                },
+            },
+        });
+    };
+
     return (
         <SafeAreaView style={styles.root}>
             <LinearGradient
@@ -418,13 +433,26 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                             placeholder='+11234567890'
                         />
                         <Text style={styles.fieldLabel}>Profile Name:</Text>
-                        <TextInput
-                            ref={profileNameInput}
-                            style={styles.profileInput}
-                            maxLength={constants.MAX_PROFILE_NAME_LENGTH}
-                            onChangeText={setProfileName}
-                            placeholder='Laptop'
-                        />
+                        <View style={styles.profileInputContainer}>
+                            <TextInput
+                                ref={profileNameInput}
+                                style={styles.profileInput}
+                                maxLength={constants.MAX_PROFILE_NAME_LENGTH}
+                                onChangeText={setProfileName}
+                                value={profileName}
+                                placeholder='Laptop'
+                            />
+                            <TouchableOpacity
+                                style={styles.profileInputSearchButton}
+                                onPress={handleSearchButtonPress}
+                            >
+                                <MaterialIcons
+                                    name='search'
+                                    size={30}
+                                    color='#FFF'
+                                />
+                            </TouchableOpacity>
+                        </View>
                         <TouchableOpacity
                             style={styles.addRecipientButton}
                             onPress={handleAddRecipient}
@@ -547,8 +575,9 @@ const styles = EStyleSheet.create({
     },
     /* Body */
     body: {
-        margin: '32rem',
+        margin: '24rem',
         paddingBottom: '48rem',
+        position: 'relative',
     },
     fieldLabel: {
         color: '#FFF',
@@ -566,6 +595,9 @@ const styles = EStyleSheet.create({
         marginBottom: '16rem',
         color: '#FFF',
     },
+    profileInputContainer: {
+        marginBottom: '16rem',
+    },
     profileInput: {
         backgroundColor: '#1A2633',
         borderRadius: '16rem',
@@ -574,8 +606,16 @@ const styles = EStyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: '16rem',
-        marginBottom: '16rem',
         color: '#FFF',
+    },
+    profileInputSearchButton: {
+        position: 'absolute',
+        right: 0,
+        top: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        aspectRatio: 1,
     },
     addRecipientButton: {
         backgroundColor: '#0D161F',

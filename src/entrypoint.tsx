@@ -43,6 +43,10 @@ import UpdateScreen, {
     ComponentId as UpdateScreenComponentId,
     Props as UpdateScreenProps,
 } from './components/screens/UpdateScreen';
+import SearchProfilesScreen, {
+    ComponentId as SearchProfilesScreenComponentId,
+    Props as SearchProfilesScreenProps,
+} from './components/screens/SearchProfilesScreen';
 import { IAuth, IFirebase, IFirestore, IStorage } from '@omnifire/api';
 import { OFAuth, OFFirebase, OFFirestore, OFStorage } from '@omnifire/rn';
 import {
@@ -172,6 +176,12 @@ const entrypoint = (): void => {
             UpdateScreenComponentId,
             false,
             false
+        );
+        registerScreen<SearchProfilesScreenProps>(
+            SearchProfilesScreen,
+            SearchProfilesScreenComponentId,
+            true,
+            true
         );
     };
 
