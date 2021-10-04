@@ -1,6 +1,6 @@
 {
     "name": "simpleshare",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "private": true,
     "scripts": {
         "android:devDebug": "react-native run-android --variant=devDebug --appIdSuffix dev",
@@ -48,7 +48,7 @@
         "react-native-vector-icons": "^8.1.0",
         "react-redux": "^7.2.4",
         "redux-persist": "^6.0.0",
-        "simpleshare-common": "^1.2.21"
+        "simpleshare-common": "^1.2.22"
     },
     "devDependencies": {
         "@babel/core": "^7.12.9",
