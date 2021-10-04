@@ -1,18 +1,23 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, Text, View, ViewabilityConfig, ViewToken } from 'react-native';
+import DraggableFlatList, {
+    DragEndParams,
+    RenderItemParams,
+} from 'react-native-draggable-flatlist';
 import EStyleSheet from 'react-native-extended-stylesheet';
-import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
     constants,
     IProfile,
     selectProfileForEditing,
+    updateAccount,
 } from 'simpleshare-common';
+import { RootState } from '../redux/store';
 import { CircleButton } from './common/CircleButton';
 
 export interface Props {
-    profiles: IProfile[];
     initialProfile?: string;
     editingProfiles: boolean;
     onSwitchProfile: (profile: IProfile) => void;
@@ -22,6 +27,15 @@ export interface Props {
 
 export const ProfilePicker: React.FC<Props> = (props: Props) => {
     const dispatch = useDispatch();
+
+    const publicGeneralInfo = useSelector(
+        (state: RootState) => state.user.publicGeneralInfo
+    );
+
+    const profiles: IProfile[] = useSelector(
+        (state: RootState) => state.profiles.profiles
+    );
+
     const [selectedProfileId, setSelectedProfileId] = useState<
         string | undefined
     >(props.initialProfile);
@@ -31,9 +45,19 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
     const [showRightIndicator, setShowRightIndicator] =
         useState<boolean>(false);
 
+    const [tmpProfiles, setTmpProfiles] = useState<IProfile[]>([]);
+
+    const viewabilityConfig = useRef({
+        itemVisiblePercentThreshold: 50,
+    } as ViewabilityConfig);
+
     useEffect(() => {
         setSelectedProfileId(props.initialProfile);
     }, [props.initialProfile]);
+
+    useEffect(() => {
+        setTmpProfiles(profiles);
+    }, [profiles]);
 
     const handleSwitchProfileButton = (profile: IProfile) => {
         if (
@@ -96,7 +120,7 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
     };
 
     const renderEditButton = (profile: IProfile) => {
-        if (!props.editingProfiles || profile.id === 'default') return <></>;
+        if (!props.editingProfiles) return <></>;
 
         return (
             <View style={styles.deleteProfileButtonContainer}>
@@ -113,61 +137,71 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
         );
     };
 
-    const renderProfile = (profile: IProfile) => {
-        if (selectedProfileId === profile.id) {
+    const renderProfile = ({ item, drag }: RenderItemParams<IProfile>) => {
+        if (selectedProfileId === item.id) {
             return (
                 <CircleButton
-                    key={profile.id}
+                    key={item.id}
                     size={64}
-                    style={styles.profileButton}
+                    style={
+                        publicGeneralInfo?.defaultProfileId === item.id
+                            ? styles.defaultProfileButton
+                            : styles.profileButton
+                    }
                     invertAnimation={true}
-                    onPress={() => handleSwitchProfileButton(profile)}
+                    onPress={() => handleSwitchProfileButton(item)}
+                    onLongPress={drag}
                 >
                     {fallback ||
-                    !profile.pfp ||
-                    profile.pfp === constants.DEFAULT_PFP_ID ? (
+                    !item.pfp ||
+                    item.pfp === constants.DEFAULT_PFP_ID ? (
                         <Text style={styles.profileButtonLabel}>
-                            {profile.name.length > 2
-                                ? profile.name.slice(0, 2)
-                                : profile.name}
+                            {item.name.length > 2
+                                ? item.name.slice(0, 2)
+                                : item.name}
                         </Text>
                     ) : (
                         <Image
                             style={styles.pfp}
                             resizeMode='contain'
-                            source={{ uri: profile.pfp }}
+                            source={{ uri: item.pfp }}
                             onError={() => setFallback(true)}
                         />
                     )}
-                    {renderEditButton(profile)}
+                    {renderEditButton(item)}
                 </CircleButton>
             );
         } else {
             return (
                 <CircleButton
-                    key={profile.id}
+                    key={item.id}
                     size={64}
-                    style={styles.profileButton}
-                    invertAnimation={selectedProfileId === profile.id}
-                    onPress={() => handleSwitchProfileButton(profile)}
+                    style={
+                        publicGeneralInfo?.defaultProfileId === item.id
+                            ? styles.defaultProfileButton
+                            : styles.profileButton
+                    }
+                    invertAnimation={selectedProfileId === item.id}
+                    onPress={() => handleSwitchProfileButton(item)}
+                    onLongPress={drag}
                 >
                     {fallback ||
-                    !profile.pfp ||
-                    profile.pfp === constants.DEFAULT_PFP_ID ? (
+                    !item.pfp ||
+                    item.pfp === constants.DEFAULT_PFP_ID ? (
                         <Text style={styles.profileButtonLabel}>
-                            {profile.name.length > 2
-                                ? profile.name.slice(0, 2)
-                                : profile.name}
+                            {item.name.length > 2
+                                ? item.name.slice(0, 2)
+                                : item.name}
                         </Text>
                     ) : (
                         <Image
                             style={styles.pfp}
                             resizeMode='contain'
-                            source={{ uri: profile.pfp }}
+                            source={{ uri: item.pfp }}
                             onError={() => setFallback(true)}
                         />
                     )}
-                    {renderEditButton(profile)}
+                    {renderEditButton(item)}
                 </CircleButton>
             );
         }
@@ -231,20 +265,30 @@ export const ProfilePicker: React.FC<Props> = (props: Props) => {
         )
     );
 
-    const viewabilityConfig = useRef({
-        itemVisiblePercentThreshold: 50,
-    } as ViewabilityConfig);
+    const handleDragEnd = (params: DragEndParams<IProfile>) => {
+        if (!publicGeneralInfo) return;
+        setTmpProfiles(params.data);
+        dispatch(
+            updateAccount({
+                publicGeneralInfo: {
+                    ...publicGeneralInfo,
+                    profilePositions: params.data.map((p) => p.id || ''),
+                },
+            })
+        );
+    };
 
     return (
         <>
-            <FlatList
-                data={props.profiles}
+            <DraggableFlatList
+                data={tmpProfiles}
                 ListHeaderComponent={renderAddProfile}
-                renderItem={({ item }) => renderProfile(item)}
+                renderItem={renderProfile}
                 keyExtractor={(item: IProfile) => item.id || 'UNKNOWN_PROFILE'}
                 contentContainerStyle={styles.scrollContainer}
                 viewabilityConfig={viewabilityConfig.current}
                 onViewableItemsChanged={handleViewableItemsChanged.current}
+                onDragEnd={handleDragEnd}
                 horizontal={true}
             />
             {renderSelectedProfileIndicator()}
@@ -264,6 +308,14 @@ const styles = EStyleSheet.create({
         backgroundColor: '#E9C46A19',
         borderColor: '#F4A2617F',
         borderWidth: '1rem',
+        overflow: 'hidden',
+        position: 'relative',
+    },
+    defaultProfileButton: {
+        marginHorizontal: '8rem',
+        backgroundColor: '#E9C46A19',
+        borderColor: '#ee7b1ca1',
+        borderWidth: '2rem',
         overflow: 'hidden',
         position: 'relative',
     },

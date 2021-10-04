@@ -1,4 +1,5 @@
 import MaskedView from '@react-native-masked-view/masked-view';
+import { Picker } from '@react-native-picker/picker';
 import React, { useEffect, useState } from 'react';
 import {
     SafeAreaView,
@@ -59,6 +60,7 @@ const AccountSettingsScreen: NavigationFunctionComponent<Props> = (
     const updateAccountError = useSelector(
         (state: RootState) => state.user.updateAccountError
     );
+    const profiles = useSelector((state: RootState) => state.profiles);
 
     const [triedUpdatingAccount, setTriedUpdatingAccount] =
         useState<boolean>(false);
@@ -67,6 +69,9 @@ const AccountSettingsScreen: NavigationFunctionComponent<Props> = (
     );
     const [displayName, setDisplayName] = useState<string>(
         publicGeneralInfo?.displayName || ''
+    );
+    const [defaultProfileId, setDefaultProfileId] = useState<string>(
+        publicGeneralInfo?.defaultProfileId || ''
     );
 
     useEffect(() => {
@@ -143,6 +148,10 @@ const AccountSettingsScreen: NavigationFunctionComponent<Props> = (
                 publicGeneralInfo: {
                     displayName: displayName,
                     isComplete: true,
+                    defaultProfileId: defaultProfileId,
+                    profilePositions:
+                        publicGeneralInfo?.profilePositions ||
+                        profiles.profiles.map((p) => p.id || ''),
                 },
             })
         );
@@ -205,6 +214,26 @@ const AccountSettingsScreen: NavigationFunctionComponent<Props> = (
                             defaultValue={publicGeneralInfo?.displayName || ''}
                             placeholder='John Smith'
                         />
+                        <Text style={styles.fieldLabel}>Default Profile:</Text>
+                        <View style={styles.pickerContainer}>
+                            <Picker
+                                style={styles.picker}
+                                selectedValue={defaultProfileId}
+                                mode='dialog'
+                                onValueChange={(value) =>
+                                    setDefaultProfileId(value)
+                                }
+                            >
+                                {profiles.profiles.map((profile) => (
+                                    <Picker.Item
+                                        color='#FFF'
+                                        key={profile.id}
+                                        label={profile.name}
+                                        value={profile.id}
+                                    />
+                                ))}
+                            </Picker>
+                        </View>
                         <TouchableOpacity
                             style={styles.sendButton}
                             disabled={updatingAccount}
@@ -282,6 +311,7 @@ const styles = EStyleSheet.create({
         paddingHorizontal: '16rem',
         marginBottom: '16rem',
         color: '#FFF',
+        flexDirection: 'row',
     },
     profileInput: {
         backgroundColor: '#1A2633',
@@ -303,6 +333,24 @@ const styles = EStyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: '16rem',
         marginBottom: '16rem',
+    },
+    pickerContainer: {
+        backgroundColor: '#1A2633',
+        borderRadius: '16rem',
+        borderColor: '#F4A2617F',
+        borderWidth: '1rem',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: '16rem',
+        color: '#FFF',
+        flexDirection: 'row',
+    },
+    picker: {
+        flex: 1,
+        color: '#FFF',
+    },
+    itemStyle: {
+        borderRadius: '16rem',
     },
     sendButton: {
         backgroundColor: '#0D161F',

@@ -20,10 +20,13 @@ import {
 import {
     AccountInfoState,
     AuthState,
+    LocalPersistState,
     OutboxState,
     ProfilesState,
     reduxReducers,
+    SearchState,
     SharesState,
+    NotificationsState,
 } from 'simpleshare-common';
 import toasterReducer, { ToasterState } from './toasterSlice';
 
@@ -33,6 +36,9 @@ const combinedReducer = combineReducers({
     profiles: reduxReducers.profilesReducer,
     shares: reduxReducers.sharesReducer,
     outbox: reduxReducers.outboxReducer,
+    localPersist: reduxReducers.localPersistReducer,
+    search: reduxReducers.searchReducer,
+    notifications: reduxReducers.notificationsReducer,
     toaster: toasterReducer,
 });
 
@@ -52,24 +58,31 @@ const persistConfig: PersistConfig<
         profiles: ProfilesState;
         shares: SharesState;
         toaster: ToasterState;
+        localPersist: LocalPersistState;
         outbox: OutboxState;
+        search: SearchState;
+        notifications: NotificationsState;
     }>
 > = {
     key: 'root',
     storage: AsyncStorage,
-    blacklist: ['user', 'auth', 'profiles', 'shares', 'toaster'], // TODO: 'profiles' includes 'currentProfile.'
-    // It would be nice to persist which profile the user last selected. Right now, that
-    // means splitting the profilesReducer in two. Consider moving everything into two
-    // top-level reducers. A 'persistant' and 'nonpersistant' reducer. These top-level
-    // reducers can contain more specific reducers with combineReducers.
+    blacklist: [
+        'user',
+        'auth',
+        'profiles',
+        'shares',
+        'toaster',
+        'search',
+        'notifications',
+    ],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
     reducer: persistedReducer,
-    middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware({
+    middleware: (getDefaultMiddleware) => {
+        const mw = getDefaultMiddleware({
             serializableCheck: {
                 ignoredActions: [
                     FLUSH,
@@ -80,7 +93,13 @@ export const store = configureStore({
                     REGISTER,
                 ],
             },
-        }),
+        });
+        if (__DEV__) {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            mw.push(require('redux-flipper').default());
+        }
+        return mw;
+    },
 });
 
 export const persistor = persistStore(store);

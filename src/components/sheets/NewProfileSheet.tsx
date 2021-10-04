@@ -305,7 +305,7 @@ export const NewProfileSheet: NavigationFunctionComponent<Props> = (
     };
 
     const handlePFPPress = async () => {
-        if (pfpURI && pfpURI !== 'default') {
+        if (pfpURI && pfpURI !== constants.DEFAULT_PFP_ID) {
             setPFPURI(undefined);
             setPFPType(undefined);
             return;

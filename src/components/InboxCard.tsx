@@ -11,7 +11,12 @@ import {
 import EStyleSheet from 'react-native-extended-stylesheet';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch } from 'react-redux';
-import { constants, deleteCloudShare, IShare } from 'simpleshare-common';
+import {
+    constants,
+    deleteCloudShare,
+    IShare,
+    removeNotificationForShare,
+} from 'simpleshare-common';
 import { CardDropdown } from './CardDropdown';
 import { CircleButton } from './common/CircleButton';
 import RNFS from 'react-native-fs';
@@ -129,6 +134,9 @@ export const InboxCard: React.FC<Props> = (props: Props) => {
 
     const handleDeleteCard = async () => {
         dispatch(deleteCloudShare(props.share));
+        if (props.share.id) {
+            dispatch(removeNotificationForShare(props.share.id));
+        }
         setShouldShowBlur(false);
         setDropdownVisibility(false);
     };

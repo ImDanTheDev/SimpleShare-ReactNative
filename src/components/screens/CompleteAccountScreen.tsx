@@ -171,6 +171,18 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = (
             return;
         }
 
+        // TODO: Check if the user already has a default profile.
+        // If they do, do nothing.
+        // If they have a profile, but none are default, make the first one default.
+        // If they dont, create a default profile.
+        dispatch(
+            createProfile({
+                profile: {
+                    name: 'Default',
+                    id: 'default', // TODO: Let firebase autogenerate the user's starter profile.
+                },
+            })
+        );
         dispatch(
             updateAccount({
                 accountInfo: {
@@ -180,14 +192,8 @@ const CompleteAccountScreen: NavigationFunctionComponent<Props> = (
                 publicGeneralInfo: {
                     displayName: displayName,
                     isComplete: true,
-                },
-            })
-        );
-        dispatch(
-            createProfile({
-                profile: {
-                    name: 'Default',
-                    id: 'default',
+                    defaultProfileId: 'default', // TODO: Get the id from the profile that was just created.
+                    profilePositions: ['default'], // TODO: Get the id from the profile that was just created.
                 },
             })
         );

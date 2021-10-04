@@ -1,7 +1,10 @@
 import React, { createRef, useEffect, useRef, useState } from 'react';
 import {
     Animated,
+    Dimensions,
     LayoutChangeEvent,
+    NativeScrollEvent,
+    NativeSyntheticEvent,
     SafeAreaView,
     ScrollView,
     Text,
@@ -74,6 +77,7 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
     );
 
     const settingsButtonContainer = createRef<View>();
+    const outboxList = createRef<View>();
     const blurOpacity = useRef(new Animated.Value(0)).current;
     const blurRequests = useRef<number>(0);
     const [shouldShowBlur, setShouldShowBlur] = useState<boolean>(false);
@@ -84,6 +88,7 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
     const [settingsDropdownRight, setSettingsDropdownRight] =
         useState<number>(0);
     const [editingProfiles, setEditingProfiles] = useState<boolean>(false);
+    const [showOverflowArrow, setShowOverflowArrow] = useState<boolean>(false);
 
     useEffect(() => {
         if (shouldShowBlur) {
@@ -236,6 +241,34 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
         dispatch(clearOutbox());
     };
 
+    const handleLayout = (_e: LayoutChangeEvent) => {
+        const screenHeight = Dimensions.get('screen').height;
+
+        outboxList.current?.measureInWindow((_x, y, _width, height) => {
+            if (y + height > screenHeight && outboxEntries.length > 0) {
+                setShowOverflowArrow(true);
+            } else {
+                setShowOverflowArrow(false);
+            }
+        });
+    };
+
+    const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const overflowThreshold = 16;
+
+        if (
+            Math.abs(
+                e.nativeEvent.contentOffset.y +
+                    e.nativeEvent.layoutMeasurement.height -
+                    e.nativeEvent.contentSize.height
+            ) <= overflowThreshold
+        ) {
+            setShowOverflowArrow(false);
+        } else {
+            setShowOverflowArrow(true);
+        }
+    };
+
     return (
         <SafeAreaView style={styles.root}>
             <LinearGradient
@@ -278,7 +311,6 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
 
                 <View style={styles.profileSection}>
                     <ProfilePicker
-                        profiles={profiles}
                         initialProfile={currentProfile?.id}
                         editingProfiles={editingProfiles}
                         onEditProfile={handleEditProfile}
@@ -299,7 +331,7 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                         </View>
                     }
                 >
-                    <ScrollView>
+                    <ScrollView onScroll={handleScroll}>
                         <Text style={styles.inboxHeader}>
                             {getInboxHeader()}
                         </Text>
@@ -323,7 +355,11 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                                 <></>
                             )}
                         </View>
-                        <View style={styles.outboxSection}>
+                        <View
+                            style={styles.outboxSection}
+                            ref={outboxList}
+                            onLayout={handleLayout}
+                        >
                             <OutboxList
                                 outboxEntries={outboxEntries}
                                 onNewShare={handleNewSharePress}
@@ -355,6 +391,25 @@ const HomeScreen: NavigationFunctionComponent<Props> = (props: Props) => {
             ) : (
                 <></>
             )}
+            {showOverflowArrow && (
+                <View style={styles.overflowArrowContainer}>
+                    <MaterialIcons
+                        name='arrow-drop-down'
+                        color='#FFF'
+                        size={EStyleSheet.value('28rem')}
+                    />
+                    <MaterialIcons
+                        name='arrow-drop-down'
+                        color='#FFF'
+                        size={EStyleSheet.value('28rem')}
+                    />
+                    <MaterialIcons
+                        name='arrow-drop-down'
+                        color='#FFF'
+                        size={EStyleSheet.value('28rem')}
+                    />
+                </View>
+            )}
         </SafeAreaView>
     );
 };
@@ -363,6 +418,7 @@ const styles = EStyleSheet.create({
     root: {
         flex: 1,
         backgroundColor: '#264653',
+        position: 'relative',
     },
     backgroundGradient: {
         flex: 1,
@@ -453,6 +509,15 @@ const styles = EStyleSheet.create({
         top: 0,
         right: 0,
         bottom: 0,
+    },
+    overflowArrowContainer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        alignSelf: 'center',
+        justifyContent: 'space-between',
+        flexDirection: 'row',
     },
     flexFill: {
         flex: 1,
