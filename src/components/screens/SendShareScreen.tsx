@@ -22,7 +22,9 @@ import { pushToast } from '../../redux/toasterSlice';
 import {
     constants,
     ErrorCode,
+    IAccountInfo,
     IProfile,
+    IPublicGeneralInfo,
     IUser,
     sendShare,
     signOut,
@@ -63,9 +65,26 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
         (state: RootState) => state.shares.sendShareError
     );
 
+    const accountInfo: IAccountInfo | undefined = useSelector(
+        (state: RootState) => state.user.accountInfo
+    );
+
+    const publicGeneralInfo: IPublicGeneralInfo | undefined = useSelector(
+        (state: RootState) => state.user.publicGeneralInfo
+    );
+
+    const profiles: IProfile[] = useSelector(
+        (state: RootState) => state.profiles.profiles
+    );
+
     const [triedSendingShare, setTriedSendingShare] = useState<boolean>(false);
-    const [phoneNumber, setPhoneNumber] = useState<string>('');
-    const [profileName, setProfileName] = useState<string>('');
+    const [phoneNumber, setPhoneNumber] = useState<string>(
+        accountInfo?.phoneNumber || ''
+    );
+    const [profileName, setProfileName] = useState<string>(
+        profiles.find((x) => x.id === publicGeneralInfo?.defaultProfileId)
+            ?.name || ''
+    );
     const [shareText, setShareText] = useState<string>('');
     const [fileUri, setFileUri] = useState<string | undefined>(undefined);
     const [fileType, setFileType] = useState<string | undefined>(undefined);
@@ -385,6 +404,30 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
         });
     };
 
+    const handleProfileNameFocus = () => {
+        if (
+            profileName ===
+            profiles.find((x) => x.id === publicGeneralInfo?.defaultProfileId)
+                ?.name
+        ) {
+            setProfileName('');
+        }
+    };
+
+    const clearAutoFilled = () => {
+        if (phoneNumber === accountInfo?.phoneNumber) {
+            setPhoneNumber('');
+            if (
+                profileName ===
+                profiles.find(
+                    (x) => x.id === publicGeneralInfo?.defaultProfileId
+                )?.name
+            ) {
+                setProfileName('');
+            }
+        }
+    };
+
     return (
         <SafeAreaView style={styles.root}>
             <LinearGradient
@@ -427,10 +470,12 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                             style={styles.phoneNumberInput}
                             maxLength={constants.MAX_PHONE_NUMBER_LENGTH}
                             onChangeText={setPhoneNumber}
+                            value={phoneNumber}
                             autoCompleteType={'off'}
                             contextMenuHidden={true}
                             keyboardType='phone-pad'
                             placeholder='+11234567890'
+                            onFocus={clearAutoFilled}
                         />
                         <Text style={styles.fieldLabel}>Profile Name:</Text>
                         <View style={styles.profileInputContainer}>
@@ -441,6 +486,7 @@ const SendShareScreen: NavigationFunctionComponent<Props> = (props: Props) => {
                                 onChangeText={setProfileName}
                                 value={profileName}
                                 placeholder='Laptop'
+                                onFocus={handleProfileNameFocus}
                             />
                             <TouchableOpacity
                                 style={styles.profileInputSearchButton}
